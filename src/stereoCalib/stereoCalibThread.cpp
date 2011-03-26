@@ -66,7 +66,7 @@ bool stereoCalibThread::threadInit()
     if (!outPortRight.open(outNameRight.c_str())) {
       cout << ": unable to open port " << outNameRight << endl;
       return false;
-   }
+   }    
 
    return true;
 }

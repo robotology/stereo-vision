@@ -1,3 +1,4 @@
+project(stereoDisparity)
 
 file(GLOB source_mod *.cpp)
 file(GLOB header_mod *.h)

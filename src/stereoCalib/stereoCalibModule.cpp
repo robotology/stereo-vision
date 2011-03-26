@@ -1,5 +1,6 @@
 #include "stereoCalibModule.h"
 #include <yarp/os/Stamp.h>
+#include <yarp/os/Os.h>
 
 
 
@@ -53,7 +54,7 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
                            "Output image port (string)").asString()
                            );
 	outputCalibPath=rf.getContextPath()+"/";
-
+    yarp::os::mkdir((outputCalibPath+"tmpimg").c_str());
 
 
     if (!handlerPort.open(handlerPortName.c_str())) {
