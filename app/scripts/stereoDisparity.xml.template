@@ -1,0 +1,44 @@
+<application>
+<name>OpenCV grabbers thread</name>
+<dependencies>
+      <port>/icub/cam/left</port>
+      <port>/icub/cam/right</port>
+</dependencies>
+
+<module>
+      <name>DisparityModule</name>
+      <parameters>--from segModule.ini</parameters>
+	  <node>sean</node>
+          <stdio>sean</stdio>
+	<tag>test-grabber1</tag>
+   </module>
+   
+   <module>
+      <name>yarpview</name>
+      <parameters>--name /viewDisp --synch</parameters>
+      <node>sean</node>
+	<tag>view1</tag>
+   </module>
+
+
+<connection>
+  <output>/stereoModule/disparity:o</output>
+  <input>/viewDisp </input>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+  <output>/icub/cam/right</output>
+  <input>/stereoModule/cam/right:i</input>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+  <output>/icub/cam/left</output>
+  <input>/stereoModule/cam/left:i</input>
+  <protocol>udp</protocol>
+</connection>
+
+
+
+</application>

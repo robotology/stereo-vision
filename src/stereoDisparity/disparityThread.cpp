@@ -1,0 +1,239 @@
+#include "disparityThread.h"
+#include <yarp/os/Stamp.h> 
+
+
+disparityThread::disparityThread(string inputLeftPortName, string inputRightPortName, string outName, string calibPath,Port* commPort)
+{
+ this->inputLeftPortName=inputLeftPortName;
+ this->inputRightPortName=inputRightPortName;
+ this->outName=outName;
+ this->commandPort=commPort;
+ this->stereo=new stereoCamera(calibPath+"/intrinsics.yml", calibPath+"/extrinsics.yml");
+ angle=0;
+ this->mutex = new Semaphore(1);
+}
+
+
+
+bool disparityThread::threadInit() 
+{
+     if (!imagePortInLeft.open(inputLeftPortName.c_str())) {
+      cout  << ": unable to open port " << inputLeftPortName << endl;
+      return false; 
+   }
+
+   if (!imagePortInRight.open(inputRightPortName.c_str())) {
+      cout << ": unable to open port " << inputRightPortName << endl;
+      return false;
+   }
+
+    if (!outPort.open(outName.c_str())) {
+      cout << ": unable to open port " << outName << endl;
+      return false;
+   }
+
+	Property option;
+	option.put("device","gazecontrollerclient");
+	option.put("remote","/iKinGazeCtrl");
+	option.put("local","/client/gaze");
+ 
+	gazeCtrl=new PolyDriver(option);
+
+	if (gazeCtrl->isValid()) {
+		gazeCtrl->view(igaze);
+	}
+	else {
+		cout<<"Devices not available"<<endl;
+		return false;
+	}
+
+   return true;
+}
+
+void disparityThread::printMatrixYarp(Matrix &A) {
+    cout << endl;
+	for (int i=0; i<A.rows(); i++) {
+		for (int j=0; j<A.cols(); j++) {
+			cout<<A(i,j)<<" ";
+		}
+		cout<<endl;
+	}
+    cout << endl;
+
+}
+void disparityThread::convert(Matrix &R, Mat& Rot) {
+    for(int i=0; i<Rot.rows; i++)
+        for(int j=0; j<Rot.cols; j++)
+            Rot.at<double>(i,j)=R(i,j);
+}
+
+void disparityThread::getH() {
+
+	yarp::sig::Vector xl;
+	yarp::sig::Vector ol;
+	yarp::sig::Vector xr;
+	yarp::sig::Vector or;
+
+	igaze->getLeftEyePose(xl, ol);
+	igaze->getRightEyePose(xr, or);
+
+	Matrix Rl=axis2dcm(ol);
+	Matrix Rr=axis2dcm(or);
+	
+	int i=0;
+	Matrix Hl(4, 4);
+	for (i=0; i<Rl.cols(); i++)
+		Hl.setCol(i, Rl.getCol(i));
+	for (i=0; i<xl.size(); i++)
+		Hl(i,3)=xl[i];
+
+	int j=0;
+	Matrix Hr(4, 4);
+	for (j=0; j<Rr.cols(); j++)
+		Hr.setCol(j, Rr.getCol(j));
+	for (j=0; j<xr.size(); j++)
+		Hr(j,3)=xr[j];
+
+	H=SE3inv(Hr)*Hl;
+}
+
+
+void disparityThread::run(){
+
+	imageL=new ImageOf<PixelRgb>;
+	imageR=new ImageOf<PixelRgb>;
+
+    Stamp TSLeft;
+    Stamp TSRight;
+
+    bool initL=false;
+    bool initR=false;
+
+    int count=1;
+    IplImage * output=cvCreateImage(cvSize(320,240),8,3);
+	getH();
+   
+    Matrix R=H.submatrix(0,2,0,2);
+    yarp::sig::Vector x=dcm2axis(R);
+    tras=H.submatrix(0,2,3,3);
+    angle=x[3];
+
+    double thang=0.01; // 0.01
+    double thtras=0.005; //0.005
+    updateCameraThread updator(this->stereo,this->mutex,2000);
+   // updator.start();
+    while (!isStopping()) { // the thread continues to run until isStopping() returns true
+        	   
+               getH();
+			   Matrix R=H.submatrix(0,2,0,2);
+			   yarp::sig::Vector x=dcm2axis(R);
+               Matrix newTras=H.submatrix(0,2,3,3);
+               double norma=iCub::ctrl::norm(tras-newTras,0);
+             //  fprintf(stdout, "Angle: %f, Tras: %f \n", abs(x[3]-angle), norma);
+			   if (abs(x[3]-angle)>thang || norma>thtras ) {
+                       
+                   this->mutex->wait();
+                   if(abs(x[3]-angle)>thang) {
+                       double temp = x[3];
+                       x[3]=x[3]-angle;
+                       R=axis2dcm(x);
+                       Mat Rot(3,3,CV_64FC1);
+                       convert(R,Rot);
+
+		               this->stereo->setRotation(Rot,1);
+
+                       angle=temp;
+                   }
+                   Mat traslation(3,1,CV_64FC1);
+                   convert(newTras-tras,traslation);
+
+                   this->stereo->setTranslation(traslation,1);
+                   this->mutex->post();
+               
+                   tras=newTras;
+                   //printMatrix((Mat &)this->stereo->getTranslation());
+
+
+               }
+
+        ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
+        ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
+
+        if(tmpL!=NULL)
+        {
+            *imageL=*tmpL;
+            imagePortInLeft.getEnvelope(TSLeft);
+            initL=true;
+        }
+        if(tmpR!=NULL) 
+        {
+            *imageR=*tmpR;
+            imagePortInRight.getEnvelope(TSRight);
+            initR=true;
+        }
+
+        if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){
+
+               imgL= (IplImage*) imageL->getIplImage();
+               imgR= (IplImage*) imageR->getIplImage();
+ 
+               this->mutex->wait();
+               this->stereo->setImages(imgL,imgR);
+               this->mutex->post();
+
+              this->stereo->computeDisparity();
+
+              disp=stereo->getDisparity();
+              cvCvtColor(&disp,output,CV_GRAY2RGB);
+              ImageOf<PixelBgr>& outim=outPort.prepare();
+               
+              outim.wrapIplImage(output);
+              outPort.write();
+
+               initL=initR=false;
+        }
+    
+      
+   }
+   updator.stop();
+   delete imageL;
+   delete imageR;
+}
+
+void disparityThread::threadRelease() 
+{
+    imagePortInRight.close();
+    imagePortInLeft.close();
+    outPort.close();
+    commandPort->close();
+    delete this->stereo;
+    delete this->mutex;
+	igaze->stopControl();
+	gazeCtrl->close();
+}
+void disparityThread::onStop() {
+    imagePortInRight.interrupt();
+    imagePortInLeft.interrupt();
+    outPort.interrupt();
+    commandPort->interrupt();
+
+}
+
+
+updateCameraThread::updateCameraThread(stereoCamera * cam, Semaphore * mut, int _period): RateThread(_period) {
+     this->stereo=cam;
+     this->mutex=mut;
+}
+
+void updateCameraThread::run() {
+
+
+       this->mutex->wait();
+       this->stereo->undistortImages();
+       this->stereo->findMatch();
+       this->stereo->estimateEssential();
+       this->stereo->optimization();
+       this->mutex->post();
+
+
+ }
