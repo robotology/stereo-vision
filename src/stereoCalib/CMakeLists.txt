@@ -1,14 +1,14 @@
 project(stereoCalib)
 
-file(GLOB source_mod *.cpp)
-file(GLOB header_mod *.h)
-file(GLOB source_aux ../auxialiryFunctions/*.cpp ../auxialiryFunctions/*.c)
-file(GLOB header_aux ../auxialiryFunctions/*.h)
+file(GLOB source *.cpp)
+file(GLOB header *.h)
 
-source_group("Source Files" FILES ${source_mod} ${source_aux})
-source_group("Header Files" FILES ${header_mod} ${header_aux})
+source_group("Source Files" FILES ${source})
+source_group("Header Files" FILES ${header})
 
-add_executable(stereoCalib ${source_mod} ${source_aux} ${header_mod} ${header_aux})
+include_directories(${PROJECT_SOURCE_DIR}/../auxiliaryFunctions)
+
+add_executable(stereoCalib ${source} ${header} ${AUXFCN})
 target_link_libraries(stereoCalib ${ICUB_LIBRARIES} ${YARP_LIBRARIES} ${OPENCV_LIBRARIES})
 install(TARGETS stereoCalib DESTINATION ${ICUB_DIR}/bin)
 
