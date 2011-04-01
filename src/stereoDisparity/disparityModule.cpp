@@ -8,7 +8,7 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
 
 
    moduleName            = rf.check("name", 
-                           Value("stereoModule"), 
+                           Value("stereoDisparity"), 
                            "module name (string)").asString();
    
    setName(moduleName.c_str());
@@ -52,7 +52,7 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
       return false;
    }
 
-    string calibPath=rf.getContextPath()+"/";
+    string calibPath=(rf.getContextPath()+"/").c_str();
  
    attach(handlerPort);
    /* create the thread and pass pointers to the module parameters */

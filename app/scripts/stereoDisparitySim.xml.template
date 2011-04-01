@@ -1,41 +1,42 @@
 <application>
-<name>OpenCV grabbers thread</name>
+<name>Stereo Disparity Depth</name>
 <dependencies>
       <port>/icubSim/cam/left</port>
       <port>/icubSim/cam/right</port>
+      <port>/iKinGazeCtrl/head/x:o</port>
+      <port>/iKinGazeCtrl/head/q:o</port>
 </dependencies>
 
 <module>
-      <name>DisparityModule</name>
-      <parameters>--from segModule.ini</parameters>
-	  <node>sean</node>
-          <stdio>sean</stdio>
-	<tag>test-grabber1</tag>
+      <name>stereoDisparity</name>
+      <parameters>--from stereoDisparity.ini</parameters>
+	  <node>pcNode</node>
+          <stdio>pcNode</stdio>
+	<tag>stereoDisparity</tag>
    </module>
    
    <module>
       <name>yarpview</name>
       <parameters>--name /viewDisp --synch</parameters>
-      <node>sean</node>
+      <node>pcNode</node>
 	<tag>view1</tag>
    </module>
 
-
 <connection>
-  <output>/stereoModule/disparity:o</output>
+  <output>/stereoDisparity/disparity:o</output>
   <input>/viewDisp </input>
   <protocol>udp</protocol>
 </connection>
 
 <connection>
   <output>/icubSim/cam/right</output>
-  <input>/stereoModule/cam/right:i</input>
+  <input>/stereoDisparity/cam/right:i</input>
   <protocol>udp</protocol>
 </connection>
 
 <connection>
   <output>/icubSim/cam/left</output>
-  <input>/stereoModule/cam/left:i</input>
+  <input>/stereoDisparity/cam/left:i</input>
   <protocol>udp</protocol>
 </connection>
 

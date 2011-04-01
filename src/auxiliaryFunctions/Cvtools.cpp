@@ -85,7 +85,7 @@ return res;
 
 }
 
-boolean Cvtools::checkTS(double TSLeft, double TSRight) {
+bool Cvtools::checkTS(double TSLeft, double TSRight) {
     double diff=fabs(TSLeft-TSRight);
     if(diff <0.020)
         return true;
@@ -97,8 +97,7 @@ void Cvtools::saveStereoImage(const char * dir, IplImage* left, IplImage * right
     char pathR[256];
     preparePath(dir, pathL,pathR,num);
     
-    printf("PathL: %s\n",pathL);
-    printf("PathR: %s\n",pathR);
+    printf("Saving images number %d\n",num);
 
    cvSaveImage(pathL,left);
    cvSaveImage(pathR,right);
@@ -128,5 +127,76 @@ void Cvtools::preparePath(const char * dir, char* pathL, char* pathR, int count)
 
     for(int i=0; i<Points.size(); i++) 
         circle(Img,Points[i],2,cvScalar(255,0,0,0));
+
+}
+
+
+void Cvtools::computeContrastandOrientation(IplImage* img, IplImage* arctan, IplImage* contrast) {
+	double max =0;
+	double min =0;
+    IplImage *img_t = cvCreateImage(cvGetSize(img),img->depth,1);
+	IplImage *img_f = cvCreateImage(cvGetSize(img),32,1);
+
+	IplImage * derivativeX= cvCreateImage(cvGetSize(img),32,1);
+	IplImage * derivativeY= cvCreateImage(cvGetSize(img),32,1);
+    if(img->nChannels>1)
+        cvCvtColor(img,img_t,CV_RGB2GRAY);
+    else
+        cvCopy(img,img_t,0);
+    cvMinMaxLoc(img_t,&min,&max,NULL,NULL,NULL);
+	cvConvertScale(img_t,img_f,1.0/max,0);
+
+	cvSobel(img_f,derivativeX,1,0,1);
+	cvSobel(img_f,derivativeY,0,1,1);
+
+	cvZero(arctan);
+	cvZero(contrast);
+	cvCartToPolar(derivativeX, derivativeY, contrast, arctan, 0);
+	//cvThreshold(contrast,contrast,0.7,1,CV_THRESH_BINARY); // puoi thresholdare sul contrasto se vuoi
+
+
+	cvReleaseImage(&img_f);
+	cvReleaseImage(&derivativeX);
+	cvReleaseImage(&derivativeY);
+    cvReleaseImage(&img_t);
+
+}
+
+void Cvtools::computeHOG(IplImage* image, CvHistogram* histTemp) {
+	IplImage * contrastTemplate= cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+	IplImage * arctanTemplate= cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+	IplImage * maskTemplate= cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	computeContrastandOrientation(image,arctanTemplate,contrastTemplate);
+
+
+	cvConvertScale(contrastTemplate,maskTemplate,255,0);
+    cvNamedWindow("Contrasto",1);
+	cvShowImage("Contrasto", maskTemplate);
+	cvCalcHist(&arctanTemplate, histTemp, 0, maskTemplate);
+	cvNormalizeHist(histTemp,1);
+	stampaIstogrammi1D(histTemp, 36,  25, "Hist Temp"); // per visualizzazione
+
+	cvReleaseImage(&contrastTemplate);
+	cvReleaseImage(&arctanTemplate);
+	cvReleaseImage(&maskTemplate);
+}
+
+void Cvtools::stampaIstogrammi1D(CvHistogram* hist, int n_bins, int scale, char* nameWindow) {
+
+	IplImage* hist_img=cvCreateImage(cvSize(n_bins*scale, 255), 8, 3);
+	hist_img->origin=IPL_ORIGIN_BL;
+	float max_value=0;
+	cvGetMinMaxHistValue(hist, 0, &max_value, 0, 0);
+	int i=0;
+	for (i=0; i<n_bins; i++) {
+		float bin_value=cvQueryHistValue_1D(hist, i);
+		int normalizzo=cvRound(bin_value*255/max_value);
+		CvPoint point1=cvPoint(i*scale, 0);
+		CvPoint point2=cvPoint((i+1)*scale, normalizzo);
+		cvRectangle(hist_img, point1, point2, cvScalar(255, 0, 0, 0), -1, 8, 0);
+	}
+    cvNamedWindow(nameWindow,1);
+	cvShowImage(nameWindow, hist_img);
+	cvReleaseImage(&hist_img);
 
 }

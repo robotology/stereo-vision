@@ -9,7 +9,7 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
 
 
    moduleName            = rf.check("name", 
-                           Value("stereoCalibModule"), 
+                           Value("stereoCalib"), 
                            "module name (string)").asString();
    
    setName(moduleName.c_str());
@@ -18,6 +18,10 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
    robotName             = rf.check("robot", 
                            Value("icubSim"), 
                            "Robot name (string)").asString();
+
+   int boardWidth= rf.check("boardWidth", Value(9)).asInt();
+   int boardHeight= rf.check("boardHeight", Value(9)).asInt();
+   float squaresize= rf.check("boardSize", Value(0.03)).asDouble();
 
    /* get the name of the input and output ports, automatically prefixing the module name by using getName() */
 
@@ -54,7 +58,7 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
                            "Output image port (string)").asString()
                            );
 	outputCalibPath=rf.getContextPath()+"/";
-    yarp::os::mkdir((outputCalibPath+"tmpimg").c_str());
+    yarp::os::mkdir((outputCalibPath+"tempimg").c_str());
 
 
     if (!handlerPort.open(handlerPortName.c_str())) {
@@ -66,7 +70,7 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
 
 
 
-   myThread = new stereoCalibThread(inputLeftPortName, inputRightPortName,outputPortNameRight, outputPortNameLeft, &handlerPort,  outputCalibPath);
+   myThread = new stereoCalibThread(inputLeftPortName, inputRightPortName,outputPortNameRight, outputPortNameLeft, &handlerPort,  outputCalibPath,boardWidth, boardHeight,squaresize);
 
    /* now start the thread to do the work */
 
@@ -110,6 +114,7 @@ bool stereoCalibModule::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="start") {
         myThread->startCalib();
+        fprintf(stdout, "Show for 30 times the chess pattern with different orientations and positions \n");
    }
   return true;
 }

@@ -49,7 +49,7 @@ private:
     vector<Point2f> InliersR; // Inliers Right
 
     bool readStringList( const string& filename, vector<string>& l );
-    void runStereoCalib(const vector<string>& imagelist, Size boardSize);
+    void runStereoCalib(const vector<string>& imagelist, Size boardSize,float sqsize);
     void getMatch(const Mat& descL, const vector<KeyPoint>& keypointsL, const Mat& descR, const  vector<KeyPoint>& keypointsR,  vector<DMatch>& matches, bool draw);
     int getBestDistance(const float *di, const Mat& allDesc);
     void chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t);
@@ -63,8 +63,8 @@ public:
     stereoCamera(string intrinsicFileName, string exstrinsicFileName); // Costruttore quando si ha già la calibrazione
     stereoCamera(Camera Left, Camera Right); // Costruttore quando sono già noti i parametri intrinseci
 
-    void stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight);
-    void stereoCalibration(vector<string> imageList, int boardWidth, int boardHeight);
+    void stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize);
+    void stereoCalibration(vector<string> imageList, int boardWidth, int boardHeight, float sqsize);
 
     void saveCalibration(string extrinsicFilePath, string intrinsicFilePath);
     void setImages(IplImage* left, IplImage* right);
@@ -78,8 +78,6 @@ public:
     Point3f triangulation(Point2f& pointleft, Point2f& pointRight, Mat Camera1, Mat Camera2); 
     void estimateEssential();
     void essentialDecomposition();
-    void improveCalibration(); // Bundle Adjustment
-    void retrieveWorldCoordinates(); // Dato un punto 3D in coordinate camera riportarlo in coordinate robot!
   
     void printStereoIntrinsic();
     void printStereoDist();

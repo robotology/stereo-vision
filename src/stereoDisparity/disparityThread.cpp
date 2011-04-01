@@ -61,7 +61,7 @@ void disparityThread::printMatrixYarp(Matrix &A) {
     cout << endl;
 
 }
-void disparityThread::convert(Matrix &R, Mat& Rot) {
+void disparityThread::convert(Matrix& R, Mat& Rot) {
     for(int i=0; i<Rot.rows; i++)
         for(int j=0; j<Rot.cols; j++)
             Rot.at<double>(i,j)=R(i,j);
@@ -72,13 +72,13 @@ void disparityThread::getH() {
 	yarp::sig::Vector xl;
 	yarp::sig::Vector ol;
 	yarp::sig::Vector xr;
-	yarp::sig::Vector or;
+	yarp::sig::Vector orr;
 
 	igaze->getLeftEyePose(xl, ol);
-	igaze->getRightEyePose(xr, or);
+	igaze->getRightEyePose(xr, orr);
 
 	Matrix Rl=axis2dcm(ol);
-	Matrix Rr=axis2dcm(or);
+	Matrix Rr=axis2dcm(orr);
 	
 	int i=0;
 	Matrix Hl(4, 4);
@@ -120,8 +120,11 @@ void disparityThread::run(){
 
     double thang=0.01; // 0.01
     double thtras=0.005; //0.005
+    bool init=true;
+
     updateCameraThread updator(this->stereo,this->mutex,2000);
-   // updator.start();
+
+    //updator.start();
     while (!isStopping()) { // the thread continues to run until isStopping() returns true
         	   
                getH();
@@ -132,7 +135,7 @@ void disparityThread::run(){
              //  fprintf(stdout, "Angle: %f, Tras: %f \n", abs(x[3]-angle), norma);
 			   if (abs(x[3]-angle)>thang || norma>thtras ) {
                        
-                   this->mutex->wait();
+                 //  this->mutex->wait();
                    if(abs(x[3]-angle)>thang) {
                        double temp = x[3];
                        x[3]=x[3]-angle;
@@ -141,14 +144,14 @@ void disparityThread::run(){
                        convert(R,Rot);
 
 		               this->stereo->setRotation(Rot,1);
-
                        angle=temp;
                    }
                    Mat traslation(3,1,CV_64FC1);
-                   convert(newTras-tras,traslation);
+                   Matrix temp=newTras-tras;
+                   convert(temp,traslation);
 
                    this->stereo->setTranslation(traslation,1);
-                   this->mutex->post();
+                  // this->mutex->post();
                
                    tras=newTras;
                    //printMatrix((Mat &)this->stereo->getTranslation());
@@ -174,12 +177,20 @@ void disparityThread::run(){
 
         if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){
 
+
                imgL= (IplImage*) imageL->getIplImage();
                imgR= (IplImage*) imageR->getIplImage();
  
-               this->mutex->wait();
+          //     this->mutex->wait();
                this->stereo->setImages(imgL,imgR);
-               this->mutex->post();
+             //  this->mutex->post();
+            if(init) {
+               this->stereo->undistortImages();
+               this->stereo->findMatch();
+               this->stereo->estimateEssential();
+               this->stereo->optimization();
+               init=false;
+            }
 
               this->stereo->computeDisparity();
 
@@ -226,8 +237,6 @@ updateCameraThread::updateCameraThread(stereoCamera * cam, Semaphore * mut, int 
 }
 
 void updateCameraThread::run() {
-
-
        this->mutex->wait();
        this->stereo->undistortImages();
        this->stereo->findMatch();

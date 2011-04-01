@@ -32,7 +32,7 @@ void printMatrixYarp(Matrix matrix) {
 }
 
 
-stereoCalibThread::stereoCalibThread(string inputLeftPortName, string inputRightPortName, string outNameRight, string outNameLeft, Port* commPort, string dir)
+stereoCalibThread::stereoCalibThread(string inputLeftPortName, string inputRightPortName, string outNameRight, string outNameLeft, Port* commPort, string dir, int bwidth, int bheight, float squsize)
 {
  this->inputLeftPortName=inputLeftPortName;
  this->inputRightPortName=inputRightPortName;
@@ -42,8 +42,9 @@ stereoCalibThread::stereoCalibThread(string inputLeftPortName, string inputRight
  this->dir=dir;
  this->saveVideo=0;
  this->startCalibration=0;
- this->boardWidth=9;
- this->boardHeight=6;
+ this->boardWidth=bwidth;
+ this->boardHeight=bheight;
+ this->squareSize=squsize;
 }
 
 bool stereoCalibThread::threadInit() 
@@ -162,7 +163,7 @@ void stereoCalibThread::run(){
 
                     cout << " Running Stereo Calibration..." << endl;
                     stereoCamera stereo(left,right);
-                    stereo.stereoCalibration(imageListLR, this->boardWidth,this->boardHeight);
+                    stereo.stereoCalibration(imageListLR, this->boardWidth,this->boardHeight,this->squareSize);
                     cout << " Saving Calibration Results... " << endl;
                     stereo.saveCalibration(dir+"extrinsics.yml",dir+"intrinsics.yml");
                     startCalibration=0;

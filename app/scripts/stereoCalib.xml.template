@@ -6,48 +6,48 @@
 </dependencies>
 
 <module>
-      <name>stereoCalibModule</name>
-      <parameters>--from segModule.ini</parameters>
-	  <node>sean</node>
-          <stdio>sean</stdio>
-	<tag>StereoModule</tag>
+      <name>stereoCalib</name>
+      <parameters>--from stereoCalib.ini</parameters>
+	  <node>pcNode</node>
+          <stdio>pcNode</stdio>
+	<tag>StereoCalib</tag>
    </module>
    
    <module>
       <name>yarpview</name>
       <parameters>--name /viewLeft --synch</parameters>
-      <node>sean</node>
+      <node>pcNode</node>
 	<tag>view1</tag>
    </module>
 
    <module>
       <name>yarpview</name>
       <parameters>--name /viewRight --synch</parameters>
-      <node>sean</node>
+      <node>pcNode</node>
         <tag>view2</tag>
    </module>
    
 <connection>
-  <output>/stereoCalibModule/cam/left:o</output>
+  <output>/stereoCalib/cam/left:o</output>
   <input>/viewLeft</input>
   <protocol>udp</protocol>
 </connection>
 
 <connection>
-  <output>/stereoCalibModule/cam/right:o</output>
+  <output>/stereoCalib/cam/right:o</output>
   <input>/viewRight</input>
   <protocol>udp</protocol>
 </connection>
 
 <connection>
   <output>/icub/cam/right</output>
-  <input>/stereoCalibModule/cam/right:i</input>
+  <input>/stereoCalib/cam/right:i</input>
   <protocol>udp</protocol>
 </connection>
 
 <connection>
   <output>/icub/cam/left</output>
-  <input>/stereoCalibModule/cam/left:i</input>
+  <input>/stereoCalib/cam/left:i</input>
   <protocol>udp</protocol>
 </connection>
 

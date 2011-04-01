@@ -9,7 +9,7 @@
 #include <yarp/dev/PolyDriver.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <yarp/dev/GazeControl.h>
-#include <iCub/ctrl/Math.h>
+#include <iCub/ctrl/math.h>
 #include "stereoCamera.h"
 
  
@@ -52,7 +52,7 @@ private:
    
    void getH();
    void printMatrixYarp(Matrix &A);
-   void convert(Matrix &R, Mat& Rot);
+   void convert(Matrix& R, Mat& Rot);
 
 public:
 

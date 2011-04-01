@@ -1,3 +1,87 @@
+/* 
+ * Copyright (C) 2011 RobotCub Consortium
+ * Author: Sean Ryan Fanello
+ * email:   sean.fanello@iit.it
+ * website: www.robotcub.org
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+*/
+
+/**
+@ingroup icub_module
+
+\defgroup stereoCalib stereoCalib
+ 
+Calibrate the stereo system (both intrinsics and extrinsics).
+
+Copyright (C) 2011 RobotCub Consortium
+ 
+Author: Sean Ryan Fanello
+ 
+Date: first release on 26/03/2011
+
+CopyPolicy: Released under the terms of the GNU GPL v2.0.
+
+\section intro_sec Description
+The module performs the stereo calibration used by the stereoDisp module.
+A chessboard pattern is required. 
+For convenience, a chessboard calibration image is provided in the 
+$ICUB_ROOT/main/app/cameraCalibration/data directory.
+
+\note Opencv 2.2 is required!
+  
+\section lib_sec Libraries 
+YARP libraries and OpenCV 2.2
+
+\section parameters_sec Parameters
+--name \e stemName 
+- The parameter \e stemName specifies the stem name of ports 
+  created by the module.
+
+--boardWidth \e numOfCornW 
+- The parameter \e numOfCornW identifies the number of inner corners in the Width direction of the chess
+   
+--boardHeight \e numOfCornH 
+- The parameter \e numOfCornH identifies the number of inner corners in the Height direction of the chess
+
+--boardSize \e squareLength 
+- The parameter \e squareLength identifies the length (in meters) of the squares in the chess (usually 0.03m)
+
+\section portsc_sec Ports Created
+- <i> /<stemName>/cam/left:i </i> accepts the incoming images from the left eye. 
+- <i> /<stemName>/cam/right:i </i> accepts the incoming images from the right eye. 
+
+- <i> /<stemName>/cam/left:o </i> outputs the left eye image synchronized with the right eye. 
+- <i> /<stemName>/cam/right:o </i> outputs the right eye image synchronized with the left eye. 
+
+- <i> /<stemName>/cmd </i> for terminal commands comunication. 
+ Recognized remote commands:
+    - [start]: Starts the calibration procedure, you have to show the chessboard image in different positions and orientations. 
+    In the stdout is printed a message each time the pattern has been recognized by both the eyes. After 30 times the module will run the stereo calibration
+    and it will produce the files intrisincs.yml and extrinsics.yml in ${ICUB_ROOT}/app/stereoVision/conf.
+    These files are required by stereoDisparity for the computation of the depth map.
+ 
+\section in_files_sec Input Data Files
+None.
+
+\section out_data_sec Output Data Files
+None. 
+ 
+\section tested_os_sec Tested OS
+Windows.
+
+\author Sean Ryan Fanello
+*/ 
+
 #include "stereoCalibModule.h"
 
 
@@ -22,67 +106,5 @@ int main(int argc, char * argv[])
    /* run the module: runModule() calls configure first and, if successful, it then runs */
 
    stereoModule.runModule(rf);
-
-
-   /* Camera left;
-    left.calibrate("C:/Users/Utente/Desktop/320/left_calib.xml",9,6);
-    Camera right;
-    right.calibrate("C:/Users/Utente/Desktop/320/right_calib.xml",9,6);
-    stereoCamera stereo(left,right);
-    stereo.stereoCalibration("C:/Users/Utente/Desktop/320/stereo_calib.xml",9,6);
-    stereo.saveCalibration("C:/Users/Utente/Desktop/320/extrinsics.yml","C:/Users/Utente/Desktop/320/intrinsics.yml");*/
-
-    /*stereoCamera stereo("C:/Users/Utente/Desktop/320/intrinsics.yml", "C:/Users/Utente/Desktop/320/extrinsics.yml");
-
-    IplImage * leftim =cvLoadImage("C:/Users/Utente/Desktop/320/tleft.png",1);
-    IplImage * rightim =cvLoadImage("C:/Users/Utente/Desktop/320/tright.png",1);
-
-    int64 t = getTickCount();
-    stereo.setImages(leftim,rightim);
-    stereo.undistortImages();
-    stereo.findMatch();
-  //  cout << stereo.reprojectionErrorAvg() << endl;
-    stereo.estimateEssential();
-    stereo.essentialDecomposition();
-
-    stereo.optimization();
-
-  //  cout << stereo.reprojectionErrorAvg() << endl;
-    stereo.computeDisparity();
-    t = getTickCount() - t;
-     printf("Time elapsed: %fms\n", t*1000/getTickFrequency());
-
-
-   namedWindow("Test",1);
-
-    int64 t = getTickCount();
-
-     t = getTickCount() - t;
-     printf("Time elapsed: %fms\n", t*1000/getTickFrequency());
-
-
-    namedWindow("Left",1);
-    namedWindow("Right",1);
-
-    imshow("Left",stereo.getImLeft());
-    imshow("Right",stereo.getImRight());
-
-    namedWindow("LeftUnd",1);
-    namedWindow("RightUnd",1);
-
-    imshow("LeftUnd",stereo.getImLeftUnd());
-    imshow("RightUnd",stereo.getImRightUnd());
-     Mat imkey;
-
-    namedWindow("Disparity",1);     
-    imshow("Disparity",stereo.getDisparity());
-    drawKeypoints(stereo.getImLeftGray(), stereo.getKeyPointsLeft(), imkey, Scalar(255,0,0,0));
-    namedWindow("KeypointsL",1);
-    imshow("KeypointsL",imkey);
-
-    drawKeypoints(stereo.getImRightGray(), stereo.getKeyPointsRight(), imkey, Scalar(255,0,0,0));
-    namedWindow("KeypointsR",1);
-    imshow("KeypointsR",imkey);
-    cvWaitKey(0);*/
     return 1;
 }

@@ -35,6 +35,7 @@ private:
    int startCalibration;
    int boardWidth;
    int boardHeight;
+   float squareSize;
    char pathL[256];
    char pathR[256];
 
@@ -42,7 +43,7 @@ private:
 public:
 
 
-   stereoCalibThread(string imageInLeft, string imageInRight, string outputPortNameRight, string outputPortNameLeft, Port* commPort, string dir);
+   stereoCalibThread(string imageInLeft, string imageInRight, string outputPortNameRight, string outputPortNameLeft, Port* commPort, string dir,int bwidth, int bheight, float squareSize);
    void setSave();
    void startCalib();
    bool threadInit();     

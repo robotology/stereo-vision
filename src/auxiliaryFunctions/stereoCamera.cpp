@@ -4,12 +4,6 @@ void printMatrix(Mat &matrix) {
     int row=matrix.rows;
     int col =matrix.cols;
         cout << endl;
-   /* for(int i=0; i<row; i++) {
-        for(int j=0; j<col; j++) {
-            cout << matrix(Range(i,i),Range(j,j));
-        }
-        cout << endl;
-    }*/
     for(int i = 0; i < matrix.rows; i++)
     {
         const double* Mi = matrix.ptr<double>(i);
@@ -143,8 +137,9 @@ void funcMeas(double *p, double *x, int m, int n, void *data) {
     stereoCamera * camera = (stereoCamera*) data;
     Mat Rot;
     Mat Tras;
+    vector<Point3f> foo;
     
-    getSolutionfromVariables(Rot,Tras, vector<Point3f>(), p);
+    getSolutionfromVariables(Rot,Tras, foo, p);
     if(m==3)
         Tras=camera->getTranslation();
 
@@ -239,15 +234,15 @@ void stereoCamera::printStereoIntrinsic() {
     }
 }
 
-void stereoCamera::stereoCalibration(vector<string> imagelist, int boardWidth, int boardHeight) {
+void stereoCamera::stereoCalibration(vector<string> imagelist, int boardWidth, int boardHeight,float sqsize) {
     Size boardSize;
     boardSize.width=boardWidth;
     boardSize.height=boardHeight;
-    runStereoCalib(imagelist, boardSize);
+    runStereoCalib(imagelist, boardSize,sqsize);
 
 }
 
-void stereoCamera::stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight) {
+void stereoCamera::stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize) {
     Size boardSize;
     boardSize.width=boardWidth;
     boardSize.height=boardHeight;
@@ -259,7 +254,7 @@ void stereoCamera::stereoCalibration(string imagesFilePath, int boardWidth, int 
         cout << "can not open " << imagesFilePath << " or the string list is empty" << endl;
         return;
     }
-    runStereoCalib(imagelist, boardSize);
+    runStereoCalib(imagelist, boardSize,sqsize);
 
 
 
@@ -281,7 +276,7 @@ bool stereoCamera::readStringList( const string& filename, vector<string>& l )
     return true;
 }
     
-void stereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSize)
+void stereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSize, const float squareSize)
 {
     if( imagelist.size() % 2 != 0 )
     {
@@ -291,7 +286,6 @@ void stereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
     
     bool displayCorners = true;
     const int maxScale = 2;
-    const float squareSize = 3.f;  // Set this to your actual square size
     // ARRAY AND VECTOR STORAGE:
     
     vector<vector<Point2f> > imagePoints[2];
@@ -355,9 +349,7 @@ void stereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 putchar('.');
             if( !found )
                 break;
-           // if(imageSize.width==640)          
-          //      cornerSubPix(img, corners, Size(11,11), Size(-1,-1), TermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 30, 0.01));
-        }
+            }
         if( k == 2 )
         {
             goodImageList.push_back(imagelist[i*2]);
@@ -555,9 +547,9 @@ void stereoCamera::computeDisparity() {
         
         sgbm.P1 = 8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
         sgbm.P2 = 32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-        sgbm.minDisparity =-15;
+        sgbm.minDisparity =-15; //-15
         sgbm.numberOfDisparities = numberOfDisparities;
-        sgbm.uniquenessRatio = 22; //10
+        sgbm.uniquenessRatio = 15; //22
         sgbm.speckleWindowSize = 50; //100
         sgbm.speckleRange = 16; //32
         sgbm.disp12MaxDiff = 1;
@@ -829,10 +821,10 @@ Point3f stereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
 void stereoCamera::estimateEssential() {
     if(this->PointsL.size()<10 || this->PointsL.size()<10 ) {
         cout << "Not enough matches in memory! Run findMatch first!" << endl;
-        this->E=NULL;
+        this->E=Mat(3,3,CV_64FC1);
         return;
     }
-    this->E=NULL;
+
     vector<uchar> status;
     this->E=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_RANSAC, 1, 0.999);
 
@@ -980,7 +972,7 @@ void stereoCamera::optimization() {
     }
 
     //int numVarStruct=PointsL.size()*3;
-    int numVarMoto=3; // 6 -> optimization both rotation and translation. 3 -> only rotation is optimized
+    int numVarMoto=6; // 6 -> optimization both rotation and translation. 3 -> only rotation is optimized
     int measNum=4*InliersL.size();
    
     double* Allvars=prepareVariables(this->R,this->T,WorldPoints);
@@ -1011,9 +1003,9 @@ void stereoCamera::optimization() {
 
    // printf("LM algorithm iterations: %f \n", info[5]);
     Mat Rot;
-    Mat Tras;
-
-    getSolutionfromVariables(Rot,Tras,vector<Point3f>(),Allvars);
+    Mat Tras; 
+    vector<Point3f> foo;
+    getSolutionfromVariables(Rot,Tras,foo,Allvars);
 
     this->R=Rot;
     this->T=(Tras/norm(Tras))*norm(T);
