@@ -29,6 +29,7 @@ private:
     Mat imrightgray; // Right Image Gray
     Mat imrightund; // Undistorted Image Right
     Mat Disparity; // Disparity Map Image
+    Mat Disparity16; // Disparity 16 Bit Signed
 
     Mat Pleft; // Camera Matrix Left 3x4
     Mat Pright; // Camera Matrix Right 3x4
@@ -90,6 +91,7 @@ public:
     const Mat getImLeftUnd();
     const Mat getImRightUnd();
     const Mat getDisparity();
+    const Mat getDisparity16();
     const Mat getQ();
     const Mat getKleft();
     const Mat getKright();

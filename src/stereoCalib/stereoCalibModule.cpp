@@ -20,7 +20,7 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
                            "Robot name (string)").asString();
 
    int boardWidth= rf.check("boardWidth", Value(9)).asInt();
-   int boardHeight= rf.check("boardHeight", Value(9)).asInt();
+   int boardHeight= rf.check("boardHeight", Value(6)).asInt();
    float squaresize= rf.check("boardSize", Value(0.03)).asDouble();
 
    /* get the name of the input and output ports, automatically prefixing the module name by using getName() */

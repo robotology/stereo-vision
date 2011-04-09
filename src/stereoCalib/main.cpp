@@ -19,7 +19,7 @@
 /**
 @ingroup icub_module
 
-\defgroup stereoCalib stereoCalib
+\defgroup icub_stereoCalib stereoCalib
  
 Calibrate the stereo system (both intrinsics and extrinsics).
 

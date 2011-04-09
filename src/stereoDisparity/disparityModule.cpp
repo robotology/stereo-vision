@@ -39,6 +39,14 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
                            "Output image port (string)").asString()
                            );
 	
+   
+   output3DPointName= "/";
+   output3DPointName       += getName(
+                           rf.check("OutPointPort", 
+                           Value("/worldpoint:o"),
+                           "Output image port (string)").asString()
+                           );
+	
 
    handlerPortName        = "/";
    handlerPortName       += getName(
@@ -57,7 +65,7 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
    attach(handlerPort);
    /* create the thread and pass pointers to the module parameters */
 
-   dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName, calibPath,&handlerPort);
+   dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName,output3DPointName, calibPath,&handlerPort);
 
    /* now start the thread to do the work */
 

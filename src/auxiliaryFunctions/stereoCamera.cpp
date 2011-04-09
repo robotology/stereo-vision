@@ -480,6 +480,10 @@ const Mat stereoCamera::getImRight() {
 const Mat stereoCamera::getDisparity() {
     return this->Disparity;
 }
+
+const Mat stereoCamera::getDisparity16() {
+    return this->Disparity16;
+}
 const Mat stereoCamera::getQ() {
     return this->Q;
 }
@@ -499,11 +503,11 @@ void stereoCamera::computeDisparity() {
         Size img_size = this->imleft.size();
         Mat R1, P1, R2, P2;
         Rect roi1, roi2;
-        Mat Q;
+        Mat Q1;
 
        // StereoBM bm;
         StereoSGBM sgbm;
-        stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, R1, R2, P1, P2, Q, -1, img_size, &roi1, &roi2 );
+        stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, R1, R2, P1, P2, Q1, -1, img_size, &roi1, &roi2 );
 
 
         Mat map11, map12, map21, map22;
@@ -520,12 +524,12 @@ void stereoCamera::computeDisparity() {
         imshow("RectR",img2r);
       cvWaitKey(15);*/
 
-        if(numberOfDisparities > 0)
+        /*if(numberOfDisparities > 0)
             numberOfDisparities = numberOfDisparities;
         else if(img_size.width==640)
             numberOfDisparities= img_size.width/8;
         else  
-            numberOfDisparities= img_size.width/8 +8;
+            numberOfDisparities= img_size.width/8 +8;*/
     
         numberOfDisparities=64;
        /* bm.state->roi1 = roi1;
@@ -563,8 +567,11 @@ void stereoCamera::computeDisparity() {
 
 
         //disp = dispp.colRange(numberOfDisparities, img1p.cols);
+        this->Disparity16=disp;
         disp.convertTo(disp8, CV_8U, 255/(numberOfDisparities*16.));
+
         this->Disparity=disp8;        
+        this->Q=Q1;
 
 }
 
@@ -972,7 +979,7 @@ void stereoCamera::optimization() {
     }
 
     //int numVarStruct=PointsL.size()*3;
-    int numVarMoto=6; // 6 -> optimization both rotation and translation. 3 -> only rotation is optimized
+    int numVarMoto=3; // 6 -> optimization both rotation and translation. 3 -> only rotation is optimized
     int measNum=4*InliersL.size();
    
     double* Allvars=prepareVariables(this->R,this->T,WorldPoints);
@@ -1008,7 +1015,8 @@ void stereoCamera::optimization() {
     getSolutionfromVariables(Rot,Tras,foo,Allvars);
 
     this->R=Rot;
-    this->T=(Tras/norm(Tras))*norm(T);
+  //  this->T=(Tras/norm(Tras))*norm(T);
+    this->T=Tras;
     this->updatePMatrix();
 
     free(meas);
@@ -1353,4 +1361,8 @@ void stereoCamera::updatePMatrix() {
 
 const Mat stereoCamera::getTranslation() {
     return this->T;
+}
+
+const Mat stereoCamera::getRotation() {
+    return this->R;
 }

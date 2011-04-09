@@ -19,7 +19,7 @@
 /**
 @ingroup icub_module
 
-\defgroup stereoDisparity stereoDisparity
+\defgroup icub_stereoDisparity stereoDisparity
  
 Builds a depth map using the vision system.
 
@@ -54,7 +54,7 @@ YARP libraries and OpenCV 2.2
 - <i> /<stemName>/cam/right:i </i> accepts the incoming images from the right eye. 
 
 - <i> /<stemName>/disparity:o </i> outputs the disparity map
-
+- <i> /<stemName>/worldpoint:o </i> the 3D point of the fixation point wrt the left camera reference system. Format: (Point3D X Y Z)
 - <i> /<stemName>/cmd </i> for terminal commands comunication (not used yet). 
  
 \section in_files_sec Input Data Files

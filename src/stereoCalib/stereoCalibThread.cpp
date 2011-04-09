@@ -88,6 +88,8 @@ void stereoCalibThread::run(){
     boardSize.width=this->boardWidth;
     boardSize.height=this->boardHeight;
 
+
+
     vector<string> imageListR, imageListL, imageListLR;
 
 
@@ -166,6 +168,7 @@ void stereoCalibThread::run(){
                     stereo.stereoCalibration(imageListLR, this->boardWidth,this->boardHeight,this->squareSize);
                     cout << " Saving Calibration Results... " << endl;
                     stereo.saveCalibration(dir+"extrinsics.yml",dir+"intrinsics.yml");
+                    cout << "Configuration Files Saved! Now you can run stereoDisparity! " << endl;
                     startCalibration=0;
                 }
 
