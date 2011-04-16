@@ -131,7 +131,7 @@ void disparityThread::run(){
     updateCameraThread updator(this->stereo,this->mutex,2000);
     Point3d point;
 
-    //updator.start();
+    updator.start();
     while (!isStopping()) { // the thread continues to run until isStopping() returns true
         	   
                getH();
@@ -142,7 +142,7 @@ void disparityThread::run(){
           
 			   if (abs(x[3]-angle)>thang || norma>thtras ) {
                        
-                 //  this->mutex->wait();
+                   this->mutex->wait();
                    if(abs(x[3]-angle)>thang) {
                        double temp = x[3];
                        x[3]=x[3]-angle;
@@ -158,7 +158,7 @@ void disparityThread::run(){
                    convert(temp,traslation);
 
                    this->stereo->setTranslation(traslation,1);
-                  // this->mutex->post();
+                   this->mutex->post();
                
                    tras=newTras;
                    //fprintf(stdout, "Angle: %f, Tras: %f \n", abs(x[3]-angle), norma);
@@ -187,15 +187,15 @@ void disparityThread::run(){
 
                imgL= (IplImage*) imageL->getIplImage();
                imgR= (IplImage*) imageR->getIplImage();
- 
-          //   this->mutex->wait();
+  
+             this->mutex->wait();
                this->stereo->setImages(imgL,imgR);
-          //   this->mutex->post();
+             this->mutex->post();
             if(init) {
                this->stereo->undistortImages();
                this->stereo->findMatch();
                this->stereo->estimateEssential();
-               this->stereo->optimization();
+               this->stereo->hornRelativeOrientations();
                init=false;
             }
 
@@ -222,22 +222,30 @@ void disparityThread::run(){
                   point.y=point.y/w;
                   point.z=point.z/w;
 
-                  Bottle& outPoint = WorldPointPort.prepare();
-                  outPoint.clear();
-                  outPoint.addString("Point 3D");
-                  outPoint.addDouble(point.x);
-                  outPoint.addDouble(point.y);
-                  outPoint.addDouble(point.z);
-               //   cout << "writing " << outPoint.toString().c_str() << endl;
-                                 
-             //cout << disparity << endl;
+                  if(point.z>0) {
+                      Bottle& outPoint = WorldPointPort.prepare();
+                      outPoint.clear();
+                      outPoint.addString("Point 3D");
+                      outPoint.addDouble(point.x);
+                      outPoint.addDouble(point.y);
+                      outPoint.addDouble(point.z);
+                   //   cout << "writing " << outPoint.toString().c_str() << endl;
+                                     
+                 //cout << disparity << endl;
 
-           //  cout << "X: " << point.x << " Y: " << point.y << " Z: " << point.z << endl;
-                  WorldPointPort.write();
+               //  cout << "X: " << point.x << " Y: " << point.y << " Z: " << point.z << endl;
+                      WorldPointPort.write();
+                  } else {
+                      Bottle& outPoint = WorldPointPort.prepare();
+                      outPoint.clear();
+                      outPoint.addString("Point 3D");
+                      outPoint.addDouble(0);
+                      outPoint.addDouble(0);
+                      outPoint.addDouble(0);
+                      WorldPointPort.write();
+                  }
 
               } 
-
-
             
 
 
@@ -287,10 +295,11 @@ updateCameraThread::updateCameraThread(stereoCamera * cam, Semaphore * mut, int 
 void updateCameraThread::run() {
        this->mutex->wait();
        this->stereo->undistortImages();
+       this->mutex->post();
        this->stereo->findMatch();
        this->stereo->estimateEssential();
-       this->stereo->optimization();
+       this->mutex->wait();
+       this->stereo->hornRelativeOrientations();
        this->mutex->post();
-
 
  }

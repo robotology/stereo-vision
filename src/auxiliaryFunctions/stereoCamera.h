@@ -6,18 +6,14 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "Camera.h"
-#include "levmar.h"
 #include "Cvtools.h"
+#include <fstream>
+
 
 using namespace std;
 using namespace cv;
 
 void printMatrix(Mat &matrix);
-Point3f triangulation(Point2f& pointleft, Point2f& pointRight, Mat Camera1, Mat Camera2);
-void funcMeas(double *p, double *x, int m, int n, void *data);
-void getSolutionfromVariables(Mat& Rot, Mat& Tras, vector<Point3f>& WorldPoints, double * vars);
-void reprojection(Mat& Rot, Mat& Tras, Mat Kleft, Mat Kright, vector<Point2f> PointsL, vector<Point2f> PointsR, double * proj);
-
 
 class stereoCamera 
 {
@@ -54,11 +50,13 @@ private:
     void getMatch(const Mat& descL, const vector<KeyPoint>& keypointsL, const Mat& descR, const  vector<KeyPoint>& keypointsR,  vector<DMatch>& matches, bool draw);
     int getBestDistance(const float *di, const Mat& allDesc);
     void chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t);
-    double * prepareVariables(Mat& R, Mat& T,vector<Point3f>& WorldPoints); 
+    double* prepareVariables(Mat& R, Mat& T,vector<Point3f>& WorldPoints); 
     double* reprojectionError(Mat& Rot, Mat& Tras);
+    void crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, int knn=1 );
     void updatePMatrix();
-
-
+    void horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Point2f> & PointsR,Mat & Rot,Mat & Tras);
+    void normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR);
+    void getRotation(Mat & q, Mat & R);
 public:
     stereoCamera() {}; // Costruttore vuoto quando si vuole calibrare Tutto a partire dalle immagini
     stereoCamera(string intrinsicFileName, string exstrinsicFileName); // Costruttore quando si ha già la calibrazione
@@ -72,9 +70,9 @@ public:
     void findMatch(); 
     void computeDisparity(); 
     double reprojectionErrorAvg();
-    void optimization();
     void undistortImages();
-   
+    void hornRelativeOrientations(); 
+
     Point3f triangulation(Point2f& pointleft, Point2f& pointRight);
     Point3f triangulation(Point2f& pointleft, Point2f& pointRight, Mat Camera1, Mat Camera2); 
     void estimateEssential();
@@ -102,6 +100,6 @@ public:
     const Mat getRotation();
     void setRotation(Mat & Rot, int mul=0);
     void setTranslation(Mat &Tras, int mul=0);
-
+    void savePoints(string pointsLPath, string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR);
 
 };

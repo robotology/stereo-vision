@@ -35,6 +35,7 @@ CopyPolicy: Released under the terms of the GNU GPL v2.0.
 The module exploits the stereo visual system to build a depth map
 using the H. Hirschmuller Algorithm (CVPR 2006) implemented in Opencv 2.2. The computation of the depth map
 is robust to camera movements exploiting the encoders information and updating the camera reference system. 
+The module is also able to refine the estimation of the cameras movements using the Horn Relative Orientations Algorithm.
 Before start make sure you have calibrated the stereo system (in ${ICUB_ROOT}/app/stereoVision/conf you should have the files
 intrinsics.yml and extrinsics.yml). For the stereo calibration see the module stereoCalib.
 
