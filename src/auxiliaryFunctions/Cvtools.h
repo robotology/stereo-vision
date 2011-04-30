@@ -14,7 +14,7 @@ class Cvtools
 {
 public:
 	static IplImage* readImage(string path);
-	static IplImage* thresholdColor(IplImage *im, int threshold);
+	static IplImage* thresholdColor(IplImage *im, int threshold, int x=0, int y=0);
 	static void binaryThresh(IplImage* img, IplImage* mask, IplImage * res);
     static bool checkTS(double TSLeft, double TSRight);
     static void saveStereoImage(const char * dir, IplImage* left, IplImage * right, int num);
@@ -25,6 +25,7 @@ public:
     static void computeContrastandOrientation(IplImage* img, IplImage* arctan, IplImage* contrast);
     static void computeHOG(IplImage* image, CvHistogram* histTemp);
     static void stampaIstogrammi1D(CvHistogram* hist, int n_bins, int scale, char* nameWindow);
-    static void getContour(IplImage* mask, IplImage* maschera);
+    static void getContour(IplImage* mask, IplImage* maschera, int x = 160, int y=120);
+    static void drawTracking(IplImage* image, CvRect track_box);
 };
 

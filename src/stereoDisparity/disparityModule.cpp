@@ -46,6 +46,16 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
                            Value("/worldpoint:o"),
                            "Output image port (string)").asString()
                            );
+
+
+   inputFixationName= "/";
+   inputFixationName       += getName(
+                           rf.check("InputFixation", 
+                           Value("/fixation:i"),
+                           "Output image port (string)").asString()
+                           );
+	
+   int useFixation= rf.check("useFixation", Value(0)).asInt();
 	
 
    handlerPortName        = "/";
@@ -63,16 +73,16 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
     string calibPath=(rf.getContextPath()+"/").c_str();
  
    attach(handlerPort);
-   /* create the thread and pass pointers to the module parameters */
 
-   dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName,output3DPointName, calibPath,&handlerPort);
 
-   /* now start the thread to do the work */
+   dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName,
+       output3DPointName, inputFixationName, calibPath,&handlerPort,useFixation);
 
-   dispThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
-   return true ;      // let the RFModule know everything went well
-                      // so that it will then run the module
+   dispThread->start(); 
+
+   return true ;      
+
 }
 
 
@@ -87,8 +97,6 @@ bool stereoModule::interruptModule()
 
 bool stereoModule::close()
 {
-
-   /* stop the thread */
 
    dispThread->stop();
    delete dispThread;
@@ -109,8 +117,6 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
   return true;
 }
 
-
-/* Called periodically every getPeriod() seconds */
 
 bool stereoModule::updateModule()
 {

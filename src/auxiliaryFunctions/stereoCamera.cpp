@@ -418,7 +418,7 @@ void stereoCamera::computeDisparity() {
         
         sgbm.P1 = 8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
         sgbm.P2 = 32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-        sgbm.minDisparity =-15; //-15
+        sgbm.minDisparity =1; //-15
         sgbm.numberOfDisparities = numberOfDisparities;
         sgbm.uniquenessRatio = 15; //22
         sgbm.speckleWindowSize = 50; //100
@@ -436,13 +436,6 @@ void stereoCamera::computeDisparity() {
         //disp = dispp.colRange(numberOfDisparities, img1p.cols);
 
         disp.convertTo(map, CV_32FC1, 255/(numberOfDisparities*16.));
-
-      //  initUndistortRectifyMap(this->Kleft, this->DistL, R1.inv(),this->Pleft, img_size, CV_16SC2, map11, map12);
- //       initUndistortRectifyMap(this->Kright,  this->DistR, R2.inv(), this->Pright, img_size, CV_16SC2, map21, map22);
-
-      //  remap(map, disp8, map11, map12, INTER_LINEAR);
-       // undistortPoints(map,disp8,this->Kleft,this->DistL,R1,P1);
-
         Mat inverseMap(map.rows*map.cols,1,CV_32FC2);
         for( int y = 0; y < map.rows; y++ )
 
@@ -759,7 +752,7 @@ void stereoCamera::estimateEssential() {
     }
    
 
-    cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
+  //  cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
     this->E=this->Kright.t()*this->E*this->Kleft;
 
 }
@@ -1273,7 +1266,7 @@ void stereoCamera::hornRelativeOrientations() {
     double theta=acos((this->R.at<double>(0,0)+this->R.at<double>(1,1)+this->R.at<double>(2,2)-1)/2);
     double relTheta=(thetaNew*180.0/CV_PI)-(theta*180.0/CV_PI);
     double relNorm=norm(Tras-(this->T/norm(this->T)));
- //   cout << "Angolo: " << relTheta << " Tras: " << relNorm << endl;
+    cout << "Angolo: " << relTheta << " Tras: " << relNorm << endl;
 
 /*   Mat vettore(3,1,CV_64FC1);
     double coso=1/(2*sin(thetaNew));
@@ -1282,7 +1275,8 @@ void stereoCamera::hornRelativeOrientations() {
     vettore.at<double>(2,0)=coso*(Rot.at<double>(1,0)-Rot.at<double>(0,1));
     vettore=vettore/norm(vettore);*/
 
- //   printMatrix(Tras);
+//    printMatrix(Tras);
+ //   printMatrix(Rot);
   //  Mat tm=this->T/norm(this->T);
  //   printMatrix(tm);
 

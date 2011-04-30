@@ -23,6 +23,7 @@ class stereoModule:public RFModule
    string outputPortName;  
    string output3DPointName;
    string handlerPortName;
+   string inputFixationName;
    int thresholdValue;
 
    /* class variables */

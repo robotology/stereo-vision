@@ -126,7 +126,7 @@ void stereoCalibThread::run(){
 
             if(startCalibration>0) {
 
-                string pathImg=dir+"tempimg/";
+                string pathImg=dir;
                 Cvtools::preparePath(pathImg.c_str(), pathL,pathR,count);
                 string iml(pathL);
                 string imr(pathR);

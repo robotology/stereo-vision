@@ -38,11 +38,14 @@ private:
    string inputRightPortName;
    string outName;
    string outWorldPointName;
-   double angle;
+   string inFixationName;
+
+
    BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
    BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
    BufferedPort<ImageOf<PixelBgr> > outPort;
    BufferedPort<Bottle> WorldPointPort;
+   BufferedPort<Bottle> InputFixationPort;
 
    Port *commandPort;
    string dir;
@@ -51,6 +54,8 @@ private:
    IGazeControl* igaze;
    Matrix H;
    Matrix tras;
+   double angle;
+   int useFixation;
    
    void getH();
    void printMatrixYarp(Matrix &A);
@@ -58,7 +63,10 @@ private:
 
 public:
 
-   disparityThread(string imageInLeft, string imageInRight, string outputPortName,string output3DPointName, string calibPath, Port* commPort);
+   disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
+                                 string output3DPointName, string inputFixName, 
+                                 string calibPath,Port* commPort, int useFix);
+
    bool threadInit();     
    void threadRelease();
    void run(); 
@@ -75,6 +83,5 @@ class updateCameraThread : public RateThread {
     public:
         updateCameraThread(stereoCamera *camera, Semaphore * mut, int period);
         virtual void run();
-        
 
 };

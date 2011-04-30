@@ -17,6 +17,7 @@
 */
 
 /**
+*
 @ingroup icub_module
 
 \defgroup icub_stereoDisparity stereoDisparity
@@ -48,11 +49,19 @@ YARP libraries and OpenCV 2.2
 --name \e stemName 
 - The parameter \e stemName specifies the stem name of ports 
   created by the module.
+-- useFixation \e fixBool
+- The parameter \e fixBool = 1 species if you want to use the input fixation pixel values 
+<x1 , y1>, ... <xn, yn> using the the port <i> /<stemName>/cam/fixation:i </i> in order to compute the 3D
+position of the fixated point.
+If fixBool=0 the 3D position will be computed using the center of the image (i.e. it is assumed that the fixated object
+is in the center of the image).
   
 
 \section portsc_sec Ports Created
 - <i> /<stemName>/cam/left:i </i> accepts the incoming images from the left eye. 
 - <i> /<stemName>/cam/right:i </i> accepts the incoming images from the right eye. 
+- <i> /<stemName>/cam/fixation:i </i> Input pixel coordinates of the fixated (or tracked point). This port is used only if the
+variable useFixation in the config file is 1.
 
 - <i> /<stemName>/disparity:o </i> outputs the disparity map
 - <i> /<stemName>/worldpoint:o </i> the 3D point of the fixation point wrt the left camera reference system. Format: (Point3D X Y Z)
@@ -68,7 +77,7 @@ None.
 Linux (Ubuntu 9.04) and Windows.
 
 \author Sean Ryan Fanello
-*/ 
+**/ 
 
 #include <yarp/dev/Drivers.h>
 #include "disparityModule.h"

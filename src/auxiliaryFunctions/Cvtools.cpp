@@ -5,7 +5,7 @@ IplImage * Cvtools::readImage(string path) {
 	return imgo;
 }
 
-IplImage * Cvtools::thresholdColor(IplImage * img, int threshold) {
+IplImage * Cvtools::thresholdColor(IplImage * img, int threshold, int x, int y) {
 
        
   //  cvSmooth(img, img, 1, 3, 0, 0, 0);
@@ -30,20 +30,19 @@ IplImage * Cvtools::thresholdColor(IplImage * img, int threshold) {
     IplImage * GreenSeg=cvCreateImage(size,img->depth,1);
     IplImage * BlueSeg=cvCreateImage(size,img->depth,1);
 
+   CvScalar s;
+   if(x<=0 || y<=0 || x>size.width || y>size.height) {
+	    int centerW= (int) size.width/2;
+	    int centerH= (int) size.height/2;
+	    s = cvGet2D(img,centerH,centerW);
+    } else {
+	    s = cvGet2D(img,y,x);
+    }
 
-	int centerW= (int) size.width/2;
-	int centerH= (int) size.height/2;
-	CvScalar s = cvGet2D(img,centerH,centerW);
-
-    double val=70;
-    //s.val[0]=val;
-    //s.val[1]=val;
-    //s.val[2]=val;
-
-    if(s.val[0]==0) {
-        s.val[0]=val;
-        s.val[1]=val;
-        s.val[2]=val;
+    if(s.val[0]<5) {
+        cvReleaseImage(&res);
+        res=NULL;
+        return res;
     }
 
 	cvSplit(img,Red,Green,Blue,NULL);
@@ -235,7 +234,7 @@ void Cvtools::computeHOG(IplImage* image, CvHistogram* histTemp) {
 	cvReleaseImage(&maskTemplate);
 }
 
-void Cvtools::getContour(IplImage* mask, IplImage* maschera) {
+void Cvtools::getContour(IplImage* mask, IplImage* maschera, int pixelX, int pixelY) {
 
 	cvMorphologyEx(maschera, maschera, 0, 0, CV_MOP_OPEN, 1);
 
@@ -249,7 +248,7 @@ void Cvtools::getContour(IplImage* mask, IplImage* maschera) {
 	contour = cvFindNextContour(sc);
 	while (contour!=NULL) {
 		CvRect rect = cvBoundingRect(contour, 0);
-		if (rect.x<160&&rect.y<120&&(rect.x+rect.width)>160&&(rect.y+rect.height)>120) {
+		if (rect.x<pixelX&&rect.y<pixelY&&(rect.x+rect.width)>pixelX&&(rect.y+rect.height)>pixelY) {
 			break;
 		}
     contour = cvFindNextContour(sc);
@@ -291,4 +290,10 @@ void Cvtools::stampaIstogrammi1D(CvHistogram* hist, int n_bins, int scale, char*
 	cvShowImage(nameWindow, hist_img);
 	cvReleaseImage(&hist_img);
 
+}
+
+void Cvtools::drawTracking(IplImage* image, CvRect track_box) {
+	CvPoint p0=cvPoint(track_box.x, track_box.y);
+	CvPoint p1=cvPoint(track_box.x+track_box.width, track_box.y+track_box.height);
+	cvRectangle(image, p0, p1, CV_RGB(255,0,255), 3, CV_AA, 0);
 }

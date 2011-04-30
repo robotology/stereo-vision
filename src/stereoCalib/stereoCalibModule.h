@@ -44,5 +44,6 @@ public:
    bool respond(const Bottle& command, Bottle& reply);
    double getPeriod(); 
    bool updateModule();
+   void createFullPath(const char* path);
 };
 

@@ -2,7 +2,9 @@
 #include <yarp/os/Stamp.h> 
 
 
-disparityThread::disparityThread(string inputLeftPortName, string inputRightPortName, string outName, string output3DPointName, string calibPath,Port* commPort)
+disparityThread::disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
+                                 string output3DPointName, string inputFixName, 
+                                 string calibPath,Port* commPort, int useFix)
 {
  this->inputLeftPortName=inputLeftPortName;
  this->inputRightPortName=inputRightPortName;
@@ -12,6 +14,8 @@ disparityThread::disparityThread(string inputLeftPortName, string inputRightPort
  angle=0;
  this->mutex = new Semaphore(1);
  this->outWorldPointName=output3DPointName;
+ this->inFixationName=inputFixName;
+ this->useFixation=useFix;
 }
 
 
@@ -34,7 +38,12 @@ bool disparityThread::threadInit()
    }
 
     if (!WorldPointPort.open(outWorldPointName.c_str())) {
-      cout << ": unable to open port " << outName << endl;
+      cout << ": unable to open port " << outWorldPointName << endl;
+      return false;
+   }
+
+    if (!InputFixationPort.open(inFixationName.c_str())) {
+      cout << ": unable to open port " << inFixationName << endl;
       return false;
    }
 
@@ -126,13 +135,15 @@ void disparityThread::run(){
 
     double thang=0.01; // 0.01
     double thtras=0.005; //0.005
-    bool init=true;
 
-    updateCameraThread updator(this->stereo,this->mutex,2000);
+    int pixelX=160;
+    int pixelY=120;
+
+    updateCameraThread updator(this->stereo,this->mutex,500);
     Point3d point;
 
     updator.start();
-    while (!isStopping()) { // the thread continues to run until isStopping() returns true
+    while (!isStopping()) {
         	   
                getH();
 			   Matrix R=H.submatrix(0,2,0,2);
@@ -188,29 +199,34 @@ void disparityThread::run(){
                imgL= (IplImage*) imageL->getIplImage();
                imgR= (IplImage*) imageR->getIplImage();
   
-             this->mutex->wait();
-               this->stereo->setImages(imgL,imgR);
-             this->mutex->post();
-            if(init) {
-               this->stereo->undistortImages();
-               this->stereo->findMatch();
-               this->stereo->estimateEssential();
-               this->stereo->hornRelativeOrientations();
-               init=false;
-            }
+              this->mutex->wait();
+              this->stereo->setImages(imgL,imgR);
+              this->mutex->post();
 
               this->stereo->computeDisparity();
-              
-              int pixelX=160;
-              int pixelY=120;
+
+              if(!this->useFixation) {
+                  pixelX=160;
+                  pixelY=120;
+              }
+              else {
+                  Bottle * fix =InputFixationPort.read();
+                  if(fix!=NULL) {
+                      pixelX=fix->get(0).asInt();
+                      pixelY=fix->get(1).asInt();
+                  }
+              }
               disp=stereo->getDisparity();
 
               IplImage disp16=stereo->getDisparity16();
 
               CvScalar scal= cvGet2D(&disp16,pixelY,pixelX);
               double disparity=-scal.val[0]/16.;
+                 
+             // cout << disparity << endl;
 
-              if(disparity!=0) {
+              // If we have a valid disparity, compute the 3D point and write on the output port
+              if(disparity<0.0) {
                   Mat Q=this->stereo->getQ();
 
                   double w= (disparity*Q.at<double>(3,2)) + Q.at<double>(3,3) ;
@@ -222,40 +238,34 @@ void disparityThread::run(){
                   point.y=point.y/w;
                   point.z=point.z/w;
 
-                  if(point.z>0) {
-                      Bottle& outPoint = WorldPointPort.prepare();
-                      outPoint.clear();
-                      outPoint.addString("Point 3D");
-                      outPoint.addDouble(point.x);
-                      outPoint.addDouble(point.y);
-                      outPoint.addDouble(point.z);
-                   //   cout << "writing " << outPoint.toString().c_str() << endl;
-                                     
-                 //cout << disparity << endl;
+                  Bottle& outPoint = WorldPointPort.prepare();
+                  outPoint.clear();
+                  outPoint.addString("Point 3D");
+                  outPoint.addDouble(point.x);
+                  outPoint.addDouble(point.y);
+                  outPoint.addDouble(point.z);
+                  WorldPointPort.write();
+               //   cout << "writing " << outPoint.toString().c_str() << endl;       
+               //   cout << "X: " << point.x << " Y: " << point.y << " Z: " << point.z << endl;
 
-               //  cout << "X: " << point.x << " Y: " << point.y << " Z: " << point.z << endl;
-                      WorldPointPort.write();
-                  } else {
-                      Bottle& outPoint = WorldPointPort.prepare();
-                      outPoint.clear();
-                      outPoint.addString("Point 3D");
-                      outPoint.addDouble(0);
-                      outPoint.addDouble(0);
-                      outPoint.addDouble(0);
-                      WorldPointPort.write();
-                  }
-
-              } 
+              } else {
+                 // We handle outliers (no valid disparity) with very large distances
+                  Bottle& outPoint = WorldPointPort.prepare();
+                  outPoint.clear();
+                  outPoint.addString("Point 3D");
+                  outPoint.addDouble(1E100);
+                  outPoint.addDouble(1E100);
+                  outPoint.addDouble(1E100);
+                  WorldPointPort.write();
+              }
             
-
-
               cvCvtColor(&disp,output,CV_GRAY2RGB);
               ImageOf<PixelBgr>& outim=outPort.prepare();
                
               outim.wrapIplImage(output);
               outPort.write();
 
-               initL=initR=false;
+              initL=initR=false;
         }
     
       
@@ -271,11 +281,13 @@ void disparityThread::threadRelease()
     imagePortInLeft.close();
     outPort.close();
     WorldPointPort.close();
+    InputFixationPort.close();
     commandPort->close();
     delete this->stereo;
     delete this->mutex;
 	igaze->stopControl();
 	gazeCtrl->close();
+
 }
 void disparityThread::onStop() {
     imagePortInRight.interrupt();
@@ -283,6 +295,7 @@ void disparityThread::onStop() {
     outPort.interrupt();
     commandPort->interrupt();
     WorldPointPort.interrupt();
+    InputFixationPort.interrupt();
 
 }
 
@@ -296,8 +309,10 @@ void updateCameraThread::run() {
        this->mutex->wait();
        this->stereo->undistortImages();
        this->mutex->post();
+
        this->stereo->findMatch();
        this->stereo->estimateEssential();
+
        this->mutex->wait();
        this->stereo->hornRelativeOrientations();
        this->mutex->post();

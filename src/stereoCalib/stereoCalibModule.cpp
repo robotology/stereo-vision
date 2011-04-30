@@ -57,9 +57,17 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
                            Value("/cmd"),
                            "Output image port (string)").asString()
                            );
-	outputCalibPath=rf.getContextPath()+"/";
-    yarp::os::mkdir((outputCalibPath+"tempimg").c_str());
-
+    char dirName[255];
+    bool proceed=true;
+    for (int i=1; proceed; i++)
+        {		
+           sprintf(dirName,"./%s_%.5d","calibImg",i);
+		   proceed=!yarp::os::stat(dirName);
+        }
+    
+    createFullPath(dirName);
+    string outoutCalibPath=dirName;
+    outoutCalibPath +="/";
 
     if (!handlerPort.open(handlerPortName.c_str())) {
       cout << ": unable to open port " << handlerPortName << endl;
@@ -134,4 +142,19 @@ double stereoCalibModule::getPeriod()
 
     
    return 0.1;
+}
+
+void stereoCalibModule::createFullPath(const char* path)
+{
+	if (yarp::os::stat(path))
+    {
+        string strPath=string(path);
+        size_t found=strPath.find_last_of("/");
+    
+        while (strPath[found]=='/')
+            found--;
+
+        createFullPath(strPath.substr(0,found+1).c_str());
+		yarp::os::mkdir(strPath.c_str());
+    }
 }
