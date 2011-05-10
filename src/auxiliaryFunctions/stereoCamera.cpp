@@ -418,7 +418,7 @@ void stereoCamera::computeDisparity() {
         
         sgbm.P1 = 8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
         sgbm.P2 = 32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-        sgbm.minDisparity =1; //-15
+        sgbm.minDisparity =-10; //-15
         sgbm.numberOfDisparities = numberOfDisparities;
         sgbm.uniquenessRatio = 15; //22
         sgbm.speckleWindowSize = 50; //100
@@ -752,7 +752,7 @@ void stereoCamera::estimateEssential() {
     }
    
 
-  //  cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
+    cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
     this->E=this->Kright.t()*this->E*this->Kleft;
 
 }
@@ -1208,8 +1208,8 @@ void stereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
-    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, 0.2 );
-    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, 0.2 );
+    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, 0.15 );
+    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, 0.15 );
     for( size_t m = 0; m < matches12.size(); m++ )
     {
         bool findCrossCheck = false;
