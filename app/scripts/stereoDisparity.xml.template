@@ -41,6 +41,13 @@
   <protocol>udp</protocol>
 </connection>
 
+<connection>
+  <output>/objectTracker/tracking:o</output>
+  <input>/stereoDisparity/fixation:i</input>
+  <protocol>tcp</protocol>
+</connection>
+
+
 
 
 </application>
