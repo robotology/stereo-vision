@@ -179,7 +179,7 @@ void stereoCalibThread::run(){
                 outPortLeft.write();
 
                 ImageOf<PixelRgb>& outimR=outPortRight.prepare();
-                outimR=*imageL;
+                outimR=*imageR;
                 outPortRight.write();
                 initL=initR=false;
         }
