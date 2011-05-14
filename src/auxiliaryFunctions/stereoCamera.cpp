@@ -151,7 +151,7 @@ void stereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
         return;
     }
     
-    bool displayCorners = true;
+    bool displayCorners = false;
     const int maxScale = 2;
     // ARRAY AND VECTOR STORAGE:
     
@@ -752,7 +752,7 @@ void stereoCamera::estimateEssential() {
     }
    
 
-    cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
+//    cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
     this->E=this->Kright.t()*this->E*this->Kleft;
 
 }
@@ -1266,7 +1266,7 @@ void stereoCamera::hornRelativeOrientations() {
     double theta=acos((this->R.at<double>(0,0)+this->R.at<double>(1,1)+this->R.at<double>(2,2)-1)/2);
     double relTheta=(thetaNew*180.0/CV_PI)-(theta*180.0/CV_PI);
     double relNorm=norm(Tras-(this->T/norm(this->T)));
-    cout << "Angolo: " << relTheta << " Tras: " << relNorm << endl;
+ //   cout << "Angolo: " << relTheta << " Tras: " << relNorm << endl;
 
 /*   Mat vettore(3,1,CV_64FC1);
     double coso=1/(2*sin(thetaNew));

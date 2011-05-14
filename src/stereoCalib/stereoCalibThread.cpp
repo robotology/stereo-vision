@@ -32,7 +32,7 @@ void printMatrixYarp(Matrix matrix) {
 }
 
 
-stereoCalibThread::stereoCalibThread(string inputLeftPortName, string inputRightPortName, string outNameRight, string outNameLeft, Port* commPort, string dir, int bwidth, int bheight, float squsize)
+stereoCalibThread::stereoCalibThread(string inputLeftPortName, string inputRightPortName, string outNameRight, string outNameLeft, Port* commPort, const char *dir, int bwidth, int bheight, float squsize)
 {
  this->inputLeftPortName=inputLeftPortName;
  this->inputRightPortName=inputRightPortName;
@@ -45,6 +45,9 @@ stereoCalibThread::stereoCalibThread(string inputLeftPortName, string inputRight
  this->boardWidth=bwidth;
  this->boardHeight=bheight;
  this->squareSize=squsize;
+
+
+ fprintf(stdout, "%s \n", dir);
 }
 
 bool stereoCalibThread::threadInit() 
@@ -87,8 +90,6 @@ void stereoCalibThread::run(){
     Size boardSize, imageSize;
     boardSize.width=this->boardWidth;
     boardSize.height=this->boardHeight;
-
-
 
     vector<string> imageListR, imageListL, imageListLR;
 
@@ -167,7 +168,7 @@ void stereoCalibThread::run(){
                     stereoCamera stereo(left,right);
                     stereo.stereoCalibration(imageListLR, this->boardWidth,this->boardHeight,this->squareSize);
                     cout << " Saving Calibration Results... " << endl;
-                    stereo.saveCalibration(dir+"extrinsics.yml",dir+"intrinsics.yml");
+                    stereo.saveCalibration(dir+"/../extrinsics.yml",dir+"/../intrinsics.yml");
                     cout << "Configuration Files Saved! Now you can run stereoDisparity! " << endl;
                     startCalibration=0;
                 }

@@ -43,7 +43,7 @@ private:
 public:
 
 
-   stereoCalibThread(string imageInLeft, string imageInRight, string outputPortNameRight, string outputPortNameLeft, Port* commPort, string dir,int bwidth, int bheight, float squareSize);
+   stereoCalibThread(string imageInLeft, string imageInRight, string outputPortNameRight, string outputPortNameLeft, Port* commPort, const char *dir,int bwidth, int bheight, float squareSize);
    void setSave();
    void startCalib();
    bool threadInit();     

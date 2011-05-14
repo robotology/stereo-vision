@@ -59,15 +59,22 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
                            );
     char dirName[255];
     bool proceed=true;
+
+
+    string dir = rf.getContextPath().c_str();
     for (int i=1; proceed; i++)
-        {		
-           sprintf(dirName,"./%s_%.5d","calibImg",i);
+        {
+           sprintf(dirName,"%s/%s_%.5d",dir.c_str(),"calibImg",i);
 		   proceed=!yarp::os::stat(dirName);
+           sprintf(dirName,"%s/%s_%.5d/",dir.c_str(),"calibImg",i);
         }
     
     createFullPath(dirName);
     string outoutCalibPath=dirName;
     outoutCalibPath +="/";
+
+
+
 
     if (!handlerPort.open(handlerPortName.c_str())) {
       cout << ": unable to open port " << handlerPortName << endl;
@@ -78,7 +85,7 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
 
 
 
-   myThread = new stereoCalibThread(inputLeftPortName, inputRightPortName,outputPortNameRight, outputPortNameLeft, &handlerPort,  outputCalibPath,boardWidth, boardHeight,squaresize);
+   myThread = new stereoCalibThread(inputLeftPortName, inputRightPortName,outputPortNameRight, outputPortNameLeft, &handlerPort,  dirName, boardWidth, boardHeight,squaresize);
 
    /* now start the thread to do the work */
 
