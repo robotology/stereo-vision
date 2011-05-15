@@ -129,7 +129,7 @@ void Cvtools::saveStereoImage(const char * dir, IplImage* left, IplImage * right
     char pathR[256];
     preparePath(dir, pathL,pathR,num);
     
-    printf("Saving images number %d\n",num);
+    fprintf(stdout,"Saving images number %d \n",num);
 
    cvSaveImage(pathL,left);
    cvSaveImage(pathR,right);

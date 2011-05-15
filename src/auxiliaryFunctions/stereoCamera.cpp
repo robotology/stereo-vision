@@ -546,8 +546,8 @@ void stereoCamera::findMatch() {
     this->InliersL.clear();
     this->InliersR.clear();
 
-    Ptr<FeatureDetector> detector = FeatureDetector::create( "SURF" );
-    Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SURF");
+    Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
+    Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
     Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce" );
 
     vector<KeyPoint> keypoints1;

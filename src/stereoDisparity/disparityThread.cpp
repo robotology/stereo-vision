@@ -142,7 +142,7 @@ void disparityThread::run(){
     updateCameraThread updator(this->stereo,this->mutex,500);
     Point3d point;
 
-  //  updator.start();
+ //  updator.start();
     bool init=true;
     while (!isStopping()) {
         	   
@@ -205,11 +205,14 @@ void disparityThread::run(){
               this->mutex->post();
 
               if(init) {
-               stereo->undistortImages();
-               stereo->findMatch();
-               stereo->estimateEssential();
-               stereo->hornRelativeOrientations();
-               init=false;
+                   this->mutex->wait();
+                   stereo->undistortImages();
+                   stereo->findMatch();
+                   stereo->estimateEssential();
+                   stereo->hornRelativeOrientations();
+                   this->mutex->post();
+
+                   init=false;
               }
 
               this->stereo->computeDisparity();
