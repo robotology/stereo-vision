@@ -178,7 +178,17 @@ void disparityThread::run(){
 
 
                }
-
+        if(!this->useFixation) {
+                  pixelX=160;
+                  pixelY=120;
+              }
+        else {
+              Bottle * fix =InputFixationPort.read();
+              if(fix!=NULL) {
+                  pixelX=fix->get(0).asInt();
+                  pixelY=fix->get(1).asInt();
+              }
+        }
         ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
         ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
 
@@ -194,6 +204,8 @@ void disparityThread::run(){
             imagePortInRight.getEnvelope(TSRight);
             initR=true;
         }
+       
+
 
         if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){
 
@@ -217,24 +229,25 @@ void disparityThread::run(){
 
               this->stereo->computeDisparity();
 
-              if(!this->useFixation) {
-                  pixelX=160;
-                  pixelY=120;
-              }
-              else {
-                  Bottle * fix =InputFixationPort.read();
-                  if(fix!=NULL) {
-                      pixelX=fix->get(0).asInt();
-                      pixelY=fix->get(1).asInt();
-                  }
-              }
+
               disp=stereo->getDisparity();
 
               IplImage disp16=stereo->getDisparity16();
 
-              CvScalar scal= cvGet2D(&disp16,pixelY,pixelX);
-              double disparity=-scal.val[0]/16.;
-                 
+
+         //     int remX=(int) stereo->getMapL1().ptr<float>(pixelY-1)[pixelX-1];
+         //     int remY=(int) stereo->getMapL2().ptr<float>(pixelY-1)[pixelX-1];
+             int remX=pixelX;
+            int remY=pixelY;
+                
+          
+             double disparity;
+              if(remX>=imgL->width || remX < 0 || remY >= imgL->height || remY<0)
+                    disparity=10;
+              else {
+                  CvScalar scal= cvGet2D(&disp16,remY,remX);
+                  disparity=-scal.val[0]/16.;
+              }
              // cout << disparity << endl;
 
               // If we have a valid disparity, compute the 3D point and write on the output port
@@ -242,8 +255,8 @@ void disparityThread::run(){
                   Mat Q=this->stereo->getQ();
 
                   double w= (disparity*Q.at<double>(3,2)) + Q.at<double>(3,3) ;
-                  point.x= (pixelX*Q.at<double>(0,0)) + Q.at<double>(0,3);
-                  point.y=(pixelY*Q.at<double>(1,1)) + Q.at<double>(1,3);
+                  point.x= ((remX)*Q.at<double>(0,0)) + Q.at<double>(0,3);
+                  point.y=((remY)*Q.at<double>(1,1)) + Q.at<double>(1,3);
                   point.z= Q.at<double>(2,3);
 
                   point.x=point.x/w;
@@ -262,11 +275,22 @@ void disparityThread::run(){
 
               } else {
                  // We handle outliers (no valid disparity) with very large distances
+                  Mat Q=this->stereo->getQ();
+                  double w= (disparity*Q.at<double>(3,2)) + Q.at<double>(3,3) ;
+                  point.x= (remX*Q.at<double>(0,0)) + Q.at<double>(0,3);
+                  point.y=(remY*Q.at<double>(1,1)) + Q.at<double>(1,3);
+                  point.z= Q.at<double>(2,3);
+
+
+                  point.x=point.x/w;
+                  point.y=point.y/w;
+                  point.z=point.z/w;
+
                   Bottle& outPoint = WorldPointPort.prepare();
                   outPoint.clear();
                   outPoint.addString("Point 3D");
-                  outPoint.addDouble(1E100);
-                  outPoint.addDouble(1E100);
+                  outPoint.addDouble(point.x);
+                  outPoint.addDouble(point.y);
                   outPoint.addDouble(1E100);
                   WorldPointPort.write();
               }

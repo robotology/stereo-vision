@@ -378,12 +378,17 @@ void stereoCamera::computeDisparity() {
 
 
         Mat map11, map12, map21, map22;
-        initUndistortRectifyMap(this->Kleft, this->DistL, R1, P1, img_size, CV_16SC2, map11, map12);
-        initUndistortRectifyMap(this->Kright,  this->DistR, R2, P2, img_size, CV_16SC2, map21, map22);
+        initUndistortRectifyMap(this->Kleft, this->DistL, R1, P1, img_size, CV_32FC1, map11, map12);
+        initUndistortRectifyMap(this->Kright,  this->DistR, R2, P2, img_size, CV_32FC1, map21, map22);
         
         Mat img1r, img2r;
+        this->Mapl1=map21;
+        this->Mapl2=map22;
+
         remap(this->imleft, img1r, map11, map12, INTER_LINEAR);
         remap(this->imright, img2r, map21, map22, INTER_LINEAR);
+
+
 
         /*namedWindow("RectL",1);
         namedWindow("RectR",1);
@@ -1493,4 +1498,10 @@ void stereoCamera::savePoints(string pointsLPath,string pointsRPath, vector<Poin
 
 }
 
+const Mat stereoCamera::getMapL1() {
+ return this->Mapl1;
+}
 
+const Mat stereoCamera::getMapL2() {
+ return this->Mapl2;
+}

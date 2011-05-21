@@ -39,6 +39,10 @@ private:
     Mat E; // Essential Matrix
 
 
+    Mat Mapl1;
+    Mat Mapl2;
+
+
     vector<Point2f> PointsL; // Match Left
     vector<Point2f> PointsR; // Match Right
   
@@ -101,5 +105,7 @@ public:
     void setRotation(Mat & Rot, int mul=0);
     void setTranslation(Mat &Tras, int mul=0);
     void savePoints(string pointsLPath, string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR);
+    const Mat getMapL1();
+    const Mat getMapL2();
 
 };
