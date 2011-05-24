@@ -13,6 +13,7 @@ disparityThread::disparityThread(string inputLeftPortName, string inputRightPort
  this->stereo=new stereoCamera(calibPath+"/intrinsics.yml", calibPath+"/extrinsics.yml");
  angle=0;
  this->mutex = new Semaphore(1);
+ this->mutexDisp = new Semaphore(1);
  this->outWorldPointName=output3DPointName;
  this->inFixationName=inputFixName;
  this->useFixation=useFix;
@@ -227,73 +228,34 @@ void disparityThread::run(){
                    init=false;
               }
 
+              this->mutexDisp->wait();
               this->stereo->computeDisparity();
-
+              this->mutexDisp->post();        
 
               disp=stereo->getDisparity();
 
               IplImage disp16=stereo->getDisparity16();
 
 
-         //     int remX=(int) stereo->getMapL1().ptr<float>(pixelY-1)[pixelX-1];
-         //     int remY=(int) stereo->getMapL2().ptr<float>(pixelY-1)[pixelX-1];
-             int remX=pixelX;
-            int remY=pixelY;
+            int remX=(int) stereo->getMapL1().ptr<float>(pixelY-1)[pixelX-1];
+            int remY=(int) stereo->getMapL2().ptr<float>(pixelY-1)[pixelX-1];
+          //  int remX=pixelX-1;
+         //  int remY=pixelY-1;
                 
           
-             double disparity;
-              if(remX>=imgL->width || remX < 0 || remY >= imgL->height || remY<0)
-                    disparity=10;
-              else {
-                  CvScalar scal= cvGet2D(&disp16,remY,remX);
-                  disparity=-scal.val[0]/16.;
-              }
+            Point3f point=get3DPoints(remX+1,remY+1);
+
              // cout << disparity << endl;
 
-              // If we have a valid disparity, compute the 3D point and write on the output port
-              if(disparity<0.0) {
-                  Mat Q=this->stereo->getQ();
 
-                  double w= (disparity*Q.at<double>(3,2)) + Q.at<double>(3,3) ;
-                  point.x= ((remX)*Q.at<double>(0,0)) + Q.at<double>(0,3);
-                  point.y=((remY)*Q.at<double>(1,1)) + Q.at<double>(1,3);
-                  point.z= Q.at<double>(2,3);
-
-                  point.x=point.x/w;
-                  point.y=point.y/w;
-                  point.z=point.z/w;
-
-                  Bottle& outPoint = WorldPointPort.prepare();
-                  outPoint.clear();
-                  outPoint.addString("Point 3D");
-                  outPoint.addDouble(point.x);
-                  outPoint.addDouble(point.y);
-                  outPoint.addDouble(point.z);
-                  WorldPointPort.write();
-               //   cout << "writing " << outPoint.toString().c_str() << endl;       
-               //   cout << "X: " << point.x << " Y: " << point.y << " Z: " << point.z << endl;
-
-              } else {
-                 // We handle outliers (no valid disparity) with very large distances
-                  Mat Q=this->stereo->getQ();
-                  double w= (disparity*Q.at<double>(3,2)) + Q.at<double>(3,3) ;
-                  point.x= (remX*Q.at<double>(0,0)) + Q.at<double>(0,3);
-                  point.y=(remY*Q.at<double>(1,1)) + Q.at<double>(1,3);
-                  point.z= Q.at<double>(2,3);
-
-
-                  point.x=point.x/w;
-                  point.y=point.y/w;
-                  point.z=point.z/w;
-
-                  Bottle& outPoint = WorldPointPort.prepare();
-                  outPoint.clear();
-                  outPoint.addString("Point 3D");
-                  outPoint.addDouble(point.x);
-                  outPoint.addDouble(point.y);
-                  outPoint.addDouble(1E100);
-                  WorldPointPort.write();
-              }
+              Bottle& outPoint = WorldPointPort.prepare();
+              outPoint.clear();
+              outPoint.addString("Point 3D");
+              outPoint.addDouble(point.x);
+              outPoint.addDouble(point.y);
+              outPoint.addDouble(point.z);
+              WorldPointPort.write();
+             
             
               cvCvtColor(&disp,output,CV_GRAY2RGB);
               ImageOf<PixelBgr>& outim=outPort.prepare();
@@ -321,6 +283,7 @@ void disparityThread::threadRelease()
     commandPort->close();
     delete this->stereo;
     delete this->mutex;
+    delete this->mutexDisp;
 	igaze->stopControl();
 	gazeCtrl->close();
 
@@ -335,7 +298,61 @@ void disparityThread::onStop() {
 
 }
 
+Point3f disparityThread::get3DPoints(int u, int v) {
+    u=u-1; // matrix starts from (0,0), pixels from (1,1)
+    v=v-1;
+    Point3f point;
+    this->mutexDisp->wait();
+    IplImage disp16=this->stereo->getDisparity16();
+    if(u<0 || u>=disp.width || v<0 || v>=disp.height) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+    }
+    else {
+     Mat Q=this->stereo->getQ();
+     CvScalar scal= cvGet2D(&disp16,v,u);
+     double disparity=-scal.val[0]/16.0;
+     double w= (disparity*Q.at<double>(3,2)) + Q.at<double>(3,3);
+     point.x= ((u+1)*Q.at<double>(0,0)) + Q.at<double>(0,3);
+     point.y=((v+1)*Q.at<double>(1,1)) + Q.at<double>(1,3);
+     point.z= Q.at<double>(2,3);
 
+     point.x=point.x/w;
+     point.y=point.y/w;
+     point.z=point.z/w;
+    }
+
+    this->mutexDisp->post();
+    
+    if(point.z>1.0 || point.z<0) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+      }
+    /*Point3f point;
+    this->mutexDisp->wait();
+    Mat img=this->stereo->getDepthPoints();
+    if(u<0 || u>=img.size().width || v<0 || v>=img.size().height) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+    }
+    else {
+        point.x= img.ptr<float>(v)[3*u];
+        point.y= img.ptr<float>(v)[3*u+1];
+        point.z= img.ptr<float>(v)[3*u+2];
+    }
+    this->mutexDisp->post();
+  /*    if(point.z>1.0 || point.z<0) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+      }*/
+    
+    return point;
+
+}
 updateCameraThread::updateCameraThread(stereoCamera * cam, Semaphore * mut, int _period): RateThread(_period) {
      this->stereo=cam;
      this->mutex=mut;

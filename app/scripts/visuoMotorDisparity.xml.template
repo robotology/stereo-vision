@@ -79,14 +79,8 @@
 </connection>
 
 <connection>
-  <output>/stereoDisparity/worldpoint:o </output>
-  <input>/visuoMotorBridge/disparity2world/in</input>
-  <protocol>tcp</protocol>
-</connection>
-
-<connection>
-  <output>/visuoMotorBridge/disparity2world/out </output>
-  <input>/stereoDisparity/fixation:i</input>
+  <output>/visuoMotorBridge/disparity</output>
+  <input>/stereoDisparity/rpc</input>
   <protocol>tcp</protocol>
 </connection>
 

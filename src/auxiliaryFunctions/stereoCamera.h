@@ -41,6 +41,7 @@ private:
 
     Mat Mapl1;
     Mat Mapl2;
+    Mat DepthPoints;
 
 
     vector<Point2f> PointsL; // Match Left
@@ -107,5 +108,6 @@ public:
     void savePoints(string pointsLPath, string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR);
     const Mat getMapL1();
     const Mat getMapL2();
+    const Mat getDepthPoints();
 
 };

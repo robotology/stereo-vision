@@ -61,7 +61,7 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
    handlerPortName        = "/";
    handlerPortName       += getName(
                            rf.check("CommandPort", 
-                           Value("/cmd"),
+                           Value("/rpc"),
                            "Output image port (string)").asString()
                            );
 	
@@ -111,8 +111,13 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
        cout << "closing..." << endl;
        return false;     
    }
-  if (command.get(0).asString()=="s") {
-    
+  if (command.get(0).asString()=="Point") {
+      int u = command.get(1).asInt();
+      int v = command.get(2).asInt(); 
+      Point3f point = dispThread->get3DPoints(u,v);
+      reply.addDouble(point.x);
+      reply.addDouble(point.y);
+      reply.addDouble(point.z);
    }
   return true;
 }

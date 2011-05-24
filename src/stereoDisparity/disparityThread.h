@@ -33,6 +33,7 @@ private:
 
    stereoCamera *stereo;
    Semaphore* mutex;
+   Semaphore* mutexDisp;
 
    string inputLeftPortName;
    string inputRightPortName;
@@ -71,6 +72,7 @@ public:
    void threadRelease();
    void run(); 
    void onStop();
+   Point3f get3DPoints(int u, int v);
 };
 
 class updateCameraThread : public RateThread {
