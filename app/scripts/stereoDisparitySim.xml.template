@@ -20,7 +20,8 @@
       <parameters>--name /viewDisp --synch</parameters>
       <node>pcNode</node>
 	<tag>view1</tag>
-   </module>
+</module>
+
 
 <connection>
   <output>/stereoDisparity/disparity:o</output>
@@ -39,14 +40,5 @@
   <input>/stereoDisparity/cam/left:i</input>
   <protocol>udp</protocol>
 </connection>
-
-<connection>
-  <output>/objectTracker/tracking:o</output>
-  <input>/stereoDisparity/fixation:i</input>
-  <protocol>tcp</protocol>
-</connection>
-
-
-
 
 </application>

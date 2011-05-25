@@ -576,7 +576,7 @@ void stereoCamera::findMatch() {
     crossCheckMatching( descriptorMatcher, descriptors1, descriptors2, filteredMatches, 1 );
 
     vector<char> matchMask(filteredMatches.size(),1);
-    for(int i=0; i<filteredMatches.size(); i++) {
+    for(int i=0; i<(int)filteredMatches.size(); i++) {
         Point2f pointL=keypoints1[filteredMatches[i].queryIdx].pt;
         Point2f pointR=keypoints2[filteredMatches[i].trainIdx].pt;
 
@@ -693,7 +693,7 @@ double stereoCamera::reprojectionErrorAvg() {
     Mat J=Mat(4,4,CV_64FC1);
     Point3f point3D;
 
-    for(int i =0; i<this->InliersL.size(); i++) {
+    for(int i =0; i<(int)this->InliersL.size(); i++) {
 
         pointL=InliersL[i];
         pointR=InliersR[i];
@@ -738,9 +738,9 @@ Point3f stereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
         SVD decom(J);
         Mat V= decom.vt;
 
-        point3D.x=V.at<double>(3,0)/V.at<double>(3,3);
-        point3D.y=V.at<double>(3,1)/V.at<double>(3,3);     
-        point3D.z=V.at<double>(3,2)/V.at<double>(3,3);
+        point3D.x=(float) ((float) V.at<double>(3,0))/((float) V.at<double>(3,3));
+        point3D.y=(float) ((float) V.at<double>(3,1))/((float) V.at<double>(3,3));     
+        point3D.z=(float) ((float) V.at<double>(3,2))/((float) V.at<double>(3,3));
         return point3D;
 
 }
@@ -755,7 +755,7 @@ void stereoCamera::estimateEssential() {
     vector<uchar> status;
     this->E=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_RANSAC, 1, 0.999);
 
-    for(int i=0; i<PointsL.size(); i++) {
+    for(int i=0; i<(int) PointsL.size(); i++) {
         if(status[i]==1) {
             InliersL.push_back(PointsL[i]);
             InliersR.push_back(PointsR[i]);
@@ -941,7 +941,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
      Mat P5=this->Kright*A;
 
      int passed=0;
-         for(int i=0; i<InliersL.size(); i++) 
+         for(int i=0; i<(int) InliersL.size(); i++) 
          {
              Point3f point3D=triangulation(InliersL[i],InliersR[i],P1,P2);
              if(point3D.z<0) {
@@ -959,7 +959,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
          }
 
 
-        for(int i=0; i<InliersL.size(); i++) 
+        for(int i=0; i<(int) InliersL.size(); i++) 
          {
              Point3f point3D=triangulation(InliersL[i],InliersR[i],P1,P3);
              if(point3D.z<0) {
@@ -975,7 +975,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
             return;
          }
 
-        for(int i=0; i<InliersL.size(); i++) 
+        for(int i=0; i<(int) InliersL.size(); i++) 
          {
              Point3f point3D=triangulation(InliersL[i],InliersR[i],P1,P4);
              if(point3D.z<0) {
@@ -991,7 +991,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
             return;
          }
 
-        for(int i=0; i<InliersL.size(); i++) 
+        for(int i=0; i<(int) InliersL.size(); i++) 
          {
              Point3f point3D=triangulation(InliersL[i],InliersR[i],P1,P5);
              if(point3D.z<0) {
@@ -1030,9 +1030,9 @@ Point3f stereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
         SVD decom(J);
         Mat V= decom.vt;
 
-        point3D.x=V.at<double>(3,0)/V.at<double>(3,3);
-        point3D.y=V.at<double>(3,1)/V.at<double>(3,3);     
-        point3D.z=V.at<double>(3,2)/V.at<double>(3,3);
+        point3D.x=(float) ((float) V.at<double>(3,0))/((float) V.at<double>(3,3));
+        point3D.y=(float) ((float) V.at<double>(3,1))/((float) V.at<double>(3,3));     
+        point3D.z=(float) ((float) V.at<double>(3,2))/((float) V.at<double>(3,3));
         return point3D;
 
 }
@@ -1059,7 +1059,7 @@ double* stereoCamera::prepareVariables(Mat& R, Mat& T,vector<Point3f>& WorldPoin
     }
 
     int j=6;
-    for(int i=0; i<WorldPoints.size(); i++) {
+    for(int i=0; i<(int) WorldPoints.size(); i++) {
      
         vars[j+i]=WorldPoints[i].x;
         j++;
@@ -1106,7 +1106,7 @@ double * stereoCamera::reprojectionError(Mat& Rot, Mat& Tras) {
          }
     Mat P2=this->Kright*A;
     Point3f point3D;
-    for(int i =0; i<this->InliersL.size(); i++) {
+    for(int i =0; i<(int) this->InliersL.size(); i++) {
         pointL=InliersL[i];
         pointR=InliersR[i];
 
@@ -1124,7 +1124,7 @@ double * stereoCamera::reprojectionError(Mat& Rot, Mat& Tras) {
     projectPoints(Mat(WorldPoints), this->R, this->T, this->Kright, Mat(), reprojectionR);
         double errorLeft=0;
         double errorRight=0;
-    for(int i =0; i<WorldPoints.size(); i++) {
+    for(int i =0; i<(int) WorldPoints.size(); i++) {
         errorLeft += pow(sqrt(pow(InliersL[i].x-reprojectionL[i].x,2)+ pow(InliersL[i].y-reprojectionL[i].y,2)),2);
         //cvSet2D(err,i,0,cvScalar(errorLeft,0,0,0));
 
@@ -1220,8 +1220,8 @@ void stereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
-    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, 0.15 );
-    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, 0.15 );
+    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) 0.15 );
+    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) 0.15 );
     for( size_t m = 0; m < matches12.size(); m++ )
     {
         bool findCrossCheck = false;
@@ -1327,7 +1327,7 @@ void stereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
        
         prevres=res;
         res=0;
-        for(int i=0; i<PointsL.size(); i++) {
+        for(int i=0; i<(int) PointsL.size(); i++) {
             
             r1.at<double>(0,0)=PointsL[i].x;
             r1.at<double>(1,0)=PointsL[i].y;
@@ -1459,7 +1459,7 @@ void stereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL
 
    
    Mat Point(3,1,CV_64FC1);
-   for (int i=0; i<PointsL.size(); i++) {
+   for (int i=0; i<(int) PointsL.size(); i++) {
 
         Point.at<double>(0,0)=PointsL[i].x;
         Point.at<double>(1,0)=PointsL[i].y;
@@ -1471,8 +1471,8 @@ void stereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL
         pnorm.at<double>(2,0)=1;
       
         
-        PointsL[i].x=pnorm.at<double>(0,0);
-        PointsL[i].y=pnorm.at<double>(1,0);
+        PointsL[i].x=(float) pnorm.at<double>(0,0);
+        PointsL[i].y=(float) pnorm.at<double>(1,0);
 
         Point.at<double>(0,0)=PointsR[i].x;
         Point.at<double>(1,0)=PointsR[i].y;
@@ -1484,8 +1484,8 @@ void stereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL
         pnorm.at<double>(2,0)=1;
 
         
-        PointsR[i].x=pnorm.at<double>(0,0);
-        PointsR[i].y=pnorm.at<double>(1,0);
+        PointsR[i].x=(float) pnorm.at<double>(0,0);
+        PointsR[i].y=(float) pnorm.at<double>(1,0);
     }
 
 }
@@ -1494,12 +1494,12 @@ void stereoCamera::savePoints(string pointsLPath,string pointsRPath, vector<Poin
 // save intrinsic parameters
   ofstream myfile;
   myfile.open (pointsLPath.c_str());
-  for(int i=0; i<PointL.size(); i++)
+  for(int i=0; i<(int) PointL.size(); i++)
        myfile << PointL[i].x << " " << PointL[i].y << "\n";
   myfile.close();
 
   myfile.open (pointsRPath.c_str());
-  for(int i=0; i<PointR.size(); i++)
+  for(int i=0; i<(int) PointR.size(); i++)
      myfile << PointR[i].x << " " << PointR[i].y << "\n";
   myfile.close();
 

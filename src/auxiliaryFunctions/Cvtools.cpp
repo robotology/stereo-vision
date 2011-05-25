@@ -3,7 +3,7 @@
 IplImage * Cvtools::readImage(string path) {
 	IplImage *imgo = cvLoadImage(path.c_str(),1);
 	return imgo;
-}
+} 
 
 IplImage * Cvtools::thresholdColor(IplImage * img, int threshold, int x, int y) {
 
@@ -178,7 +178,7 @@ void Cvtools::preparePath(const char * dir, char* path1, char* path2, char * pat
 
  void Cvtools::drawPoints(Mat& Img, vector<Point2f> Points) {
 
-    for(int i=0; i<Points.size(); i++) 
+    for(int i=0; i<(int) Points.size(); i++) 
         circle(Img,Points[i],2,cvScalar(255,0,0,0));
 
 }
@@ -227,7 +227,7 @@ void Cvtools::computeHOG(IplImage* image, CvHistogram* histTemp) {
 	cvShowImage("Contrasto", maskTemplate);
 	cvCalcHist(&arctanTemplate, histTemp, 0, maskTemplate);
 	cvNormalizeHist(histTemp,1);
-	stampaIstogrammi1D(histTemp, 36,  25, "Hist Temp"); // per visualizzazione
+	//stampaIstogrammi1D(histTemp, 36,  25, "Hist Temp"); // per visualizzazione
 
 	cvReleaseImage(&contrastTemplate);
 	cvReleaseImage(&arctanTemplate);

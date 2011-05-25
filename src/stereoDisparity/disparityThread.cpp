@@ -3,8 +3,7 @@
 
 
 disparityThread::disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
-                                 string output3DPointName, string inputFixName, 
-                                 string calibPath,Port* commPort, int useFix)
+                                 string calibPath,Port* commPort)
 {
  this->inputLeftPortName=inputLeftPortName;
  this->inputRightPortName=inputRightPortName;
@@ -14,9 +13,6 @@ disparityThread::disparityThread(string inputLeftPortName, string inputRightPort
  angle=0;
  this->mutex = new Semaphore(1);
  this->mutexDisp = new Semaphore(1);
- this->outWorldPointName=output3DPointName;
- this->inFixationName=inputFixName;
- this->useFixation=useFix;
 }
 
 
@@ -35,16 +31,6 @@ bool disparityThread::threadInit()
 
     if (!outPort.open(outName.c_str())) {
       cout << ": unable to open port " << outName << endl;
-      return false;
-   }
-
-    if (!WorldPointPort.open(outWorldPointName.c_str())) {
-      cout << ": unable to open port " << outWorldPointName << endl;
-      return false;
-   }
-
-    if (!InputFixationPort.open(inFixationName.c_str())) {
-      cout << ": unable to open port " << inFixationName << endl;
       return false;
    }
 
@@ -125,7 +111,7 @@ void disparityThread::run(){
     bool initL=false;
     bool initR=false;
 
-    int count=1;
+
     IplImage * output=cvCreateImage(cvSize(320,240),8,3);
 	getH();
    
@@ -136,9 +122,6 @@ void disparityThread::run(){
 
     double thang=0.01; // 0.01
     double thtras=0.005; //0.005
-
-    int pixelX=160;
-    int pixelY=120;
 
     updateCameraThread updator(this->stereo,this->mutex,500);
     Point3d point;
@@ -179,17 +162,7 @@ void disparityThread::run(){
 
 
                }
-        if(!this->useFixation) {
-                  pixelX=160;
-                  pixelY=120;
-              }
-        else {
-              Bottle * fix =InputFixationPort.read();
-              if(fix!=NULL) {
-                  pixelX=fix->get(0).asInt();
-                  pixelY=fix->get(1).asInt();
-              }
-        }
+
         ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
         ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
 
@@ -233,29 +206,7 @@ void disparityThread::run(){
               this->mutexDisp->post();        
 
               disp=stereo->getDisparity();
-
-              IplImage disp16=stereo->getDisparity16();
-
-
-            int remX=(int) stereo->getMapL1().ptr<float>(pixelY-1)[pixelX-1];
-            int remY=(int) stereo->getMapL2().ptr<float>(pixelY-1)[pixelX-1];
-          //  int remX=pixelX-1;
-         //  int remY=pixelY-1;
-                
-          
-            Point3f point=get3DPoints(remX+1,remY+1);
-
-             // cout << disparity << endl;
-
-
-              Bottle& outPoint = WorldPointPort.prepare();
-              outPoint.clear();
-              outPoint.addString("Point 3D");
-              outPoint.addDouble(point.x);
-              outPoint.addDouble(point.y);
-              outPoint.addDouble(point.z);
-              WorldPointPort.write();
-             
+        
             
               cvCvtColor(&disp,output,CV_GRAY2RGB);
               ImageOf<PixelBgr>& outim=outPort.prepare();
@@ -278,8 +229,6 @@ void disparityThread::threadRelease()
     imagePortInRight.close();
     imagePortInLeft.close();
     outPort.close();
-    WorldPointPort.close();
-    InputFixationPort.close();
     commandPort->close();
     delete this->stereo;
     delete this->mutex;
@@ -291,9 +240,7 @@ void disparityThread::threadRelease()
 void disparityThread::onStop() {
     imagePortInRight.interrupt();
     imagePortInLeft.interrupt();
-    outPort.interrupt();
     commandPort->interrupt();
-    WorldPointPort.interrupt();
     InputFixationPort.interrupt();
 
 }
@@ -313,10 +260,10 @@ Point3f disparityThread::get3DPoints(int u, int v) {
      Mat Q=this->stereo->getQ();
      CvScalar scal= cvGet2D(&disp16,v,u);
      double disparity=-scal.val[0]/16.0;
-     double w= (disparity*Q.at<double>(3,2)) + Q.at<double>(3,3);
-     point.x= ((u+1)*Q.at<double>(0,0)) + Q.at<double>(0,3);
-     point.y=((v+1)*Q.at<double>(1,1)) + Q.at<double>(1,3);
-     point.z= Q.at<double>(2,3);
+     float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
+     point.x= (float)((float) (u+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
+     point.y=(float)((float) (v+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
+     point.z=(float) Q.at<double>(2,3);
 
      point.x=point.x/w;
      point.y=point.y/w;

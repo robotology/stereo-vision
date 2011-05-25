@@ -38,14 +38,12 @@ private:
    string inputLeftPortName;
    string inputRightPortName;
    string outName;
-   string outWorldPointName;
    string inFixationName;
 
 
    BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
    BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
    BufferedPort<ImageOf<PixelBgr> > outPort;
-   BufferedPort<Bottle> WorldPointPort;
    BufferedPort<Bottle> InputFixationPort;
 
    Port *commandPort;
@@ -65,8 +63,7 @@ private:
 public:
 
    disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
-                                 string output3DPointName, string inputFixName, 
-                                 string calibPath,Port* commPort, int useFix);
+                                 string calibPath,Port* commPort);
 
    bool threadInit();     
    void threadRelease();

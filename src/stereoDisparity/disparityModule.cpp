@@ -15,7 +15,7 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
 
 
    robotName             = rf.check("robot", 
-                           Value("icubSim"), 
+                           Value("icub"), 
                            "Robot name (string)").asString();
 
    /* get the name of the input and output ports, automatically prefixing the module name by using getName() */
@@ -39,24 +39,6 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
                            "Output image port (string)").asString()
                            );
 	
-   
-   output3DPointName= "/";
-   output3DPointName       += getName(
-                           rf.check("OutPointPort", 
-                           Value("/worldpoint:o"),
-                           "Output image port (string)").asString()
-                           );
-
-
-   inputFixationName= "/";
-   inputFixationName       += getName(
-                           rf.check("InputFixation", 
-                           Value("/fixation:i"),
-                           "Output image port (string)").asString()
-                           );
-	
-   int useFixation= rf.check("useFixation", Value(0)).asInt();
-	
 
    handlerPortName        = "/";
    handlerPortName       += getName(
@@ -75,9 +57,7 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
    attach(handlerPort);
 
 
-   dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName,
-       output3DPointName, inputFixationName, calibPath,&handlerPort,useFixation);
-
+   dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName, calibPath,&handlerPort);
 
    dispThread->start(); 
 

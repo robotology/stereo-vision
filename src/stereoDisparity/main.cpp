@@ -41,6 +41,7 @@ Before start make sure you have calibrated the stereo system (in ${ICUB_ROOT}/ap
 intrinsics.yml and extrinsics.yml). For the stereo calibration see the module stereoCalib.
 
 \note Opencv 2.2 is required!
+\note When you start the module make sure that vergence, pan and tilt eyes angles are set to 0.
   
 \section lib_sec Libraries 
 YARP libraries and OpenCV 2.2
@@ -49,24 +50,32 @@ YARP libraries and OpenCV 2.2
 --name \e stemName 
 - The parameter \e stemName specifies the stem name of ports 
   created by the module.
--- useFixation \e fixBool
-- The parameter \e fixBool = 1 species if you want to use the input fixation pixel values 
-<x1 , y1>, ... <xn, yn> using the the port <i> /<stemName>/cam/fixation:i </i> in order to compute the 3D
-position of the fixated point.
-If fixBool=0 the 3D position will be computed using the center of the image (i.e. it is assumed that the fixated object
-is in the center of the image).
+
+--robot \e robotName
+- The parameter \e robotName specifies the name of the robot.
+
+--InputPortLeft  \e inputLeft
+- The parameter \e inputLeft specifies the left image input port.
+
+--InputPortRight  \e inputRight
+- The parameter \e inputRight specifies the right image input port.
+
+--OutPort   \e disparityPort 
+- The parameter \e disparityPort specifies the output port for the disparity image.
+
+--CommandPort   \e comm 
+- The parameter \e comm specifies the command port for rpc protocol.
   
 
 \section portsc_sec Ports Created
 - <i> /<stemName>/cam/left:i </i> accepts the incoming images from the left eye. 
 - <i> /<stemName>/cam/right:i </i> accepts the incoming images from the right eye. 
-- <i> /<stemName>/cam/fixation:i </i> Input pixel coordinates of the fixated (or tracked point). This port is used only if the
-variable useFixation in the config file is 1.
+
 
 - <i> /<stemName>/disparity:o </i> outputs the disparity map
-- <i> /<stemName>/worldpoint:o </i> the 3D point of the fixation point wrt the left camera reference system. Format: (Point3D X Y Z)
-- <i> /<stemName>/cmd </i> for terminal commands comunication (not used yet). 
- 
+- <i> /<stemName>/rpc </i> for terminal commands comunication. 
+    - [Point x y]: Given the pixel coordinate x,y the response is the 3D Point: x,y,z computed using the depth map.
+
 \section in_files_sec Input Data Files
 None.
 
@@ -74,7 +83,7 @@ None.
 None. 
  
 \section tested_os_sec Tested OS
-Linux (Ubuntu 9.04) and Windows.
+Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7.
 
 \author Sean Ryan Fanello
 **/ 
