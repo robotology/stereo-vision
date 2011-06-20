@@ -87,13 +87,24 @@ bool stereoModule::close()
 
 bool stereoModule::respond(const Bottle& command, Bottle& reply) 
 {
+    if(command.size()==0)
+        return false;
+
   if (command.get(0).asString()=="quit") {
        cout << "closing..." << endl;
        return false;     
    }
-  if (command.get(0).asString()=="Point") {
+  else if (command.get(0).asString()=="Point") {
       int u = command.get(1).asInt();
       int v = command.get(2).asInt(); 
+      Point3f point = dispThread->get3DPoints(u,v);
+      reply.addDouble(point.x);
+      reply.addDouble(point.y);
+      reply.addDouble(point.z);
+   }
+  else if (command.size()>1) {
+      int u = command.get(0).asInt();
+      int v = command.get(1).asInt(); 
       Point3f point = dispThread->get3DPoints(u,v);
       reply.addDouble(point.x);
       reply.addDouble(point.y);

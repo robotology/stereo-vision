@@ -382,8 +382,10 @@ void stereoCamera::computeDisparity() {
         initUndistortRectifyMap(this->Kright,  this->DistR, R2, P2, img_size, CV_32FC1, map21, map22);
         
         Mat img1r, img2r;
-        this->Mapl1=map21;
-        this->Mapl2=map22;
+        this->Mapl1=map11;
+        this->Mapl2=map12;
+        this->RLrect=R1;
+        this->RRrect=R2;
 
         remap(this->imleft, img1r, map11, map12, INTER_LINEAR);
         remap(this->imright, img2r, map21, map22, INTER_LINEAR);
@@ -436,6 +438,7 @@ void stereoCamera::computeDisparity() {
 
 
         sgbm(img1r, img2r, disp);
+        imgLeftRect=img1r;
 
 
         //disp = dispp.colRange(numberOfDisparities, img1p.cols);
@@ -458,8 +461,9 @@ void stereoCamera::computeDisparity() {
         Mat mapper= inverseMap.reshape(2,map.rows);
         Mat x;
         remap(map,dispTemp,mapper,x,INTER_LINEAR);
-        remap(disp,dispTemp16,mapper,x,INTER_LINEAR);
+      //  remap(disp,dispTemp16,mapper,x,INTER_LINEAR);
         dispTemp.convertTo(disp8, CV_8U); 
+        this->Mapper=mapper;
  
  
    //     Mat WP;
@@ -467,7 +471,7 @@ void stereoCamera::computeDisparity() {
         
  //       this->DepthPoints=WP;
         this->Disparity=disp8;        
-        this->Disparity16=dispTemp16;
+        this->Disparity16=disp;
         this->Q=Q1;
 
 }
@@ -1516,4 +1520,16 @@ const Mat stereoCamera::getMapL2() {
 
 const Mat stereoCamera::getDepthPoints() {
     return this->DepthPoints;
+}
+
+const Mat stereoCamera::getRLrect() {
+    return this->RLrect;
+}
+
+const Mat stereoCamera::getRRrect() {
+    return this->RRrect;
+}
+
+const Mat stereoCamera::getMapper() {
+    return this->Mapper;
 }

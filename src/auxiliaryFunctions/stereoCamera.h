@@ -37,6 +37,8 @@ private:
     Mat T; // Translation from Left to Right 3x1
     Mat Q; // Depth Matrix 4x4
     Mat E; // Essential Matrix
+    Mat RLrect;
+    Mat RRrect;
 
 
     Mat Mapl1;
@@ -63,6 +65,8 @@ private:
     void normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR);
     void getRotation(Mat & q, Mat & R);
 public:
+    Mat imgLeftRect;
+    Mat Mapper;
     stereoCamera() {}; // Costruttore vuoto quando si vuole calibrare Tutto a partire dalle immagini
     stereoCamera(string intrinsicFileName, string exstrinsicFileName); // Costruttore quando si ha già la calibrazione
     stereoCamera(Camera Left, Camera Right); // Costruttore quando sono già noti i parametri intrinseci
@@ -108,6 +112,9 @@ public:
     void savePoints(string pointsLPath, string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR);
     const Mat getMapL1();
     const Mat getMapL2();
+    const Mat getMapper();
     const Mat getDepthPoints();
+    const Mat getRLrect();
+    const Mat getRRrect();
 
 };

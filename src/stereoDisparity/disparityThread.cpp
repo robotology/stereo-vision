@@ -208,11 +208,11 @@ void disparityThread::run(){
               disp=stereo->getDisparity();
         
             
-              cvCvtColor(&disp,output,CV_GRAY2RGB);
-              ImageOf<PixelBgr>& outim=outPort.prepare();
+             cvCvtColor(&disp,output,CV_GRAY2RGB);
+             ImageOf<PixelBgr>& outim=outPort.prepare();
                
-              outim.wrapIplImage(output);
-              outPort.write();
+             outim.wrapIplImage(output);
+             outPort.write();
 
               initL=initR=false;
         }
@@ -250,6 +250,16 @@ Point3f disparityThread::get3DPoints(int u, int v) {
     v=v-1;
     Point3f point;
     this->mutexDisp->wait();
+    
+
+    Mat Mapper=this->stereo->getMapper();
+
+    float usign=Mapper.ptr<float>(v)[2*u];
+    float vsign=Mapper.ptr<float>(v)[2*u+1]; 
+
+    u=cvRound(usign);
+    v=cvRound(vsign);
+    
     IplImage disp16=this->stereo->getDisparity16();
     if(u<0 || u>=disp.width || v<0 || v>=disp.height) {
         point.x=-1.0;
@@ -261,8 +271,8 @@ Point3f disparityThread::get3DPoints(int u, int v) {
      CvScalar scal= cvGet2D(&disp16,v,u);
      double disparity=-scal.val[0]/16.0;
      float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
-     point.x= (float)((float) (u+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
-     point.y=(float)((float) (v+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
+     point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
+     point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
      point.z=(float) Q.at<double>(2,3);
 
      point.x=point.x/w;
@@ -270,13 +280,45 @@ Point3f disparityThread::get3DPoints(int u, int v) {
      point.z=point.z/w;
     }
 
+    IplImage* temp1= cvCreateImage(cvSize(320,240),8,1);
+   /* IplImage* temp2= cvCreateImage(cvSize(320,240),8,3);
+    //cvConvertScale(&disp16, temp1, 255/(64*16.));
+
+    IplImage rect=this->stereo->imgLeftRect;
+    temp2=&rect;
+
+  //  cvCvtColor(temp1,temp2,CV_GRAY2BGR);
+    cvCircle(temp2,cvPoint(cvRound(usign),cvRound(vsign)),3,cvScalar(255,0,0,0),3);
+    //cvSet2D(temp2,cvRound(vsign),cvRound(usign),cvScalar(255,0,0,0));
+
+            ImageOf<PixelBgr>& outim=outPort.prepare();
+              
+          outim.wrapIplImage(temp2);
+          outPort.write();*/
+
     this->mutexDisp->post();
     
     if(point.z>1.0 || point.z<0) {
         point.x=-1.0;
         point.y=-1.0;
         point.z=-1.0;
-      }
+      } else {
+
+        Mat P(3,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+
+        cout << "Initial " << point.x << " " << point.y << " " << point.z << endl;
+
+        P=this->stereo->getRLrect()*P;
+        point.x=P.at<double>(0,0);
+        point.y=P.at<double>(1,0);
+        point.z=P.at<double>(2,0);
+        
+        cout << "Rotated " << point.x << " " << point.y << " " << point.z << endl;
+
+    }
     /*Point3f point;
     this->mutexDisp->wait();
     Mat img=this->stereo->getDepthPoints();
