@@ -311,7 +311,7 @@ Point3f disparityThread::get3DPoints(int u, int v) {
 
         cout << "Initial " << point.x << " " << point.y << " " << point.z << endl;
 
-        P=this->stereo->getRLrect()*P;
+        P=this->stereo->getRLrect().t()*P;
         point.x=P.at<double>(0,0);
         point.y=P.at<double>(1,0);
         point.z=P.at<double>(2,0);
