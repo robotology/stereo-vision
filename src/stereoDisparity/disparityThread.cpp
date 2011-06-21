@@ -212,6 +212,7 @@ void disparityThread::run(){
              ImageOf<PixelBgr>& outim=outPort.prepare();
                
              outim.wrapIplImage(output);
+             outPort.setEnvelope(TSLeft);
              outPort.write();
 
               initL=initR=false;
@@ -249,8 +250,7 @@ Point3f disparityThread::get3DPoints(int u, int v) {
     u=u-1; // matrix starts from (0,0), pixels from (1,1)
     v=v-1;
     Point3f point;
-    this->mutexDisp->wait();
-    
+    this->mutexDisp->wait();    
 
     Mat Mapper=this->stereo->getMapper();
 
@@ -280,8 +280,8 @@ Point3f disparityThread::get3DPoints(int u, int v) {
      point.z=point.z/w;
     }
 
-    IplImage* temp1= cvCreateImage(cvSize(320,240),8,1);
-   /* IplImage* temp2= cvCreateImage(cvSize(320,240),8,3);
+   /* IplImage* temp1= cvCreateImage(cvSize(320,240),8,1);
+    IplImage* temp2= cvCreateImage(cvSize(320,240),8,3);
     //cvConvertScale(&disp16, temp1, 255/(64*16.));
 
     IplImage rect=this->stereo->imgLeftRect;

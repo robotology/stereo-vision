@@ -39,12 +39,13 @@ private:
     Mat E; // Essential Matrix
     Mat RLrect;
     Mat RRrect;
-
+    Mat imgLeftRect;
+    Mat imgRightRect;
 
     Mat Mapl1;
     Mat Mapl2;
     Mat DepthPoints;
-
+    Mat Mapper;
 
     vector<Point2f> PointsL; // Match Left
     vector<Point2f> PointsR; // Match Right
@@ -65,8 +66,8 @@ private:
     void normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR);
     void getRotation(Mat & q, Mat & R);
 public:
-    Mat imgLeftRect;
-    Mat Mapper;
+
+
     stereoCamera() {}; // Costruttore vuoto quando si vuole calibrare Tutto a partire dalle immagini
     stereoCamera(string intrinsicFileName, string exstrinsicFileName); // Costruttore quando si ha già la calibrazione
     stereoCamera(Camera Left, Camera Right); // Costruttore quando sono già noti i parametri intrinseci
