@@ -7,61 +7,62 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
 {    
 
 
-   moduleName            = rf.check("name", 
+    moduleName            = rf.check("name", 
                            Value("stereoDisparity"), 
                            "module name (string)").asString();
-   
-   setName(moduleName.c_str());
+
+    setName(moduleName.c_str());
 
 
-   robotName             = rf.check("robot", 
+    robotName             = rf.check("robot", 
                            Value("icub"), 
                            "Robot name (string)").asString();
 
-   /* get the name of the input and output ports, automatically prefixing the module name by using getName() */
+    /* get the name of the input and output ports, automatically prefixing the module name by using getName() */
 
-   inputLeftPortName         = "/";
-   inputLeftPortName        += getName(
+    inputLeftPortName         = "/";
+    inputLeftPortName        += getName(
                            rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString());
-   
-   inputRightPortName        = "/";
-   inputRightPortName       += getName(
+
+    inputRightPortName        = "/";
+    inputRightPortName       += getName(
                            rf.check("InputPortRight", 
                            Value("/cam/right:i"),
                            "Input image port (string)").asString()
                            );
-	
 
-   outputPortName        = "/";
-   outputPortName       += getName(
+    outputPortName        = "/";
+    outputPortName       += getName(
                            rf.check("OutPort", 
                            Value("/disparity:o"),
                            "Output image port (string)").asString()
                            );
-	
 
-   handlerPortName        = "/";
-   handlerPortName       += getName(
+
+    handlerPortName        = "/";
+    handlerPortName       += getName(
                            rf.check("CommandPort", 
                            Value("/rpc"),
                            "Output image port (string)").asString()
                            );
-	
+
+    driveEye        =rf.check("DriveEye", Value("LEFT"),"Output image port (string)").asString().c_str();
+
     if (!handlerPort.open(handlerPortName.c_str())) {
-      cout << ": unable to open port " << handlerPortName << endl;
-      return false;
-   }
+        cout << ": unable to open port " << handlerPortName << endl;
+        return false;
+    }
 
     string calibPath=(rf.getContextPath()+"/").c_str();
- 
-   attach(handlerPort);
+
+    attach(handlerPort);
 
 
-   dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName, calibPath,&handlerPort);
+    dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName, calibPath,&handlerPort,driveEye);
 
-   dispThread->start(); 
+    dispThread->start(); 
 
-   return true ;      
+    return true ;
 
 }
 
@@ -71,17 +72,17 @@ bool stereoModule::interruptModule()
    dispThread->stop();
 
 
-   return true;
+    return true;
 }
 
 
 bool stereoModule::close()
 {
 
-   dispThread->stop();
-   delete dispThread;
+    dispThread->stop();
+    delete dispThread;
 
-   return true;
+    return true;
 }
 
 
@@ -90,27 +91,44 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
     if(command.size()==0)
         return false;
 
-  if (command.get(0).asString()=="quit") {
-       cout << "closing..." << endl;
-       return false;     
+    if (command.get(0).asString()=="quit") {
+        cout << "closing..." << endl;
+        return false;
    }
-  else if (command.get(0).asString()=="Point") {
-      int u = command.get(1).asInt();
-      int v = command.get(2).asInt(); 
-      Point3f point = dispThread->get3DPoints(u,v);
-      reply.addDouble(point.x);
-      reply.addDouble(point.y);
-      reply.addDouble(point.z);
+    else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" ) {
+        int u = command.get(1).asInt();
+        int v = command.get(2).asInt(); 
+        Point3f point = dispThread->get3DPoints(u,v);
+        reply.addDouble(point.x);
+        reply.addDouble(point.y);
+        reply.addDouble(point.z);
    }
-  else if (command.size()>1) {
-      int u = command.get(0).asInt();
-      int v = command.get(1).asInt(); 
-      Point3f point = dispThread->get3DPoints(u,v);
-      reply.addDouble(point.x);
-      reply.addDouble(point.y);
-      reply.addDouble(point.z);
+    else if (command.size()==2) {
+        int u = command.get(0).asInt();
+        int v = command.get(1).asInt(); 
+        Point3f point = dispThread->get3DPoints(u,v);
+        reply.addDouble(point.x);
+        reply.addDouble(point.y);
+        reply.addDouble(point.z);
    }
-  return true;
+    else if (command.get(0).asString()=="Right") {
+        int u = command.get(1).asInt();
+        int v = command.get(2).asInt(); 
+        Point3f point = dispThread->get3DPoints(u,v,"RIGHT");
+        reply.addDouble(point.x);
+        reply.addDouble(point.y);
+        reply.addDouble(point.z);
+   }
+
+    else if (command.get(0).asString()=="Root") {
+        int u = command.get(1).asInt();
+        int v = command.get(2).asInt(); 
+        Point3f point = dispThread->get3DPoints(u,v,"ROOT");
+        reply.addDouble(point.x);
+        reply.addDouble(point.y);
+        reply.addDouble(point.z);
+   }
+    return true;
 }
 
 

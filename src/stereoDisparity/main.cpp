@@ -60,6 +60,9 @@ YARP libraries and OpenCV 2.2
 --InputPortRight  \e inputRight
 - The parameter \e inputRight specifies the right image input port.
 
+--DriveEye   \e drive
+- The parameter \e drive specifies drive eye. Each 3D point coordinates will be wrt the drive eye.
+
 --OutPort   \e disparityPort 
 - The parameter \e disparityPort specifies the output port for the disparity image.
 
@@ -68,13 +71,17 @@ YARP libraries and OpenCV 2.2
   
 
 \section portsc_sec Ports Created
-- <i> /<stemName>/cam/left:i </i> accepts the incoming images from the left eye. 
-- <i> /<stemName>/cam/right:i </i> accepts the incoming images from the right eye. 
+- <i> /<stemName>/<inputLeft> </i> accepts the incoming images from the left eye. 
+- <i> /<stemName>/<inputRight> </i> accepts the incoming images from the right eye. 
 
 
-- <i> /<stemName>/disparity:o </i> outputs the disparity map
-- <i> /<stemName>/rpc </i> for terminal commands comunication. 
-    - [Point x y]: Given the pixel coordinate x,y the response is the 3D Point: x,y,z computed using the depth map.
+- <i> /<stemName>/<disparityPort> </i> outputs the disparity map
+- <i> /<stemName>/<comm> </i> for terminal commands comunication. 
+    - [Point x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left) the response is the 3D Point: x,y,z computed using the depth map wrt the LEFT eye.
+    - [x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left) the response is the 3D Point: x,y,z computed using the depth map wrt the LEFT eye.
+    - [Left x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left)) the response is the 3D Point: x,y,z computed using the depth map wrt the LEFT eye.
+    - [Right x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left) the response is the 3D Point: x,y,z computed using the depth map wrt the RIGHT eye.
+    - [Root x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left) the response is the 3D Point: x,y,z computed using the depth map wrt the ROOT reference system.
 
 \section in_files_sec Input Data Files
 None.
@@ -97,23 +104,17 @@ int main(int argc, char * argv[])
 {
 
 	YARP_REGISTER_DEVICES(icubmod)
-   /* initialize yarp network */ 
+
 
    Network yarp;
-
-   // create your module 
-
    stereoModule stereoModule; 
-
-   // prepare and configure the resource finder 
 
    ResourceFinder rf;
    rf.setVerbose(true);
-   rf.setDefaultConfigFile("stereoDisparity.ini"); //overridden by --from parameter
-   rf.setDefaultContext("stereoVision/conf");   //overridden by --context parameter
+   rf.setDefaultConfigFile("stereoDisparity.ini"); 
+   rf.setDefaultContext("stereoVision/conf");   
    rf.configure("ICUB_ROOT", argc, argv);
  
-   // run the module: runModule() calls configure first and, if successful, it then runs 
 
    stereoModule.runModule(rf);
 

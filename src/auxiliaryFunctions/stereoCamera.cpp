@@ -372,7 +372,6 @@ void stereoCamera::computeDisparity() {
         Rect roi1, roi2;
         Mat Q1;
 
-       // StereoBM bm;
         StereoSGBM sgbm;
         stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, R1, R2, P1, P2, Q1, -1, img_size, &roi1, &roi2 );
 
@@ -397,29 +396,11 @@ void stereoCamera::computeDisparity() {
         imshow("RectL",img1r);
         imshow("RectR",img2r);
       cvWaitKey(15);*/
-
-        /*if(numberOfDisparities > 0)
-            numberOfDisparities = numberOfDisparities;
-        else if(img_size.width==640)
-            numberOfDisparities= img_size.width/8;
-        else  
-            numberOfDisparities= img_size.width/8 +8;*/
     
         numberOfDisparities=64;
-       /* bm.state->roi1 = roi1;
-        bm.state->roi2 = roi2;
-        bm.state->preFilterCap = 31;
-        bm.state->SADWindowSize = SADWindowSize > 0 ? SADWindowSize : 9;
-        bm.state->minDisparity = 0;
-        bm.state->numberOfDisparities = numberOfDisparities;
-        bm.state->textureThreshold = 10;
-        bm.state->uniquenessRatio = 15;
-        bm.state->speckleWindowSize = 100;
-        bm.state->speckleRange = 32;
-        bm.state->disp12MaxDiff = 1;*/
         
         sgbm.preFilterCap = 63; //63
-        sgbm.SADWindowSize = 1; //SADWindowSize > 0 ? SADWindowSize : 1;
+        sgbm.SADWindowSize = 1; 
         
         int cn = this->imleft.channels();
         
@@ -440,40 +421,43 @@ void stereoCamera::computeDisparity() {
         sgbm(img1r, img2r, disp);
         imgLeftRect=img1r;
 
-
-        //disp = dispp.colRange(numberOfDisparities, img1p.cols);
-      //  Mat tempPoints;
-   //     reprojectImageTo3D(-disp,tempPoints,Q1,true);
+       
+        Mat tempPoints;
+        reprojectImageTo3D(-disp/16,tempPoints,Q1,true);
 
         disp.convertTo(map, CV_32FC1, 255/(numberOfDisparities*16.));
-        Mat inverseMap(map.rows*map.cols,1,CV_32FC2);
+        Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
+        Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
+
         for( int y = 0; y < map.rows; y++ )
 
            for( int x = 0; x < map.cols; x++ )
            {
-            inverseMap.ptr<float>(y*map.cols+x)[0]= (float)x;
-            inverseMap.ptr<float>(y*map.cols+x)[1] = (float)y;
+            inverseMapL.ptr<float>(y*map.cols+x)[0]= (float)x;
+            inverseMapL.ptr<float>(y*map.cols+x)[1] = (float)y;
+            inverseMapR.ptr<float>(y*map.cols+x)[0]= (float)x;
+            inverseMapR.ptr<float>(y*map.cols+x)[1] = (float)y;
 
            }
 
 
-        undistortPoints(inverseMap,inverseMap,this->Kleft,this->DistL,R1,P1);
-        Mat mapper= inverseMap.reshape(2,map.rows);
+        undistortPoints(inverseMapL,inverseMapL,this->Kleft,this->DistL,R1,P1);
+        undistortPoints(inverseMapR,inverseMapR,this->Kright,this->DistR,R2,P2);
+
+        Mat mapperL= inverseMapL.reshape(2,map.rows);
+        Mat mapperR= inverseMapR.reshape(2,map.rows);
         Mat x;
-        remap(map,dispTemp,mapper,x,INTER_LINEAR);
-      //  remap(disp,dispTemp16,mapper,x,INTER_LINEAR);
+        remap(map,dispTemp,mapperL,x,INTER_LINEAR);
         dispTemp.convertTo(disp8, CV_8U); 
-        this->Mapper=mapper;
- 
- 
-   //     Mat WP;
-    //    remap(tempPoints,WP,mapper,x,INTER_LINEAR);
+
+  
         
- //       this->DepthPoints=WP;
+        this->DepthPoints=tempPoints;
         this->Disparity=disp8;        
         this->Disparity16=disp;
         this->Q=Q1;
-
+        this->MapperL=mapperL;
+        this->MapperR=mapperR;
 }
 
 
@@ -788,6 +772,7 @@ void stereoCamera::essentialDecomposition() {
     W.at<double>(1,0)=1;
     W.at<double>(1,1)=0;
     W.at<double>(1,2)=0;
+
 
     W.at<double>(2,0)=0;
     W.at<double>(2,1)=0;
@@ -1209,7 +1194,7 @@ void stereoCamera::updatePMatrix() {
 
 }
 
-const Mat stereoCamera::getTranslation() {
+const Mat stereoCamera::getTraslation() {
     return this->T;
 }
 
@@ -1530,6 +1515,10 @@ const Mat stereoCamera::getRRrect() {
     return this->RRrect;
 }
 
-const Mat stereoCamera::getMapper() {
-    return this->Mapper;
+const Mat stereoCamera::getMapperL() {
+    return this->MapperL;
+}
+
+const Mat stereoCamera::getMapperR() {
+    return this->MapperR;
 }

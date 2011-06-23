@@ -45,7 +45,8 @@ private:
     Mat Mapl1;
     Mat Mapl2;
     Mat DepthPoints;
-    Mat Mapper;
+    Mat MapperL;
+    Mat MapperR;
 
     vector<Point2f> PointsL; // Match Left
     vector<Point2f> PointsR; // Match Right
@@ -106,14 +107,15 @@ public:
     const Mat getWorldPoints();
     const vector<Point2f> getMatchLeft();
     const vector<Point2f> getMatchRight();
-    const Mat getTranslation();
+    const Mat getTraslation();
     const Mat getRotation();
     void setRotation(Mat & Rot, int mul=0);
     void setTranslation(Mat &Tras, int mul=0);
     void savePoints(string pointsLPath, string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR);
     const Mat getMapL1();
     const Mat getMapL2();
-    const Mat getMapper();
+    const Mat getMapperL();
+    const Mat getMapperR();
     const Mat getDepthPoints();
     const Mat getRLrect();
     const Mat getRRrect();

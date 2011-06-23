@@ -22,6 +22,7 @@ class stereoModule:public RFModule
    string inputRightPortName;
    string outputPortName;  
    string handlerPortName;
+   string driveEye;
    int thresholdValue;
 
    /* class variables */

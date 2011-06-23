@@ -39,6 +39,8 @@ private:
    string inputRightPortName;
    string outName;
    string inFixationName;
+   string driveEye;
+   
 
 
    BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
@@ -53,23 +55,25 @@ private:
    IGazeControl* igaze;
    Matrix H;
    Matrix tras;
+   Mat HL_root;
    double angle;
    int useFixation;
    
    void getH();
    void printMatrixYarp(Matrix &A);
    void convert(Matrix& R, Mat& Rot);
+   Mat buildRotTras(Mat & R, Mat & T);
 
 public:
 
    disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
-                                 string calibPath,Port* commPort);
+                                 string calibPath,Port* commPort, string driveEye);
 
    bool threadInit();     
    void threadRelease();
    void run(); 
    void onStop();
-   Point3f get3DPoints(int u, int v);
+   Point3f get3DPoints(int u, int v,string drive="LEFT");
 };
 
 class updateCameraThread : public RateThread {
