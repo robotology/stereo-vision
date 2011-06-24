@@ -17,10 +17,10 @@
 */
 
 /**
-@ingroup icub_module
+\defgroup stereoCalibration stereoCalibration
 
-\defgroup icub_stereoCalib stereoCalib
- 
+@ingroup icub_contrib_modules
+
 Calibrate the stereo system (both intrinsics and extrinsics).
 
 Copyright (C) 2011 RobotCub Consortium
@@ -87,24 +87,17 @@ Windows.
 
 int main(int argc, char * argv[])
 {
-   /* initialize yarp network */ 
-
+ 
    Network yarp;
-
-   /* create your module */
-
+ 
    stereoCalibModule stereoModule; 
-
-   /* prepare and configure the resource finder */
-
+ 
    ResourceFinder rf;
    rf.setVerbose(true);
-   rf.setDefaultConfigFile("stereoCalib.ini"); //overridden by --from parameter
-   rf.setDefaultContext("stereoVision/conf");   //overridden by --context parameter
+   rf.setDefaultConfigFile("stereoCalib.ini"); 
+   rf.setDefaultContext("stereoVision/conf");   
    rf.configure("ICUB_ROOT", argc, argv);
  
-   /* run the module: runModule() calls configure first and, if successful, it then runs */
-
    stereoModule.runModule(rf);
     return 1;
 }

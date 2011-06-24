@@ -17,11 +17,10 @@
 */
 
 /**
-*
-@ingroup icub_module
+\defgroup stereoDisparity stereoDisparity
 
-\defgroup icub_stereoDisparity stereoDisparity
- 
+@ingroup icub_contrib_modules
+
 Builds a depth map using the vision system.
 
 Copyright (C) 2011 RobotCub Consortium
@@ -93,7 +92,7 @@ None.
 Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7.
 
 \author Sean Ryan Fanello
-**/ 
+*/ 
 
 #include <yarp/dev/Drivers.h>
 #include "disparityModule.h"
