@@ -19,7 +19,7 @@
 /**
 \defgroup stereoDisparity stereoDisparity
 
-@ingroup icub_contrib_modules
+@ingroup icub_stereoVision
 
 Builds a depth map using the vision system.
 
