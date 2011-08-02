@@ -38,15 +38,12 @@ private:
    string inputLeftPortName;
    string inputRightPortName;
    string outName;
-   string inFixationName;
-   string driveEye;
-   
+   string driveEye; 
 
 
    BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
    BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
    BufferedPort<ImageOf<PixelBgr> > outPort;
-   BufferedPort<Bottle> InputFixationPort;
 
    Port *commandPort;
    string dir;

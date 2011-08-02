@@ -232,16 +232,13 @@ void disparityThread::threadRelease()
     delete this->stereo;
     delete this->mutex;
     delete this->mutexDisp;
-    igaze->stopControl();
-    gazeCtrl->close();
+    delete gazeCtrl;
 
 }
 void disparityThread::onStop() {
     imagePortInRight.interrupt();
     imagePortInLeft.interrupt();
     commandPort->interrupt();
-    InputFixationPort.interrupt();
-
 }
 
 Mat disparityThread::buildRotTras(Mat & R, Mat & T) {

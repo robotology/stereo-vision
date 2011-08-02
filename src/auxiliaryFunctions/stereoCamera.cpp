@@ -313,7 +313,7 @@ void stereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
 
 void stereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFilePath) {
 // save intrinsic parameters
-    FileStorage fs(intrinsicFilePath, CV_STORAGE_WRITE);
+    FileStorage fs(intrinsicFilePath+".yml", CV_STORAGE_WRITE);
     if( fs.isOpened() )
     {
         fs << "M1" << Kleft << "D1" << DistL << "M2" << Kright << "D2" << DistR;
@@ -322,7 +322,7 @@ void stereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
     else
         cout << "Error: can not save the intrinsic parameters\n";
 
-     fs.open(extrinsicFilePath, CV_STORAGE_WRITE);
+     fs.open(extrinsicFilePath+".yml", CV_STORAGE_WRITE);
     if( fs.isOpened() )
     {
         fs << "R" << R << "T" << T <<"Q" << Q;
@@ -331,7 +331,37 @@ void stereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
     else
         cout << "Error: can not save the intrinsic parameters\n";
 
+
+
+    ofstream fout((intrinsicFilePath+".ini").c_str());
+
+    // Left Eye
+    fout << "[left]" << endl;
+    fout << "fx" << Kleft.at<double>(0,0) << endl;
+    fout << "fy" << Kleft.at<double>(1,1) << endl;
+    fout << "cx" << Kleft.at<double>(0,2) << endl;
+    fout << "cy" << Kleft.at<double>(1,2) << endl;
+    fout << "k1" << DistL.at<double>(0,0) << endl;
+    fout << "k2" << DistL.at<double>(1,0) << endl;
+    fout << "p1" << DistL.at<double>(2,0) << endl;
+    fout << "p2" << DistL.at<double>(3,0) << endl;
+
+    // Right Eye
+    fout << "[right]" << endl;
+    fout << "fx" << Kright.at<double>(0,0) << endl;
+    fout << "fy" << Kright.at<double>(1,1) << endl;
+    fout << "cx" << Kright.at<double>(0,2) << endl;
+    fout << "cy" << Kright.at<double>(1,2) << endl;
+    fout << "k1" << DistR.at<double>(0,0) << endl;
+    fout << "k2" << DistR.at<double>(1,0) << endl;
+    fout << "p1" << DistR.at<double>(2,0) << endl;
+    fout << "p2" << DistR.at<double>(3,0) << endl;
+
+    fout.close();
+
 }
+
+
 
 
 

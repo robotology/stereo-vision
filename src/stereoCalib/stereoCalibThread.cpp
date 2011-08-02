@@ -168,7 +168,7 @@ void stereoCalibThread::run(){
                     stereoCamera stereo(left,right);
                     stereo.stereoCalibration(imageListLR, this->boardWidth,this->boardHeight,this->squareSize);
                     cout << " Saving Calibration Results... " << endl;
-                    stereo.saveCalibration(dir+"/../extrinsics.yml",dir+"/../intrinsics.yml");
+                    stereo.saveCalibration(dir+"/../extrinsics",dir+"/../intrinsics");
                     cout << "Configuration Files Saved! Now you can run stereoDisparity! " << endl;
                     startCalibration=0;
                 }
