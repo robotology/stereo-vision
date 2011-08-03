@@ -131,27 +131,7 @@ void disparityThread::run(){
 
     Point3d point;
     bool init=true;
-    while (!isStopping()) {
-        getH();
-        Matrix R=H.submatrix(0,2,0,2);
-        yarp::sig::Vector x=dcm2axis(R);
-        Matrix newTras=H.submatrix(0,2,3,3);       
-        this->mutex->wait();
-
-        // Update Rotation
-        x[3]=x[3]-angle;
-        R=axis2dcm(x);
-        Mat Rot(3,3,CV_64FC1);
-        convert(R,Rot);
-        this->stereo->setRotation(Rot,2);
-        Mat traslation(3,1,CV_64FC1);
-
-        //Update Translation
-        Matrix temp2=newTras;
-        convert(temp2,traslation);
-        this->stereo->setTranslation(traslation,0);
-
-        this->mutex->post();
+    while (!isStopping()) {      
 
         ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
         ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
@@ -171,10 +151,29 @@ void disparityThread::run(){
        
 
 
-        if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){
+        if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){        
+              getH();
+              Matrix R=H.submatrix(0,2,0,2);
+              yarp::sig::Vector x=dcm2axis(R);
+              Matrix newTras=H.submatrix(0,2,3,3);       
+              this->mutex->wait();
 
-               imgL= (IplImage*) imageL->getIplImage();
-               imgR= (IplImage*) imageR->getIplImage();
+              // Update Rotation
+              x[3]=x[3]-angle;
+              R=axis2dcm(x);
+              Mat Rot(3,3,CV_64FC1);
+              convert(R,Rot);
+              this->stereo->setRotation(Rot,2);
+              Mat traslation(3,1,CV_64FC1);
+
+              //Update Translation
+              Matrix temp2=newTras;
+              convert(temp2,traslation);
+              this->stereo->setTranslation(traslation,0);
+              this->mutex->post();
+
+              imgL= (IplImage*) imageL->getIplImage();
+              imgR= (IplImage*) imageR->getIplImage();
   
               this->mutex->wait();
               this->stereo->setImages(imgL,imgR);
