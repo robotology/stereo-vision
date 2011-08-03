@@ -1228,8 +1228,8 @@ void stereoCamera::hornRelativeOrientations() {
     horn(this->Kleft,this->Kright,this->InliersL,this->InliersR,Rot,Tras);
 
 
-    this->R=Rot;
-    this->Rinit=Rot;
+    this->R=Rot.clone();
+    this->Rinit=Rot.clone();
 
     this->T=Tras/norm(Tras)*norm(T);
     this->Tinit=Tras/norm(Tras)*norm(Tinit);
