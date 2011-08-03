@@ -33,6 +33,8 @@ private:
     Mat Kright; // Intrinsic Parameters Right 3x3
     Mat DistL; // Distortion Coefficients Left 4x1
     Mat DistR; // Distortion Coefficients Right 4x1
+    Mat Rinit;
+    Mat Tinit;
     Mat R; // Rotation from Left to Right 3x3
     Mat T; // Translation from Left to Right 3x1
     Mat Q; // Depth Matrix 4x4

@@ -50,7 +50,9 @@ stereoCamera::stereoCamera(std::string intrinsicPath, std::string exstrinsicPath
             return ;
         }
         fs["R"] >> R;
+        fs["R"] >> Rinit;
         fs["T"] >> T;
+        fs["T"] >> Tinit;
         fs["Q"] >> Q;
         Mat A = Mat::eye(3, 4, CV_64F);
         Pleft=Kleft*A;
@@ -337,25 +339,25 @@ void stereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
 
     // Left Eye
     fout << "[left]" << endl;
-    fout << "fx" << Kleft.at<double>(0,0) << endl;
-    fout << "fy" << Kleft.at<double>(1,1) << endl;
-    fout << "cx" << Kleft.at<double>(0,2) << endl;
-    fout << "cy" << Kleft.at<double>(1,2) << endl;
-    fout << "k1" << DistL.at<double>(0,0) << endl;
-    fout << "k2" << DistL.at<double>(1,0) << endl;
-    fout << "p1" << DistL.at<double>(2,0) << endl;
-    fout << "p2" << DistL.at<double>(3,0) << endl;
+    fout << "fx " << Kleft.at<double>(0,0) << endl;
+    fout << "fy " << Kleft.at<double>(1,1) << endl;
+    fout << "cx " << Kleft.at<double>(0,2) << endl;
+    fout << "cy " << Kleft.at<double>(1,2) << endl;
+    fout << "k1 " << DistL.at<double>(0,0) << endl;
+    fout << "k2 " << DistL.at<double>(1,0) << endl;
+    fout << "p1 " << DistL.at<double>(2,0) << endl;
+    fout << "p2 " << DistL.at<double>(3,0) << endl;
 
     // Right Eye
     fout << "[right]" << endl;
-    fout << "fx" << Kright.at<double>(0,0) << endl;
-    fout << "fy" << Kright.at<double>(1,1) << endl;
-    fout << "cx" << Kright.at<double>(0,2) << endl;
-    fout << "cy" << Kright.at<double>(1,2) << endl;
-    fout << "k1" << DistR.at<double>(0,0) << endl;
-    fout << "k2" << DistR.at<double>(1,0) << endl;
-    fout << "p1" << DistR.at<double>(2,0) << endl;
-    fout << "p2" << DistR.at<double>(3,0) << endl;
+    fout << "fx " << Kright.at<double>(0,0) << endl;
+    fout << "fy " << Kright.at<double>(1,1) << endl;
+    fout << "cx " << Kright.at<double>(0,2) << endl;
+    fout << "cy " << Kright.at<double>(1,2) << endl;
+    fout << "k1 " << DistR.at<double>(0,0) << endl;
+    fout << "k2 " << DistR.at<double>(1,0) << endl;
+    fout << "p1 " << DistR.at<double>(2,0) << endl;
+    fout << "p2 " << DistR.at<double>(3,0) << endl;
 
     fout.close();
 
@@ -430,18 +432,18 @@ void stereoCamera::computeDisparity() {
         numberOfDisparities=64;
         
         sgbm.preFilterCap = 63; //63
-        sgbm.SADWindowSize = 1; 
+        sgbm.SADWindowSize = 7; 
         
         int cn = this->imleft.channels();
         
         sgbm.P1 = 8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
         sgbm.P2 = 32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-        sgbm.minDisparity =-10; //-15
+        sgbm.minDisparity =0; //-15
         sgbm.numberOfDisparities = numberOfDisparities;
         sgbm.uniquenessRatio = 15; //22
         sgbm.speckleWindowSize = 50; //100
         sgbm.speckleRange = 16; //32
-        sgbm.disp12MaxDiff = 1;
+        sgbm.disp12MaxDiff = 0;
         sgbm.fullDP = 1; // alg == STEREO_HH
        
         
@@ -1184,16 +1186,20 @@ void stereoCamera::setRotation(Mat& Rot, int mul) {
 
     if(mul==0)
         this->R=Rot;
-    else
+    if(mul==1)
         this->R=Rot*R;
+    if(mul==2)
+        this->R=Rot*Rinit;
     this->updatePMatrix();
 }
 void stereoCamera::setTranslation(Mat& Tras, int mul) {
 
     if(mul==0)
         this->T=Tras;
-    else
+    if(mul==1)
         this->T=T+Tras;
+    if(mul==2)
+        this->T=Tinit+Tras;
     this->updatePMatrix();
 }
 

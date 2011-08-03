@@ -126,41 +126,31 @@ void disparityThread::run(){
     tras=H.submatrix(0,2,3,3);
     angle=x[3];
 
-    double thang=0.01; // 0.01
-    double thtras=0.005; //0.005
-
     updateCameraThread updator(this->stereo,this->mutex,500);
     Point3d point;
-    bool init=true;
+    bool init=false;
     while (!isStopping()) {
                getH();
                Matrix R=H.submatrix(0,2,0,2);
                yarp::sig::Vector x=dcm2axis(R);
                Matrix newTras=H.submatrix(0,2,3,3);
-               double norma=iCub::ctrl::norm(tras-newTras,0);
-          
-               if (abs(x[3]-angle)>thang || norma>thtras ) {
-                       
-                   this->mutex->wait();
-                   if(abs(x[3]-angle)>thang) {
-                       double temp = x[3];
-                       x[3]=x[3]-angle;
-                       R=axis2dcm(x);
-                       Mat Rot(3,3,CV_64FC1);
-                       convert(R,Rot);
-
-                       this->stereo->setRotation(Rot,1);
-                       angle=temp;
-                   }
-                   Mat traslation(3,1,CV_64FC1);
-                   Matrix temp=newTras-tras;
-                   convert(temp,traslation);
-
-                   this->stereo->setTranslation(traslation,1);
-                   this->mutex->post();
                
-                   tras=newTras;
-               }
+               this->mutex->wait();
+
+               x[3]=x[3]-angle;
+               R=axis2dcm(x);
+               Mat Rot(3,3,CV_64FC1);
+               convert(R,Rot);
+
+               // Update Rotation
+               this->stereo->setRotation(Rot,2);
+               Mat traslation(3,1,CV_64FC1);
+               Matrix temp2=newTras;
+               convert(temp2,traslation);
+
+               //Update Translation
+               this->stereo->setTranslation(traslation,0);
+               this->mutex->post();
 
         ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
         ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
