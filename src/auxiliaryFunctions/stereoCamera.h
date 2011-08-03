@@ -33,8 +33,8 @@ private:
     Mat Kright; // Intrinsic Parameters Right 3x3
     Mat DistL; // Distortion Coefficients Left 4x1
     Mat DistR; // Distortion Coefficients Right 4x1
-    Mat Rinit;
-    Mat Tinit;
+    Mat Rinit; // Initial Rotation
+    Mat Tinit; // Initial Translation
     Mat R; // Rotation from Left to Right 3x3
     Mat T; // Translation from Left to Right 3x1
     Mat Q; // Depth Matrix 4x4
@@ -58,8 +58,6 @@ private:
 
     bool readStringList( const string& filename, vector<string>& l );
     void runStereoCalib(const vector<string>& imagelist, Size boardSize,float sqsize);
-    void getMatch(const Mat& descL, const vector<KeyPoint>& keypointsL, const Mat& descR, const  vector<KeyPoint>& keypointsR,  vector<DMatch>& matches, bool draw);
-    int getBestDistance(const float *di, const Mat& allDesc);
     void chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t);
     double* prepareVariables(Mat& R, Mat& T,vector<Point3f>& WorldPoints); 
     double* reprojectionError(Mat& Rot, Mat& Tras);
@@ -71,9 +69,9 @@ private:
 public:
 
 
-    stereoCamera() {}; // Costruttore vuoto quando si vuole calibrare Tutto a partire dalle immagini
-    stereoCamera(string intrinsicFileName, string exstrinsicFileName); // Costruttore quando si ha già la calibrazione
-    stereoCamera(Camera Left, Camera Right); // Costruttore quando sono già noti i parametri intrinseci
+    stereoCamera() {}; 
+    stereoCamera(string intrinsicFileName, string exstrinsicFileName);
+    stereoCamera(Camera Left, Camera Right);
 
     void stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize);
     void stereoCalibration(vector<string> imageList, int boardWidth, int boardHeight, float sqsize);

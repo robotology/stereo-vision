@@ -600,20 +600,19 @@ void stereoCamera::findMatch() {
         Point2f pointL=keypoints1[filteredMatches[i].queryIdx].pt;
         Point2f pointR=keypoints2[filteredMatches[i].trainIdx].pt;
 
-        if(abs(pointL.y-pointR.y)<5) {
+        if(abs(pointL.y-pointR.y)<10) {
             this->PointsR.push_back(pointR);
             this->PointsL.push_back(pointL);
         } else
             matchMask[i]=0;
     }
 
-
-
- //   Mat matchImg;
-    
- //   drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
- //   namedWindow("Match",1);
- //   imshow("Match",matchImg); 
+   /* Mat matchImg;
+  
+    drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
+    namedWindow("Match",1);
+    imshow("Match",matchImg); 
+    cvWaitKey(0);*/
 
 
 }
@@ -623,75 +622,6 @@ const Mat stereoCamera::getImLeftGray() {
 
 const Mat stereoCamera::getImRightGray() {
     return this->imrightgray;
-}
-
-
-void stereoCamera::getMatch(const Mat& descL, const vector<KeyPoint>& keypointsL, const Mat& descR, const  vector<KeyPoint>& keypointsR,  vector<DMatch>& matches, bool draw) {
-    int sizeL=keypointsL.size();
-    int sizeR=keypointsR.size();
-    int pixelsX=50; //80
-    int pixelsXMin=-200; //25
-    int pixelsY=5; // 5
-
-    
-    for (int i=0; i<sizeL; i++) {
-
-        const float *dL=descL.ptr<float>(i);
-        int index1=getBestDistance(dL,descR);
-        
-        const float *dR=descR.ptr<float>(index1);
-        int index2=getBestDistance(dR,descL);
-     
-        if(i!=index2){
-
-            continue;
-        }
-           
-        double X=keypointsL[i].pt.x-keypointsR[index1].pt.x;
-        double maxY=abs(keypointsL[i].pt.y-keypointsR[index1].pt.y);
-        bool cond=X> pixelsX || maxY> pixelsY || X< pixelsXMin;
- 
-        if(cond) {
-            continue;
-        }
-        if(draw) {
-           matches[i].queryIdx=i;
-           matches[i].trainIdx=index1;
-        }
-           Point2f pointL=keypointsL[i].pt;
-           Point2f pointR=keypointsR[index1].pt;
-           this->PointsR.push_back(pointR);
-           this->PointsL.push_back(pointL);
-    }
-
-}
-
-int stereoCamera::getBestDistance(const float *di, const Mat& allDesc) {
-    double min=10000;
-    int index=-1;
-    double dist=0;
-
-
-    for(int i=0; i<allDesc.rows; i++) 
-    {
-        const float* Mi = allDesc.ptr<float>(i);
-
-        for(int j = 0; j < allDesc.cols; j++) {
-            dist=dist+pow(di[j]-Mi[j],2);
-
-        }
-        dist=sqrt(dist);
-        if(dist<min) {
-            min=dist;
-            index=i;
-        }
-        dist=0;
-    }
-
-
-
-return index;
-
 }
 
 double stereoCamera::reprojectionErrorAvg() {
@@ -1245,8 +1175,8 @@ void stereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
-    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) 0.15 );
-    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) 0.15 );
+    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) 0.2 );
+    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) 0.2 );
     for( size_t m = 0; m < matches12.size(); m++ )
     {
         bool findCrossCheck = false;
@@ -1297,29 +1227,13 @@ void stereoCamera::hornRelativeOrientations() {
     Mat Tras=this->T.clone();
     horn(this->Kleft,this->Kright,this->InliersL,this->InliersR,Rot,Tras);
 
-    
-
-    double thetaNew=acos((Rot.at<double>(0,0)+Rot.at<double>(1,1)+Rot.at<double>(2,2)-1)/2);
-    double theta=acos((this->R.at<double>(0,0)+this->R.at<double>(1,1)+this->R.at<double>(2,2)-1)/2);
-    double relTheta=(thetaNew*180.0/CV_PI)-(theta*180.0/CV_PI);
-    double relNorm=norm(Tras-(this->T/norm(this->T)));
- //   cout << "Angolo: " << relTheta << " Tras: " << relNorm << endl;
-
-/*   Mat vettore(3,1,CV_64FC1);
-    double coso=1/(2*sin(thetaNew));
-    vettore.at<double>(0,0)=coso*(Rot.at<double>(2,1)-Rot.at<double>(1,2));
-    vettore.at<double>(1,0)=coso*(Rot.at<double>(0,2)-Rot.at<double>(2,0));
-    vettore.at<double>(2,0)=coso*(Rot.at<double>(1,0)-Rot.at<double>(0,1));
-    vettore=vettore/norm(vettore);*/
-
-//    printMatrix(Tras);
- //   printMatrix(Rot);
-  //  Mat tm=this->T/norm(this->T);
- //   printMatrix(tm);
 
     this->R=Rot;
-    if(relNorm<0.1)
-        this->T=Tras/norm(Tras)*norm(T);
+    this->Rinit=Rot;
+
+    this->T=Tras/norm(Tras)*norm(T);
+    this->Tinit=Tras/norm(Tras)*norm(Tinit);
+
     this->updatePMatrix();
 }
 
