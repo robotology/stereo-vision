@@ -30,6 +30,7 @@ private:
    IplImage * imgL;   
    IplImage * imgR;
    IplImage disp;
+   IplImage * output;
 
    stereoCamera *stereo;
    Semaphore* mutex;

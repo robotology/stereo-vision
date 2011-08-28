@@ -118,7 +118,6 @@ void disparityThread::run(){
     bool initR=false;
 
 
-    IplImage * output=cvCreateImage(cvSize(320,240),8,3);
     getH();
 
     Matrix R=H.submatrix(0,2,0,2);
@@ -186,6 +185,7 @@ void disparityThread::run(){
                    stereo->estimateEssential();
                    stereo->hornRelativeOrientations();
                    this->mutex->post();
+                   output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
                    init=false;
               }
 

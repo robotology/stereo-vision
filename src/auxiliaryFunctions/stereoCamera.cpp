@@ -600,14 +600,14 @@ void stereoCamera::findMatch() {
         Point2f pointL=keypoints1[filteredMatches[i].queryIdx].pt;
         Point2f pointR=keypoints2[filteredMatches[i].trainIdx].pt;
 
-        if(abs(pointL.y-pointR.y)<10) {
+        if(abs(pointL.y-pointR.y)<30) {
             this->PointsR.push_back(pointR);
             this->PointsL.push_back(pointL);
         } else
             matchMask[i]=0;
     }
 
-   /* Mat matchImg;
+   /*Mat matchImg;
   
     drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
     namedWindow("Match",1);
@@ -1175,8 +1175,8 @@ void stereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
-    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) 0.2 );
-    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) 0.2 );
+    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) 0.35 );
+    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) 0.35 );
     for( size_t m = 0; m < matches12.size(); m++ )
     {
         bool findCrossCheck = false;
