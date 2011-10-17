@@ -93,7 +93,6 @@ Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7.
 
 \author Sean Ryan Fanello
 */ 
-
 #include <yarp/dev/Drivers.h>
 #include "disparityModule.h"
 
@@ -101,10 +100,7 @@ YARP_DECLARE_DEVICES(icubmod)
 
 int main(int argc, char * argv[])
 {
-
-	YARP_REGISTER_DEVICES(icubmod)
-
-
+   YARP_REGISTER_DEVICES(icubmod)
    Network yarp;
    stereoModule stereoModule; 
 

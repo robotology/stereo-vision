@@ -1,4 +1,4 @@
-#include "Camera.h"
+#include "iCub/stereoVision/camera.h"
 
 Camera::Camera(string intrinsicFilePath) {
         FileStorage fs(intrinsicFilePath.c_str(), CV_STORAGE_READ);
@@ -51,11 +51,8 @@ void Camera::calibrate(vector<string> imageList, int boardWidth, int boardHeight
          bool found = findChessboardCorners( view, boardSize, pointbuf,
                                             CV_CALIB_CB_ADAPTIVE_THRESH & CV_CALIB_CB_FAST_CHECK & CV_CALIB_CB_NORMALIZE_IMAGE);
 
-       // improve the found corners' coordinate accuracy
          if(found) 
          {
-        //    if(imageSize.width==640)   
-          //      cornerSubPix( viewGray, pointbuf, Size(11,11), Size(-1,-1), TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
             drawChessboardCorners( view, boardSize, Mat(pointbuf), found );
             imagePoints.push_back(pointbuf);
          }
@@ -97,11 +94,9 @@ void Camera::calibrate(string imagesFilePath, int boardWidth, int boardHeight) {
          bool found = findChessboardCorners( view, boardSize, pointbuf,
                                             CV_CALIB_CB_ADAPTIVE_THRESH & CV_CALIB_CB_FAST_CHECK & CV_CALIB_CB_NORMALIZE_IMAGE);
 
-       // improve the found corners' coordinate accuracy
+
          if(found) 
          {
-        //    if(imageSize.width==640)   
-          //      cornerSubPix( viewGray, pointbuf, Size(11,11), Size(-1,-1), TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
             drawChessboardCorners( view, boardSize, Mat(pointbuf), found );
             imagePoints.push_back(pointbuf);
          }
@@ -145,15 +140,6 @@ bool Camera::prepareandRunCalibration(const vector<vector<Point2f> >& imagePoint
            ok ? "Calibration succeeded" : "Calibration failed",
            totalAvgErr);
     
-    /*if( ok )
-        saveCameraParams( outputFilename, imageSize,
-                         boardSize, squareSize, aspectRatio,
-                         flags, cameraMatrix, distCoeffs,
-                         writeExtrinsics ? rvecs : vector<Mat>(),
-                         writeExtrinsics ? tvecs : vector<Mat>(),
-                         writeExtrinsics ? reprojErrs : vector<float>(),
-                         writePoints ? imagePoints : vector<vector<Point2f> >(),
-                         totalAvgErr );*/
      return ok;
 
 }
@@ -253,9 +239,23 @@ void Camera::printDistortionVector()
 }
 
 
-Mat Camera::getIntrinsic() {
+Mat Camera::getCameraMatrix() {
     return this->K;
 }
 Mat Camera::getDistVector() {
     return this->Dist;
+}
+
+Mat Camera::undistortImage(Mat image) {
+    Mat imund;
+    undistort(image,imund,K,Dist);
+    return imund;
+}
+
+void Camera::setCameraMatrix(Mat& K) {
+    this->K=K;
+}
+
+void Camera::setDistCoefficients(Mat &Dist) {
+    this->Dist=Dist;
 }

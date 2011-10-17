@@ -10,7 +10,7 @@
 #include <iCub/iKin/iKinFwd.h>
 #include <yarp/dev/GazeControl.h>
 #include <iCub/ctrl/math.h>
-#include "stereoCamera.h"
+#include <iCub/stereoVision/StereoCamera.h>
 
  
 using namespace std; 
@@ -32,14 +32,13 @@ private:
    IplImage disp;
    IplImage * output;
 
-   stereoCamera *stereo;
+   StereoCamera *stereo;
    Semaphore* mutex;
    Semaphore* mutexDisp;
 
    string inputLeftPortName;
    string inputRightPortName;
    string outName;
-   string driveEye; 
 
 
    BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
@@ -52,20 +51,19 @@ private:
    PolyDriver* gazeCtrl;
    IGazeControl* igaze;
    Matrix H;
-   Matrix tras;
    Mat HL_root;
    double angle;
-   int useFixation;
+
    
    void getH();
    void printMatrixYarp(Matrix &A);
    void convert(Matrix& R, Mat& Rot);
    Mat buildRotTras(Mat & R, Mat & T);
-
+   void printMatrix(Mat &matrix);
 public:
 
    disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
-                                 string calibPath,Port* commPort, string driveEye);
+                                 string calibPath,Port* commPort);
 
    bool threadInit();     
    void threadRelease();
@@ -77,12 +75,12 @@ public:
 class updateCameraThread : public RateThread {
 
     private:
-        stereoCamera *stereo;
+        StereoCamera *stereo;
         Semaphore * mutex;
 
 
     public:
-        updateCameraThread(stereoCamera *camera, Semaphore * mut, int period);
+        updateCameraThread(StereoCamera *camera, Semaphore * mut, int period);
         virtual void run();
 
 };

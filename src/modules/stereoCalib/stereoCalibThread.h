@@ -5,8 +5,15 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/Thread.h>
-#include "stereoCamera.h"
- 
+#include <iCub/stereoVision/StereoCamera.h>
+#include <yarp/os/Stamp.h>
+#include <iCub/iKin/iKinFwd.h>
+#include <iCub/ctrl/math.h>
+
+using namespace yarp::sig;
+using namespace yarp::math;
+using namespace iCub::ctrl;
+using namespace iCub::iKin; 
 using namespace std;
 using namespace yarp::os; 
 using namespace yarp::sig;
@@ -31,20 +38,18 @@ private:
 
    Port *commandPort;
    string dir;
-   int saveVideo;
    int startCalibration;
    int boardWidth;
    int boardHeight;
    float squareSize;
    char pathL[256];
    char pathR[256];
+   void printMatrix(Mat &matrix);
 
-	void writeSingleCamera(string dir);
 public:
 
 
-   stereoCalibThread(string imageInLeft, string imageInRight, string outputPortNameRight, string outputPortNameLeft, Port* commPort, const char *dir,int bwidth, int bheight, float squareSize);
-   void setSave();
+   stereoCalibThread(ResourceFinder &rf, Port* commPort, const char *dir);
    void startCalib();
    bool threadInit();     
    void threadRelease();

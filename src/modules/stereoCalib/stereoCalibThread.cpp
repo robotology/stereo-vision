@@ -1,53 +1,32 @@
 #include "stereoCalibThread.h"
-#include <yarp/os/Stamp.h>
-#include <iCub/iKin/iKinFwd.h>
-#include <iCub/ctrl/math.h>
-
-using namespace yarp::sig;
-using namespace yarp::math;
-using namespace iCub::ctrl;
-using namespace iCub::iKin;
 
 
-void printMatrixYarp(Matrix matrix) {
-
-       int row=matrix.rows();
-    int col =matrix.cols();
-        cout << endl;
-   /* for(int i=0; i<row; i++) {
-        for(int j=0; j<col; j++) {
-            cout << matrix(Range(i,i),Range(j,j));
-        }
-        cout << endl;
-    }*/
-    for(int i = 0; i < row; i++)
-    {
-        for(int j = 0; j < col; j++) {
-            double& val =matrix(i,j);
-            cout << val << " ";
-        }
-        cout << endl;
-    }
-        cout << endl;
-}
-
-
-stereoCalibThread::stereoCalibThread(string inputLeftPortName, string inputRightPortName, string outNameRight, string outNameLeft, Port* commPort, const char *dir, int bwidth, int bheight, float squsize)
+stereoCalibThread::stereoCalibThread(ResourceFinder &rf, Port* commPort, const char *dir)
 {
- this->inputLeftPortName=inputLeftPortName;
- this->inputRightPortName=inputRightPortName;
- this->outNameRight=outNameRight;
- this->outNameLeft=outNameLeft;
- this->commandPort=commPort;
- this->dir=dir;
- this->saveVideo=0;
- this->startCalibration=0;
- this->boardWidth=bwidth;
- this->boardHeight=bheight;
- this->squareSize=squsize;
 
+    string moduleName=rf.check("name", Value("stereoCalib"),"module name (string)").asString().c_str();
 
- fprintf(stdout, "%s \n", dir);
+    this->inputLeftPortName         = "/"+moduleName;
+    this->inputLeftPortName        +=rf.check("imgLeft",Value("/cam/left:i"),"Input image port (string)").asString();
+   
+    this->inputRightPortName        = "/"+moduleName;
+    this->inputRightPortName       += rf.check("imgRight", Value("/cam/right:i"),"Input image port (string)").asString();
+	
+
+    this->outNameRight        = "/"+moduleName;
+    this->outNameRight       += rf.check("outRight",Value("/cam/right:o"),"Output image port (string)").asString();
+	
+    this->outNameLeft        = "/"+moduleName;
+    this->outNameLeft       +=rf.check("outLeft",Value("/cam/left:o"),"Output image port (string)").asString();
+
+    this->boardWidth=  rf.check("boardWidth", Value(9)).asInt();
+    this->boardHeight= rf.check("boardHeight", Value(6)).asInt();
+    this->squareSize= (float)rf.check("boardSize", Value(0.03)).asDouble();
+    this->commandPort=commPort;
+    this->dir=dir;
+    this->startCalibration=0;
+
+    fprintf(stdout, "%s \n", dir);
 }
 
 bool stereoCalibThread::threadInit() 
@@ -95,7 +74,7 @@ void stereoCalibThread::run(){
 
 
 
-   while (!isStopping()) { // the thread continues to run until isStopping() returns true
+   while (!isStopping()) { 
         ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
         ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
 
@@ -113,17 +92,6 @@ void stereoCalibThread::run(){
         }
 
         if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){
-
-
-            if(saveVideo>0) {
-                imgL= (IplImage*) imageL->getIplImage();
-                imgR= (IplImage*) imageR->getIplImage();
-    	        cvCvtColor(imgL,imgL,CV_RGB2BGR);
-                cvCvtColor(imgR,imgR, CV_RGB2BGR);
-                Cvtools::saveStereoImage(dir.c_str(),imgL,imgR,count);
-                count=count+1;
-                saveVideo=0;
-            }
 
             if(startCalibration>0) {
 
@@ -156,20 +124,22 @@ void stereoCalibThread::run(){
              }
 
                 if(count>30) {
-                    cout << " Running Left Camera Calibration..." << endl;
+                    fprintf(stdout," Running Left Camera Calibration... \n");
                     Camera left;
                     left.calibrate(imageListL,this->boardWidth,this->boardHeight);
 
-                    cout << " Running Right Camera Calibration..." << endl;
+                    fprintf(stdout," Running Right Camera Calibration... \n");
                     Camera right;
                     right.calibrate(imageListR,this->boardWidth,this->boardHeight);
+                    
+                    fprintf(stdout,"Running Stereo Calibration... \n");
 
-                    cout << " Running Stereo Calibration..." << endl;
-                    stereoCamera stereo(left,right);
+                    StereoCamera stereo(left,right);
                     stereo.stereoCalibration(imageListLR, this->boardWidth,this->boardHeight,this->squareSize);
-                    cout << " Saving Calibration Results... " << endl;
+                    fprintf(stdout," Saving Calibration Results... \n");
+
                     stereo.saveCalibration(dir+"/../extrinsics",dir+"/../intrinsics");
-                    cout << "Configuration Files Saved! Now you can run stereoDisparity! " << endl;
+                    fprintf(stdout,"Configuration Files Saved! Now you can run stereoDisparity! \n");
                     startCalibration=0;
                 }
 
@@ -200,18 +170,28 @@ void stereoCalibThread::threadRelease()
     outPortRight.close();
     commandPort->close();
 }
- void stereoCalibThread::onStop() {
+
+void stereoCalibThread::onStop() {
     imagePortInRight.interrupt();
     imagePortInLeft.interrupt();
     outPortLeft.interrupt();
     outPortRight.interrupt();
     commandPort->interrupt();
 }
-  void stereoCalibThread::setSave() {
-   saveVideo=1;
-}
-
-  void stereoCalibThread::startCalib() {
+void stereoCalibThread::startCalib() {
     startCalibration=1;
-
   }
+
+void stereoCalibThread::printMatrix(Mat &matrix) {
+    int row=matrix.rows;
+    int col =matrix.cols;
+        cout << endl;
+    for(int i = 0; i < matrix.rows; i++)
+    {
+        const double* Mi = matrix.ptr<double>(i);
+        for(int j = 0; j < matrix.cols; j++)
+            cout << Mi[j] << " ";
+        cout << endl;
+    }
+        cout << endl;
+}

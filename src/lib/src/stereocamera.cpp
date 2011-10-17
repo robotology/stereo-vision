@@ -1,36 +1,39 @@
-#include "stereoCamera.h"
+#include "iCub/stereoVision/stereocamera.h"
 
-void printMatrix(Mat &matrix) {
-    int row=matrix.rows;
-    int col =matrix.cols;
-        cout << endl;
-    for(int i = 0; i < matrix.rows; i++)
-    {
-        const double* Mi = matrix.ptr<double>(i);
-        for(int j = 0; j < matrix.cols; j++)
-            cout << Mi[j] << " ";
-        cout << endl;
-    }
-        cout << endl;
+Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
+    Mat A = Mat::eye(4, 4, CV_64F);
+    for(int i = 0; i < R.rows; i++)
+     {
+     double* Mi = A.ptr<double>(i);
+     double* MRi = R.ptr<double>(i);
+        for(int j = 0; j < R.cols; j++)
+             Mi[j]=MRi[j];
+     }
+    for(int i = 0; i < T.rows; i++)
+     {
+     double* Mi = A.ptr<double>(i);
+     double* MRi = T.ptr<double>(i);
+             Mi[3]=MRi[0];
+     }
+    return A;
 }
 
-
-const Mat stereoCamera::getKleft() {
+const Mat StereoCamera::getKleft() {
     return this->Kleft;
 }
-const Mat stereoCamera::getKright() {
+const Mat StereoCamera::getKright() {
     return this->Kright;
 }
 
-const vector<Point2f> stereoCamera::getMatchLeft() {
+const vector<Point2f> StereoCamera::getMatchLeft() {
     return this->InliersL;
 }
-const vector<Point2f>  stereoCamera::getMatchRight() {
+const vector<Point2f>  StereoCamera::getMatchRight() {
 
     return this->InliersR;
 }
 
-stereoCamera::stereoCamera(std::string intrinsicPath, std::string exstrinsicPath) {
+StereoCamera::StereoCamera(std::string intrinsicPath, std::string exstrinsicPath) {
 
      FileStorage fs(intrinsicPath.c_str(), CV_STORAGE_READ);
         if(!fs.isOpened())
@@ -71,27 +74,27 @@ stereoCamera::stereoCamera(std::string intrinsicPath, std::string exstrinsicPath
                  Mi[3]=MRi[0];
          }
         Pright=Kright*A;
-
-
-
-
+        this->mutex= new Semaphore(1);
+        this->cameraChanged=true;
 }
 
-stereoCamera::stereoCamera(Camera Left, Camera Right) {
-    this->Kleft=Left.getIntrinsic();
+StereoCamera::StereoCamera(Camera Left, Camera Right) {
+    this->Kleft=Left.getCameraMatrix();
     this->DistL=Left.getDistVector();
 
-    this->Kright=Right.getIntrinsic();
+    this->Kright=Right.getCameraMatrix();
     this->DistR=Right.getDistVector();
+    this->mutex=new Semaphore(1);
+    this->cameraChanged=true;
 }
 
-void stereoCamera::setImages(IplImage * left, IplImage * right) {
+void StereoCamera::setImages(IplImage * left, IplImage * right) {
        this->imleft=left;
        this->imright=right;
 }
 
 
-void stereoCamera::printStereoIntrinsic() {
+void StereoCamera::printStereoIntrinsic() {
     if(this->Kleft.empty())
         printf("Stereo Cameras are not calibrated, run calibration method before..\n");
     else 
@@ -103,7 +106,7 @@ void stereoCamera::printStereoIntrinsic() {
     }
 }
 
-void stereoCamera::stereoCalibration(vector<string> imagelist, int boardWidth, int boardHeight,float sqsize) {
+void StereoCamera::stereoCalibration(vector<string> imagelist, int boardWidth, int boardHeight,float sqsize) {
     Size boardSize;
     boardSize.width=boardWidth;
     boardSize.height=boardHeight;
@@ -111,7 +114,7 @@ void stereoCamera::stereoCalibration(vector<string> imagelist, int boardWidth, i
 
 }
 
-void stereoCamera::stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize) {
+void StereoCamera::stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize) {
     Size boardSize;
     boardSize.width=boardWidth;
     boardSize.height=boardHeight;
@@ -124,13 +127,9 @@ void stereoCamera::stereoCalibration(string imagesFilePath, int boardWidth, int 
         return;
     }
     runStereoCalib(imagelist, boardSize,sqsize);
-
-
-
-
 }
 
-bool stereoCamera::readStringList( const string& filename, vector<string>& l )
+bool StereoCamera::readStringList( const string& filename, vector<string>& l )
 {
     l.resize(0);
     FileStorage fs(filename, FileStorage::READ);
@@ -145,7 +144,7 @@ bool stereoCamera::readStringList( const string& filename, vector<string>& l )
     return true;
 }
     
-void stereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSize, const float squareSize)
+void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSize, const float squareSize)
 {
     if( imagelist.size() % 2 != 0 )
     {
@@ -313,8 +312,13 @@ void stereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
     cout << "average reprojection err = " <<  err/npoints << endl;
 }
 
-void stereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFilePath) {
-// save intrinsic parameters
+void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFilePath) {
+
+    if( Kleft.empty() || Kright.empty() || DistL.empty() || DistR.empty() || R.empty() || T.empty()) {
+            cout << "Error: cameras are not calibrated! Run the calibration or set intrinsic and extrinsic parameters \n";
+            return;
+    }
+
     FileStorage fs(intrinsicFilePath+".yml", CV_STORAGE_WRITE);
     if( fs.isOpened() )
     {
@@ -324,7 +328,7 @@ void stereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
     else
         cout << "Error: can not save the intrinsic parameters\n";
 
-     fs.open(extrinsicFilePath+".yml", CV_STORAGE_WRITE);
+    fs.open(extrinsicFilePath+".yml", CV_STORAGE_WRITE);
     if( fs.isOpened() )
     {
         fs << "R" << R << "T" << T <<"Q" << Q;
@@ -361,32 +365,34 @@ void stereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
 
     fout.close();
 
+
+
 }
 
 
 
 
 
-const Mat stereoCamera::getImLeft() {
+const Mat StereoCamera::getImLeft() {
 
     return this->imleft;
 }
 
-const Mat stereoCamera::getImRight() {
+const Mat StereoCamera::getImRight() {
     return this->imright;
 }
 
-const Mat stereoCamera::getDisparity() {
+const Mat StereoCamera::getDisparity() {
     return this->Disparity;
 }
 
-const Mat stereoCamera::getDisparity16() {
+const Mat StereoCamera::getDisparity16() {
     return this->Disparity16;
 }
-const Mat stereoCamera::getQ() {
+const Mat StereoCamera::getQ() {
     return this->Q;
 }
-void stereoCamera::computeDisparity() {
+void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleWindowSize,int speckleRange) {
     if(this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty()) {
         cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
         return;
@@ -395,178 +401,90 @@ void stereoCamera::computeDisparity() {
           cout << "Images are not set! set the images first!" << endl;
           return;
     }
-        enum { STEREO_BM=0, STEREO_SGBM=1, STEREO_HH=2 };
-        int alg = STEREO_SGBM;
         int SADWindowSize = 0, numberOfDisparities = 0;
-        int color_mode = alg == STEREO_BM ? 0 : -1;
         Size img_size = this->imleft.size();
-        Mat R1, P1, R2, P2;
+
         Rect roi1, roi2;
-        Mat Q1;
 
         StereoSGBM sgbm;
-        stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, R1, R2, P1, P2, Q1, -1, img_size, &roi1, &roi2 );
 
+        if(cameraChanged)
+        {
+            mutex->wait();
+            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1, img_size, &roi1, &roi2 );
+            mutex->post();
+        }
 
-        Mat map11, map12, map21, map22;
-        initUndistortRectifyMap(this->Kleft, this->DistL, R1, P1, img_size, CV_32FC1, map11, map12);
-        initUndistortRectifyMap(this->Kright,  this->DistR, R2, P2, img_size, CV_32FC1, map21, map22);
+        if(cameraChanged)
+        {
+            initUndistortRectifyMap(this->Kleft, this->DistL, this->RLrect, this->PLrect, img_size, CV_32FC1, this->map11, this->map12);
+            initUndistortRectifyMap(this->Kright,  this->DistR, this->RRrect, this->PRrect, img_size, CV_32FC1, this->map21, this->map22);
+        }
         
         Mat img1r, img2r;
-        this->Mapl1=map11;
-        this->Mapl2=map12;
-        this->RLrect=R1;
-        this->RRrect=R2;
-
-        remap(this->imleft, img1r, map11, map12, INTER_LINEAR);
-        remap(this->imright, img2r, map21, map22, INTER_LINEAR);
-
-
-
-        /*namedWindow("RectL",1);
-        namedWindow("RectR",1);
-        imshow("RectL",img1r);
-        imshow("RectR",img2r);
-      cvWaitKey(15);*/
-    
-        numberOfDisparities=64;
-        
+        remap(this->imleft, img1r, this->map11, this->map12, INTER_LINEAR);
+        remap(this->imright, img2r, this->map21,this->map22, INTER_LINEAR);
+  
+        numberOfDisparities=64;        
         sgbm.preFilterCap = 63; //63
-        sgbm.SADWindowSize = 7; 
-        
-        int cn = this->imleft.channels();
-        
+        sgbm.SADWindowSize = 7;         
+        int cn = this->imleft.channels();        
         sgbm.P1 = 8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
         sgbm.P2 = 32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
         sgbm.minDisparity =0; //-15
         sgbm.numberOfDisparities = numberOfDisparities;
-        sgbm.uniquenessRatio = 15; //22
-        sgbm.speckleWindowSize = 50; //100
-        sgbm.speckleRange = 16; //32
+        sgbm.uniquenessRatio = uniquenessRatio; //22
+        sgbm.speckleWindowSize = speckleWindowSize; //100
+        sgbm.speckleRange = speckleRange; //32
         sgbm.disp12MaxDiff = 0;
-        sgbm.fullDP = 1; // alg == STEREO_HH
+        sgbm.fullDP = best; // alg == STEREO_HH
        
         
-        Mat disp, disp8, map, dispTemp,dispTemp16;
-
-
+        Mat disp, disp8, map, dispTemp;
         sgbm(img1r, img2r, disp);
-        imgLeftRect=img1r;
-
-       
-        Mat tempPoints;
-        reprojectImageTo3D(-disp/16,tempPoints,Q1,true);
 
         disp.convertTo(map, CV_32FC1, 255/(numberOfDisparities*16.));
-        Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
-        Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
 
-        for( int y = 0; y < map.rows; y++ )
+        if(cameraChanged)
+        {
+            this->mutex->wait();
+            Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
+            Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
 
-           for( int x = 0; x < map.cols; x++ )
-           {
-            inverseMapL.ptr<float>(y*map.cols+x)[0]= (float)x;
-            inverseMapL.ptr<float>(y*map.cols+x)[1] = (float)y;
-            inverseMapR.ptr<float>(y*map.cols+x)[0]= (float)x;
-            inverseMapR.ptr<float>(y*map.cols+x)[1] = (float)y;
+            for( int y = 0; y < map.rows; y++ )
+            {
+               for( int x = 0; x < map.cols; x++ )
+               {
+                inverseMapL.ptr<float>(y*map.cols+x)[0]= (float)x;
+                inverseMapL.ptr<float>(y*map.cols+x)[1] = (float)y;
+                inverseMapR.ptr<float>(y*map.cols+x)[0]= (float)x;
+                inverseMapR.ptr<float>(y*map.cols+x)[1] = (float)y;
+               }
+            }
+            undistortPoints(inverseMapL,inverseMapL,this->Kleft,this->DistL,this->RLrect,this->PLrect);
+            undistortPoints(inverseMapR,inverseMapR,this->Kright,this->DistR,this->RRrect,this->PRrect);
 
-           }
+            Mat mapperL= inverseMapL.reshape(2,map.rows);
+            Mat mapperR= inverseMapR.reshape(2,map.rows);
+            this->MapperL=mapperL;
+            this->MapperR=mapperR;    
+            this->mutex->post();
+            cameraChanged=false;
+        }
 
-
-        undistortPoints(inverseMapL,inverseMapL,this->Kleft,this->DistL,R1,P1);
-        undistortPoints(inverseMapR,inverseMapR,this->Kright,this->DistR,R2,P2);
-
-        Mat mapperL= inverseMapL.reshape(2,map.rows);
-        Mat mapperR= inverseMapR.reshape(2,map.rows);
         Mat x;
-        remap(map,dispTemp,mapperL,x,INTER_LINEAR);
+        remap(map,dispTemp,this->MapperL,x,INTER_LINEAR);
         dispTemp.convertTo(disp8, CV_8U); 
 
-  
-        
-        this->DepthPoints=tempPoints;
+        this->mutex->wait();
         this->Disparity=disp8;        
         this->Disparity16=disp;
-        this->Q=Q1;
-        this->MapperL=mapperL;
-        this->MapperR=mapperR;
+        this->mutex->post();
 }
 
 
-/*
-void stereoCamera::findMatch() {
 
-    if(this->imleftund.empty() || this->imrightund.empty()) {
-          cout << "Images are not set and undistorted! set the images first and call undistortImages()!" << endl;
-          return;
-    }
-    int region=100;
-    int off=15;
-    vector<DMatch> matches; // Match matches[i].QueryIdx=keypointLeft, matches[i].trainIdx=keypointRight. QueryIdx=TrainIdx=0 -> No Match
-    this->PointsL.clear();
-    this->PointsR.clear();
-    
-    this->InliersL.clear();
-    this->InliersR.clear();
-
-    SURF FeaturesExtractionSurf;
-
-    bool draw=false;
-
-    Size dim =imleft.size();
-
-
-    Rect roiL((dim.width/2)-region,(dim.height/2)-region,2*region,2*region);
-    Mat maskL(dim.height,dim.width,CV_8U);
-    maskL.setTo(Scalar(0,0,0,0));
-    maskL(roiL).setTo(Scalar(255,255,255,255));
-
-    Rect roiR((dim.width/2)-(region+off),(dim.height/2)-(region),2*region,2*region);
-    Mat maskR(dim.height,dim.width,CV_8U);
-    maskR.setTo(Scalar(0,0,0,0));
-    maskR(roiR).setTo(Scalar(255,255,255,255));
-
-    cvtColor(this->imleftund,this->imleftgray,CV_BGR2GRAY,1);
-    cvtColor(this->imrightund,this->imrightgray,CV_BGR2GRAY,1);
-
-    vector<float> descL;
-    vector<float> descR;
-    
-    vector<KeyPoint> keypointsL; // Features on Left Image
-    vector<KeyPoint> keypointsR; // Features on Right Image
-    FeaturesExtractionSurf(this->imleftgray,maskL,keypointsL,descL);
-    FeaturesExtractionSurf(this->imrightgray,maskR,keypointsR,descR);
-    
-    if(draw)
-         matches.resize(keypointsL.size(),DMatch(0,0,0));
-
-    Mat MatdescL=Mat(descL).reshape(1,keypointsL.size());
-    Mat MatdescR=Mat(descR).reshape(1,keypointsR.size());
-
-    getMatch(MatdescL,keypointsL,MatdescR,keypointsR,matches,draw);
-
-
-    if(draw) {
-        Mat matchImg;
-        vector<char> matchMask(keypointsL.size(),1);
-        for (int i=0; i<matches.size(); i++) {
-            if(matches[i].queryIdx==0 || matches[i].trainIdx==0) {
-                matchMask[i]=0;
-            }
-        }
-         
-
-        drawMatches(this->imleftund, keypointsL, this->imrightund, keypointsR,matches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask,2);
-        namedWindow("Match",1);
-        imshow("Match",matchImg); 
-        cvWaitKey(15);
-    }
-    
-
-}
-*/
-
-void stereoCamera::findMatch() {
+void StereoCamera::findMatch(bool visualize, double displacement, double radius) {
     if(this->imleftund.empty() || this->imrightund.empty()) {
               cout << "Images are not set and undistorted! set the images first and call undistortImages()!" << endl;
               return;
@@ -593,38 +511,33 @@ void stereoCamera::findMatch() {
     descriptorExtractor->compute( this->imrightund, keypoints2, descriptors2 );
 
     vector<DMatch> filteredMatches;
-    crossCheckMatching( descriptorMatcher, descriptors1, descriptors2, filteredMatches, 1 );
+    crossCheckMatching( descriptorMatcher, descriptors1, descriptors2, filteredMatches,radius, 1 );
 
     vector<char> matchMask(filteredMatches.size(),1);
     for(int i=0; i<(int)filteredMatches.size(); i++) {
         Point2f pointL=keypoints1[filteredMatches[i].queryIdx].pt;
         Point2f pointR=keypoints2[filteredMatches[i].trainIdx].pt;
 
-        if(abs(pointL.y-pointR.y)<30) {
+        if(abs(pointL.y-pointR.y)<displacement) { //10 320x240 20 640x480
             this->PointsR.push_back(pointR);
             this->PointsL.push_back(pointL);
         } else
             matchMask[i]=0;
     }
 
-   /*Mat matchImg;
-  
-    drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
-    namedWindow("Match",1);
-    imshow("Match",matchImg); 
-    cvWaitKey(0);*/
+   // Visualize Matches
+    if(visualize) {
+        Mat matchImg;      
+        drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
+        namedWindow("Match",1);
+        imshow("Match",matchImg); 
+        cvWaitKey(0);
+    }
 
 
 }
-const Mat stereoCamera::getImLeftGray() {
-    return this->imleftgray;
-}
 
-const Mat stereoCamera::getImRightGray() {
-    return this->imrightgray;
-}
-
-double stereoCamera::reprojectionErrorAvg() {
+double StereoCamera::reprojectionErrorAvg() {
     if(PointsL.empty() || PointsR.empty()) {
         cout << "No Matches Found" << endl;
         return -1;
@@ -649,7 +562,6 @@ double stereoCamera::reprojectionErrorAvg() {
         pointR=InliersR[i];
 
         point3D=triangulation(pointL,pointR,this->Pleft,this->Pright);
-
         WorldPoints.push_back(point3D);
 
     }
@@ -668,7 +580,7 @@ double stereoCamera::reprojectionErrorAvg() {
 }
 
 
-Point3f stereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
+Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
       
       Point3f point3D;
       Mat J=Mat(4,4,CV_64FC1);
@@ -695,7 +607,7 @@ Point3f stereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
 
 }
 
-void stereoCamera::estimateEssential() {
+void StereoCamera::estimateEssential() {
     if(this->PointsL.size()<10 || this->PointsL.size()<10 ) {
         cout << "Not enough matches in memory! Run findMatch first!" << endl;
         this->E=Mat(3,3,CV_64FC1);
@@ -719,12 +631,17 @@ void stereoCamera::estimateEssential() {
 
 }
 
-void stereoCamera::essentialDecomposition() {
+void StereoCamera::essentialDecomposition() {
 
     if(E.empty() ) {
         cout << "Essential Matrix is Empy! Run the estimateEssential first!" << endl;
         return;
     }
+    if(this->PointsL.empty()) {
+        cout << "No matches in memory! Run findMatch first!" << endl;
+        return;
+    }
+
     Mat W=Mat(3,3,CV_64FC1);
 
     W.at<double>(0,0)=0;
@@ -739,23 +656,6 @@ void stereoCamera::essentialDecomposition() {
     W.at<double>(2,0)=0;
     W.at<double>(2,1)=0;
     W.at<double>(2,2)=1;
-
-    /*Mat S=Mat(3,3,CV_64FC1);
-
-    S.at<double>(0,0)=0;
-    S.at<double>(0,1)=-T.at<double>(2,0);
-    S.at<double>(0,2)=T.at<double>(1,0);
-
-    S.at<double>(1,0)=T.at<double>(2,0);
-    S.at<double>(1,1)=0;
-    S.at<double>(1,2)=-T.at<double>(0,0);
-
-    S.at<double>(2,0)=-T.at<double>(1,0);
-    S.at<double>(2,1)=T.at<double>(0,0);
-    S.at<double>(2,2)=0;
-
-    this->E=S*this->R;*/
-
 
     SVD dec(E);
 
@@ -782,48 +682,24 @@ void stereoCamera::essentialDecomposition() {
 
     Mat t1=U(Range(0,3),Range(2,3));
     Mat t2=-t1;
-    
-    /*cout << "Rotation Estimated:" << endl;
-    printMatrix(R1);
-    printMatrix(R2);
-    cout << "Translation Estimated:" << endl;
-    printMatrix(t1);
-    printMatrix(t2);*/
 
-   /* cout << "True Rotation and Traslation :" << endl;
-    printMatrix(this->R);
-    printMatrix(this->T);*/
-
-  Mat Rnew=Mat(3,3,CV_64FC1);
-  Rnew.setTo(cvScalar(0,0,0,0));
+    Mat Rnew=Mat(3,3,CV_64FC1);
+    Rnew.setTo(cvScalar(0,0,0,0));
     Mat tnew=Mat(3,1,CV_64FC1);
 
-    chierality(R1,R2,t1,t2,Rnew,tnew);
+    chierality(R1,R2,t1,t2,Rnew,tnew,this->InliersL,this->InliersR);
 
-   /*   cout << "Chierality Test:" << endl;
-    printMatrix(Rnew);
-    printMatrix(tnew);
 
-    Mat diffR=R-Rnew;
-    Mat diffT=T/norm(T)-tnew/norm(tnew);
-   
-    cout << "Rotation Difference :" << norm(diffR) <<endl;
-   cout << "Translation Difference :" << norm(diffT) <<endl;*/
-  //  cout << "Derminant: " << determinant(Rnew) << endl;
     if(determinant(Rnew)!=0) {
         this->R=Rnew;
+        this->T=tnew/norm(tnew);
         this->updatePMatrix();
     }
-
-printMatrix(R1);
-printMatrix(R2);
-printMatrix(Rnew);
-   // this->T=(tnew/norm(tnew))*norm(T);
 
 }
 
 
-void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t) {
+void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t, Vector<Point2f> points1, Vector<Point2f> points2) {
 
         Mat A= Mat::eye(3,4,CV_64FC1);
         Mat P1 = this->Kleft*Mat::eye(3, 4, CV_64F);
@@ -894,7 +770,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
      int passed=0;
          for(int i=0; i<(int) InliersL.size(); i++) 
          {
-             Point3f point3D=triangulation(InliersL[i],InliersR[i],P1,P2);
+             Point3f point3D=triangulation(points1[i],points2[i],P1,P2);
              if(point3D.z<0) {
                  passed=0;
                  break;
@@ -903,7 +779,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
 
          }
 
-         if(passed==InliersL.size()) {
+         if(passed==points1.size()) {
             R=R1;
             t=t1;
             return;
@@ -912,7 +788,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
 
         for(int i=0; i<(int) InliersL.size(); i++) 
          {
-             Point3f point3D=triangulation(InliersL[i],InliersR[i],P1,P3);
+             Point3f point3D=triangulation(points1[i],points2[i],P1,P3);
              if(point3D.z<0) {
                  passed=0;
                  break;
@@ -920,7 +796,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              passed++;
 
          }
-         if(passed==InliersL.size()) {
+         if(passed==points1.size()) {
             R=R2;
             t=t2;
             return;
@@ -928,7 +804,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
 
         for(int i=0; i<(int) InliersL.size(); i++) 
          {
-             Point3f point3D=triangulation(InliersL[i],InliersR[i],P1,P4);
+             Point3f point3D=triangulation(points1[i],points2[i],P1,P4);
              if(point3D.z<0) {
                  passed=0;
                  break;
@@ -936,7 +812,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              passed++;
 
          }
-      if(passed==InliersL.size()) {
+      if(passed==points1.size()) {
             R=R1;
             t=t2;
             return;
@@ -944,7 +820,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
 
         for(int i=0; i<(int) InliersL.size(); i++) 
          {
-             Point3f point3D=triangulation(InliersL[i],InliersR[i],P1,P5);
+             Point3f point3D=triangulation(points1[i],points2[i],P1,P5);
              if(point3D.z<0) {
                  passed=0;
                  break;
@@ -952,7 +828,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              passed++;
 
          }
-      if(passed==InliersL.size()) {
+      if(passed==points1.size()) {
             R=R2;
             t=t1;
             return;
@@ -961,7 +837,7 @@ void stereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
 }
 
 
-Point3f stereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat Camera1, Mat Camera2) {
+Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat Camera1, Mat Camera2) {
 
       Point3f point3D;
       Mat J=Mat(4,4,CV_64FC1);
@@ -993,40 +869,8 @@ Point3f stereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
 
 
 
-double* stereoCamera::prepareVariables(Mat& R, Mat& T,vector<Point3f>& WorldPoints) {
-    int size = 6+WorldPoints.size()*3;
 
-    double * vars= (double *) malloc(sizeof(double)*size);
-
-    Mat angles;
-    Rodrigues(R,angles);
-
-    for(int i=0; i<3; i++) {
-        vars[i]=angles.at<double>(i,0);
-    }
-
-    for(int i=0; i<3; i++) {
-        vars[i+3]=T.at<double>(i,0);
-    }
-
-    int j=6;
-    for(int i=0; i<(int) WorldPoints.size(); i++) {
-     
-        vars[j+i]=WorldPoints[i].x;
-        j++;
-        vars[j+i]=WorldPoints[i].y;
-        j++;
-        vars[j+i]=WorldPoints[i].z;
-
-    }
-
-    return vars;
-
-}
-
-
-
-double * stereoCamera::reprojectionError(Mat& Rot, Mat& Tras) {
+double * StereoCamera::reprojectionError(Mat& Rot, Mat& Tras) {
     if(PointsL.empty()) {
         cout << "No keypoints found! Run findMatch first!" << endl;
         return 0;
@@ -1090,7 +934,7 @@ double * stereoCamera::reprojectionError(Mat& Rot, Mat& Tras) {
 
 }
 
-void stereoCamera::undistortImages() {
+void StereoCamera::undistortImages() {
     if(this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty()) {
         cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
         return;
@@ -1105,15 +949,15 @@ void stereoCamera::undistortImages() {
 }
 
 
-const Mat stereoCamera::getImLeftUnd() {
+const Mat StereoCamera::getImLeftUnd() {
     return this->imleftund;
 }
-const Mat stereoCamera::getImRightUnd() {
+const Mat StereoCamera::getImRightUnd() {
     return this->imrightund;
 }
 
-void stereoCamera::setRotation(Mat& Rot, int mul) {
-
+void StereoCamera::setRotation(Mat& Rot, int mul) {
+    this->mutex->wait();
     if(mul==0)
         this->R=Rot;
     if(mul==1)
@@ -1121,24 +965,30 @@ void stereoCamera::setRotation(Mat& Rot, int mul) {
     if(mul==2)
         this->R=Rot*Rinit;
     this->updatePMatrix();
+    this->cameraChanged=true;
+    this->mutex->post();
 }
-void stereoCamera::setTranslation(Mat& Tras, int mul) {
-
+void StereoCamera::setTranslation(Mat& Tras, int mul) {
+    this->mutex->wait();
     if(mul==0)
         this->T=Tras;
     if(mul==1)
         this->T=T+Tras;
     if(mul==2)
         this->T=Tinit+Tras;
-    this->updatePMatrix();
+
+    if(!this->Kleft.empty() && !this->Kright.empty())
+        this->updatePMatrix();
+    this->cameraChanged=true;
+    this->mutex->post();
 }
 
-void stereoCamera::printExtrinsic() {
+void StereoCamera::printExtrinsic() {
     printMatrix(this->R);
     printMatrix(this->T);
 }
 
-void stereoCamera::updatePMatrix() {
+void StereoCamera::updatePMatrix() {
 
 
         Mat A = Mat::eye(3, 4, CV_64F);
@@ -1160,23 +1010,23 @@ void stereoCamera::updatePMatrix() {
 
 }
 
-const Mat stereoCamera::getTraslation() {
+const Mat StereoCamera::getTraslation() {
     return this->T;
 }
 
-const Mat stereoCamera::getRotation() {
+const Mat StereoCamera::getRotation() {
     return this->R;
 }
 
 
-void stereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher,
+void StereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher,
                          const Mat& descriptors1, const Mat& descriptors2,
-                         vector<DMatch>& filteredMatches12, int knn )
+                         vector<DMatch>& filteredMatches12, double radius, int knn )
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
-    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) 0.35 );
-    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) 0.35 );
+    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) radius );
+    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) radius );
     for( size_t m = 0; m < matches12.size(); m++ )
     {
         bool findCrossCheck = false;
@@ -1205,7 +1055,7 @@ void stereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher
 
 
 
-void stereoCamera::hornRelativeOrientations() {
+void StereoCamera::hornRelativeOrientations() {
 
     if(this->PointsL.size()<10 || this->PointsR.size()<10) {
         cout << "No matches found! Run findMatch fist!" << endl;
@@ -1238,14 +1088,13 @@ void stereoCamera::hornRelativeOrientations() {
 }
 
 
-void stereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Point2f> & PointsR,Mat & Rot,Mat & Tras) {
+void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Point2f> & PointsR,Mat & Rot,Mat & Tras) {
     double prevres = 1E40;
     double res = 1E39;
     double vanishing = 1E-16;
     Tras=Tras/norm(Tras);
 
     normalizePoints(K1,K2,PointsL,PointsR);
-   // savePoints("C:/Users/Utente/Desktop/PointsNL.txt","C:/Users/Utente/Desktop/PointsNR.txt", PointsL,PointsR);
     int iters=0;
     Mat B(3,3,CV_64FC1);
     Mat C(3,3,CV_64FC1);
@@ -1373,7 +1222,7 @@ void stereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
 
 }
 
-void stereoCamera::getRotation(Mat & q, Mat & Rot) {
+void StereoCamera::getRotation(Mat & q, Mat & Rot) {
 
     double n=q.at<double>(0,0);
     double e1=q.at<double>(1,0);
@@ -1394,7 +1243,7 @@ void stereoCamera::getRotation(Mat & q, Mat & Rot) {
     Rot.at<double>(2,2)=2*(n*n+e3*e3)-1;
 }
 
-void stereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR) {
+void StereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR) {
 
    
    Mat Point(3,1,CV_64FC1);
@@ -1429,8 +1278,7 @@ void stereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL
 
 }
 
-void stereoCamera::savePoints(string pointsLPath,string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR) {
-// save intrinsic parameters
+void StereoCamera::savePoints(string pointsLPath,string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR) {
   ofstream myfile;
   myfile.open (pointsLPath.c_str());
   for(int i=0; i<(int) PointL.size(); i++)
@@ -1444,31 +1292,222 @@ void stereoCamera::savePoints(string pointsLPath,string pointsRPath, vector<Poin
 
 }
 
-const Mat stereoCamera::getMapL1() {
- return this->Mapl1;
-}
 
-const Mat stereoCamera::getMapL2() {
- return this->Mapl2;
-}
-
-
-const Mat stereoCamera::getDepthPoints() {
-    return this->DepthPoints;
-}
-
-const Mat stereoCamera::getRLrect() {
+const Mat StereoCamera::getRLrect() {
     return this->RLrect;
 }
 
-const Mat stereoCamera::getRRrect() {
+const Mat StereoCamera::getRRrect() {
     return this->RRrect;
 }
 
-const Mat stereoCamera::getMapperL() {
+const Mat StereoCamera::getMapperL() {
     return this->MapperL;
 }
 
-const Mat stereoCamera::getMapperR() {
+const Mat StereoCamera::getMapperR() {
     return this->MapperR;
+}
+
+
+void StereoCamera::printMatrix(Mat &matrix) {
+    int row=matrix.rows;
+    int col =matrix.cols;
+        cout << endl;
+    for(int i = 0; i < matrix.rows; i++)
+    {
+        const double* Mi = matrix.ptr<double>(i);
+        for(int j = 0; j < matrix.cols; j++)
+            cout << Mi[j] << " ";
+        cout << endl;
+    }
+        cout << endl;
+}
+
+
+void StereoCamera::setIntrinsics(Mat& KL, Mat& KR, Mat& DistL, Mat& DistR) {
+    this->mutex->wait();
+    this->Kleft=KL;
+    this->Kright=KR;
+    this->DistL=DistL;
+    this->DistR=DistR;
+
+    if(!this->R.empty() && !this->T.empty())
+        updatePMatrix();
+    this->cameraChanged=true;
+    this->mutex->post();
+}
+
+Point3f StereoCamera::metricTriangulation(Point2f &point1) {
+    mutex->wait();
+
+    if(Q.empty() || Disparity16.empty()) {
+        cout << "Run computeDisparity() method first!" << endl;
+        Point3f point;
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+
+        mutex->post();
+        return point;
+    }
+
+    int u=(int) point1.x; 
+    int v=(int) point1.y;
+    Point3f point;
+
+
+    // Mapping from Rectified Cameras to Original Cameras
+    Mat Mapper=this->getMapperL();
+
+    if(Mapper.empty()) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+       
+        mutex->post();
+        return point;
+    }
+
+
+    float usign=Mapper.ptr<float>(v)[2*u];
+    float vsign=Mapper.ptr<float>(v)[2*u+1]; 
+
+    u=cvRound(usign);
+    v=cvRound(vsign);
+
+    IplImage disp16=this->getDisparity16();
+    
+
+    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+    }
+    else {
+        CvScalar scal= cvGet2D(&disp16,v,u);
+        double disparity=-scal.val[0]/16.0;
+        float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
+        point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
+        point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
+        point.z=(float) Q.at<double>(2,3);
+
+        point.x=point.x/w;
+        point.y=point.y/w;
+        point.z=point.z/w;
+    }
+
+    // discard points far more than 2.5 meters or with not valid disparity (<0)
+    if(point.z>2.5 || point.z<0) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+    } 
+    else {
+            Mat P(3,1,CV_64FC1);
+            P.at<double>(0,0)=point.x;
+            P.at<double>(1,0)=point.y;
+            P.at<double>(2,0)=point.z;
+
+            // Rototranslation from rectified camera to original camera
+            P=this->getRLrect().t()*P;
+
+            point.x=(float) P.at<double>(0,0);
+            point.y=(float) P.at<double>(1,0);
+            point.z=(float) P.at<double>(2,0);
+    }
+ 
+    mutex->post();
+    return point;
+
+}
+
+
+
+Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H) {
+    mutex->wait();
+
+    if(Q.empty() || Disparity16.empty()) {
+        cout << "Run computeDisparity() method first!" << endl;
+        Point3f point;
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+        
+        mutex->post();
+        return point;
+    }
+
+    int u=(int) point1.x; // matrix starts from (0,0), pixels from (1,1)
+    int v=(int) point1.y;
+    Point3f point;
+
+
+    // Mapping from Rectified Cameras to Original Cameras
+    Mat Mapper=this->getMapperL();
+
+    if(Mapper.empty()) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+        
+        mutex->post();
+        return point;
+    }
+
+
+    float usign=Mapper.ptr<float>(v)[2*u];
+    float vsign=Mapper.ptr<float>(v)[2*u+1]; 
+
+    u=cvRound(usign);
+    v=cvRound(vsign);
+
+    IplImage disp16=this->getDisparity16();
+    
+
+    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+    }
+    else {
+        CvScalar scal= cvGet2D(&disp16,v,u);
+        double disparity=-scal.val[0]/16.0;
+        float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
+        point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
+        point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
+        point.z=(float) Q.at<double>(2,3);
+
+        point.x=point.x/w;
+        point.y=point.y/w;
+        point.z=point.z/w;
+    }
+
+    // discard points far more than 2.5 meters or with not valid disparity (<0)
+    if(point.z>2.5 || point.z<0) {
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;
+    } 
+    else {
+        Mat RLrectTmp=this->getRLrect().t();
+        Mat Tfake = Mat::zeros(0,3,CV_64F);
+        Mat P(4,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+        P.at<double>(3,0)=1;
+
+        Mat Hrect=buildRotTras(RLrectTmp,Tfake);           
+       
+        P=H*Hrect*P;     
+
+        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+    }
+ 
+    mutex->post();
+    return point;
+
 }

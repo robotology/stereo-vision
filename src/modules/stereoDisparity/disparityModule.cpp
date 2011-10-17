@@ -18,7 +18,6 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
                            Value("icub"), 
                            "Robot name (string)").asString();
 
-    /* get the name of the input and output ports, automatically prefixing the module name by using getName() */
 
     inputLeftPortName         = "/";
     inputLeftPortName        += getName(
@@ -46,7 +45,7 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
                            "Output image port (string)").asString()
                            );
 
-    driveEye        =rf.check("DriveEye", Value("LEFT"),"Output image port (string)").asString().c_str();
+
 
     if (!handlerPort.open(handlerPortName.c_str())) {
         cout << ": unable to open port " << handlerPortName << endl;
@@ -58,7 +57,7 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
     attach(handlerPort);
 
 
-    dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName, calibPath,&handlerPort,driveEye);
+    dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName, calibPath,&handlerPort);
 
     dispThread->start(); 
 

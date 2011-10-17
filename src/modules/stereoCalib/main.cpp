@@ -77,7 +77,7 @@ None.
 None. 
  
 \section tested_os_sec Tested OS
-Windows.
+Windows and Linux.
 
 \author Sean Ryan Fanello
 */ 

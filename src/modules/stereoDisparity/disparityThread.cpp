@@ -1,20 +1,33 @@
 #include "disparityThread.h"
 #include <yarp/os/Stamp.h> 
 
+void disparityThread::printMatrix(Mat &matrix) {
+    int row=matrix.rows;
+    int col =matrix.cols;
+        cout << endl;
+    for(int i = 0; i < matrix.rows; i++)
+    {
+        const double* Mi = matrix.ptr<double>(i);
+        for(int j = 0; j < matrix.cols; j++)
+            cout << Mi[j] << " ";
+        cout << endl;
+    }
+        cout << endl;
+}
 
 disparityThread::disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
-                                 string calibPath,Port* commPort, string driveEye)
+                                 string calibPath,Port* commPort)
 {
     this->inputLeftPortName=inputLeftPortName;
     this->inputRightPortName=inputRightPortName;
     this->outName=outName;
     this->commandPort=commPort;
-    this->stereo=new stereoCamera(calibPath+"/intrinsics.yml", calibPath+"/extrinsics.yml");
+    this->stereo=new StereoCamera(calibPath+"/intrinsics.yml", calibPath+"/extrinsics.yml");
     angle=0;
     this->mutex = new Semaphore(1);
     this->mutexDisp = new Semaphore(1);
-    this->driveEye=driveEye;
     this->HL_root= Mat::zeros(4,4,CV_64F);
+    this->output=NULL;
 }
 
 
@@ -118,15 +131,15 @@ void disparityThread::run(){
     bool initR=false;
 
 
+
     getH();
 
     Matrix R=H.submatrix(0,2,0,2);
     yarp::sig::Vector x=dcm2axis(R);
-    tras=H.submatrix(0,2,3,3);
     angle=x[3];
 
     updateCameraThread updator(this->stereo,this->mutex,500);
-   // updator.start();
+   // updator.start(); // It is not needed to update cameras at each iteration, only one update during the initialization is enough
 
     Point3d point;
     bool init=true;
@@ -179,12 +192,10 @@ void disparityThread::run(){
               this->mutex->post();
 
               if(init) {
-                   this->mutex->wait();
                    stereo->undistortImages();
                    stereo->findMatch();
                    stereo->estimateEssential();
                    stereo->hornRelativeOrientations();
-                   this->mutex->post();
                    output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
                    init=false;
               }
@@ -194,8 +205,7 @@ void disparityThread::run(){
               this->mutexDisp->post();        
 
               if(outPort.getOutputCount()>0) {
-
-                 disp=stereo->getDisparity();               
+                 disp=stereo->getDisparity();
                  cvCvtColor(&disp,output,CV_GRAY2RGB);
                  ImageOf<PixelBgr>& outim=outPort.prepare();                   
                  outim.wrapIplImage(output);
@@ -223,6 +233,9 @@ void disparityThread::threadRelease()
     delete this->mutex;
     delete this->mutexDisp;
     delete gazeCtrl;
+    
+    if(output!=NULL)
+        cvReleaseImage(&output);
 
 }
 void disparityThread::onStop() {
@@ -252,8 +265,8 @@ Mat disparityThread::buildRotTras(Mat & R, Mat & T) {
 
 
 Point3f disparityThread::get3DPoints(int u, int v, string drive) {
-    u=u-1; // matrix starts from (0,0), pixels from (1,1)
-    v=v-1;
+    u=u; // matrix starts from (0,0), pixels from (0,0)
+    v=v;
     Point3f point;
 
     if(drive!="RIGHT" && drive !="LEFT" && drive!="ROOT") {
@@ -264,9 +277,10 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
     }
 
     this->mutexDisp->wait();   
+    // Mapping from Rectified Cameras to Original Cameras
     Mat Mapper=this->stereo->getMapperL();
 
-    if(Mapper.size().width==0) {
+    if(Mapper.empty()) {
         point.x=-1.0;
         point.y=-1.0;
         point.z=-1.0;
@@ -282,17 +296,6 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    /* Mat img=this->stereo->getDepthPoints();
-    if(u<0 || u>=img.size().width || v<0 || v>=img.size().height) {
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
-    }
-    else {
-        point.x= img.ptr<float>(v)[3*u];
-        point.y= img.ptr<float>(v)[3*u+1];
-        point.z= img.ptr<float>(v)[3*u+2];
-    }*/   
     IplImage disp16=this->stereo->getDisparity16();
 
 
@@ -315,7 +318,7 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
         point.z=point.z/w;
     }
 
-   
+    // discard points far more than 2.5 meters or with not valid disparity (<0)
     if(point.z>2.5 || point.z<0) {
         point.x=-1.0;
         point.y=-1.0;
@@ -383,7 +386,7 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
     return point;
 
 }
-updateCameraThread::updateCameraThread(stereoCamera * cam, Semaphore * mut, int _period): RateThread(_period) {
+updateCameraThread::updateCameraThread(StereoCamera * cam, Semaphore * mut, int _period): RateThread(_period) {
     this->stereo=cam;
     this->mutex=mut;
 }

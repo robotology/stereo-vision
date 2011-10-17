@@ -1,17 +1,69 @@
-#include "Cvtools.h"
+#include "iCub/stereoVision/cvtools.h"
+
+void Cvtools::AccumulateBackgroundOpticalFlow(IplImage* framefloat, IplImage* avg, IplImage* variance, double rate) {
+	IplImage* temp=cvCreateImage(cvGetSize(framefloat), 32, 1);
+	IplImage* visualize=cvCreateImage(cvGetSize(framefloat), 8, 1);
+
+	double min=0;
+	double max=0;
+
+	cvRunningAvg(framefloat, avg, rate, NULL);
+	cvAbsDiff(framefloat, avg, temp);
+	cvPow(temp, temp, 2);
+	cvConvertScale(temp, temp, rate, 0);
+	cvConvertScale(variance, variance, (1-rate), 0);
+	cvAdd(variance, temp, variance, NULL);
+
+	cvMinMaxLoc(variance,&min,&max,NULL,NULL,NULL);
+	cvConvertScale(variance, visualize, 255/max, 0);
+
+	cvReleaseImage(&temp);
+	cvReleaseImage(&visualize);
+}
+
+void Cvtools::DiffBackgroundStandOpticalFlow(IplImage* framefloat, IplImage* avg, IplImage* variance) {
+	IplImage* temp=cvCreateImage(cvGetSize(framefloat), 32, 1);
+	IplImage* distr=cvCreateImage(cvGetSize(framefloat), 32, 1);
+	IplImage* maskfloat=cvCreateImage(cvGetSize(framefloat), 32, 1);
+	IplImage* Zeta=cvCreateImage(cvGetSize(framefloat), 32, 1);
+	double min, max=0;
+
+	cvAbsDiff(avg, framefloat, temp);
+	cvPow(temp, temp, 2);
+	cvDiv(temp, variance, Zeta, 1);
+	cvConvertScale(Zeta, Zeta, -0.5, 1);
+	cvExp(Zeta, distr);
+
+	double fatt=sqrt(2.0*CV_PI);
+
+	cvConvertScale(distr, distr, 1.0/fatt, 0);
+
+	cvThreshold(distr, distr, 1.0, 1.0, CV_THRESH_TRUNC);
+
+	cvThreshold(distr, maskfloat, 0.0000135, 1, CV_THRESH_BINARY_INV);
+
+	cvMul(maskfloat, framefloat, framefloat, 1);
+
+	cvReleaseImage(&distr);
+	cvReleaseImage(&maskfloat);
+	cvReleaseImage(&temp);
+	cvReleaseImage(&Zeta);
+}
+
+
 
 IplImage * Cvtools::readImage(string path) {
 	IplImage *imgo = cvLoadImage(path.c_str(),1);
 	return imgo;
 } 
 
-IplImage * Cvtools::thresholdColor(IplImage * img, int threshold, int x, int y) {
+void Cvtools::thresholdColor(IplImage *img, IplImage* res, int threshold, int x, int y, double value) {
 
        
+    cvZero(res);
   //  cvSmooth(img, img, 1, 3, 0, 0, 0);
 
 	CvSize size =cvGetSize(img);
-	IplImage* res = cvCreateImage(size,img->depth,1);
 
 	IplImage *upR= cvCreateImage(size,img->depth,1);
 	IplImage * downR=cvCreateImage(size,img->depth,1);
@@ -31,19 +83,21 @@ IplImage * Cvtools::thresholdColor(IplImage * img, int threshold, int x, int y) 
     IplImage * BlueSeg=cvCreateImage(size,img->depth,1);
 
    CvScalar s;
-   if(x<=0 || y<=0 || x>size.width || y>size.height) {
-	    int centerW= (int) size.width/2;
-	    int centerH= (int) size.height/2;
-	    s = cvGet2D(img,centerH,centerW);
-    } else {
-	    s = cvGet2D(img,y,x);
-    }
-
-    if(s.val[0]<5) {
-        cvReleaseImage(&res);
-        res=NULL;
-        return res;
-    }
+   if(value==0)
+   {
+       if(x<=0 || y<=0 || x>size.width || y>size.height) {
+	        int centerW= (int) size.width/2;
+	        int centerH= (int) size.height/2;
+	        s = cvGet2D(img,centerH,centerW);
+        } else {
+	        s = cvGet2D(img,y,x);
+        }
+   }
+   else {
+        s.val[0]=value;
+        s.val[1]=value;
+        s.val[2]=value;
+   }
 
 	cvSplit(img,Red,Green,Blue,NULL);
 
@@ -74,8 +128,45 @@ IplImage * Cvtools::thresholdColor(IplImage * img, int threshold, int x, int y) 
     cvReleaseImage(&RedSeg);
     cvReleaseImage(&GreenSeg);
     cvReleaseImage(&BlueSeg);
+	
+}
 
-	return res;
+
+
+void Cvtools::thresholdBW(IplImage *img, IplImage* res, int threshold, int x, int y, double value) {
+       
+    cvZero(res);
+	CvSize size =cvGetSize(img);
+
+	IplImage *up= cvCreateImage(size,img->depth,1);
+	IplImage * down=cvCreateImage(size,img->depth,1);
+
+    CvScalar s;
+    if(value==0)
+    {
+        if(x<=0 || y<=0 || x>size.width || y>size.height) {
+ 	        int centerW= (int) size.width/2;
+	        int centerH= (int) size.height/2;
+	        s = cvGet2D(img,centerH,centerW);
+        } else {
+	        s = cvGet2D(img,y,x);
+        }
+    }
+    else {
+        s.val[0]=value;
+        s.val[1]=value;
+        s.val[2]=value;
+    }
+
+	cvThreshold(img, up, s.val[0]+threshold, 255, CV_THRESH_BINARY_INV);
+    cvThreshold(img, down, s.val[0]-threshold, 255, CV_THRESH_BINARY);
+
+	cvAnd(up,down,res,NULL);
+
+
+    cvReleaseImage(&up);
+    cvReleaseImage(&down);
+
 	
 }
 
@@ -99,14 +190,14 @@ return;
 
 }
 
-bool Cvtools::checkTS(double TSLeft, double TSRight) {
+bool Cvtools::checkTS(double TSLeft, double TSRight, double th) {
     double diff=fabs(TSLeft-TSRight);
-    if(diff <0.020)
+    if(diff <th)
         return true;
     else return false;
 
 }
- void Cvtools::saveImgSegDisp(const char * dir, IplImage * img, IplImage* foreground, double norm, int num) {
+void Cvtools::saveImgSegDisp(const char * dir, IplImage * img, IplImage* foreground, double norm, int num) {
 
     char path1[256];
     char path2[256];
@@ -131,8 +222,8 @@ void Cvtools::saveStereoImage(const char * dir, IplImage* left, IplImage * right
     
     fprintf(stdout,"Saving images number %d \n",num);
 
-   cvSaveImage(pathL,left);
-   cvSaveImage(pathR,right);
+    cvSaveImage(pathL,left);
+    cvSaveImage(pathR,right);
     
 }
 
@@ -176,7 +267,7 @@ void Cvtools::preparePath(const char * dir, char* path1, char* path2, char * pat
 			strcat(path3,".txt");
 }
 
- void Cvtools::drawPoints(Mat& Img, vector<Point2f> Points) {
+void Cvtools::drawPoints(Mat& Img, vector<Point2f> Points) {
 
     for(int i=0; i<(int) Points.size(); i++) 
         circle(Img,Points[i],2,cvScalar(255,0,0,0));
@@ -205,7 +296,7 @@ void Cvtools::computeContrastandOrientation(IplImage* img, IplImage* arctan, Ipl
 	cvZero(arctan);
 	cvZero(contrast);
 	cvCartToPolar(derivativeX, derivativeY, contrast, arctan, 0);
-	//cvThreshold(contrast,contrast,0.7,1,CV_THRESH_BINARY); // puoi thresholdare sul contrasto se vuoi
+	//cvThreshold(contrast,contrast,0.7,1,CV_THRESH_BINARY);
 
 
 	cvReleaseImage(&img_f);
@@ -223,25 +314,25 @@ void Cvtools::computeHOG(IplImage* image, CvHistogram* histTemp) {
 
 
 	cvConvertScale(contrastTemplate,maskTemplate,255,0);
-    cvNamedWindow("Contrasto",1);
-	cvShowImage("Contrasto", maskTemplate);
+    //cvNamedWindow("Contrast",1);
+	//cvShowImage("Contrast", maskTemplate);
 	cvCalcHist(&arctanTemplate, histTemp, 0, maskTemplate);
 	cvNormalizeHist(histTemp,1);
-	//stampaIstogrammi1D(histTemp, 36,  25, "Hist Temp"); // per visualizzazione
+	//showHist1D(histTemp, 36,  25, "Hist Temp"); // for visualization
 
 	cvReleaseImage(&contrastTemplate);
 	cvReleaseImage(&arctanTemplate);
 	cvReleaseImage(&maskTemplate);
 }
 
-void Cvtools::getContour(IplImage* mask, IplImage* maschera, int pixelX, int pixelY) {
+void Cvtools::getContour(IplImage* outMask, IplImage* inMask, int pixelX, int pixelY) {
 
-	cvMorphologyEx(maschera, maschera, 0, 0, CV_MOP_OPEN, 1);
+	cvMorphologyEx(inMask, inMask, 0, 0, CV_MOP_OPEN, 1);
 
 	CvMemStorage* storage=cvCreateMemStorage();
 	CvSeq* contour = NULL;
 
-	IplImage* temp=(IplImage*)cvClone(maschera);
+	IplImage* temp=(IplImage*)cvClone(inMask);
 
 	CvContourScanner sc = cvStartFindContours(temp, storage, sizeof(CvContour), CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE );
 
@@ -258,21 +349,21 @@ void Cvtools::getContour(IplImage* mask, IplImage* maschera, int pixelX, int pix
 
 	if (contour==NULL) {
 		cvReleaseImage(&temp);
-		mask=maschera;
+		outMask=inMask;
 		cvReleaseMemStorage(&storage);
 		return;
 	}
 
-	cvSetZero(mask);
-	cvDrawContours(mask, contour, cvScalar(255, 0, 0, 0), cvScalar(0, 0, 0, 0), 1, CV_FILLED, 8, cvPoint(0, 0));
-	cvAnd(mask,maschera,mask);
+	cvSetZero(outMask);
+	cvDrawContours(outMask, contour, cvScalar(255, 0, 0, 0), cvScalar(0, 0, 0, 0), 1, CV_FILLED, 8, cvPoint(0, 0));
+	cvAnd(outMask,inMask,outMask);
 	cvEndFindContours(&sc);
 	cvReleaseMemStorage(&storage);
 	cvReleaseImage(&temp);
 }
 
 
-void Cvtools::stampaIstogrammi1D(CvHistogram* hist, int n_bins, int scale, char* nameWindow) {
+void Cvtools::showHist1D(CvHistogram* hist, int n_bins, int scale, char* nameWindow) {
 
 	IplImage* hist_img=cvCreateImage(cvSize(n_bins*scale, 255), 8, 3);
 	hist_img->origin=IPL_ORIGIN_BL;
@@ -281,9 +372,9 @@ void Cvtools::stampaIstogrammi1D(CvHistogram* hist, int n_bins, int scale, char*
 	int i=0;
 	for (i=0; i<n_bins; i++) {
 		float bin_value=cvQueryHistValue_1D(hist, i);
-		int normalizzo=cvRound(bin_value*255/max_value);
+		int normalizer=cvRound(bin_value*255/max_value);
 		CvPoint point1=cvPoint(i*scale, 0);
-		CvPoint point2=cvPoint((i+1)*scale, normalizzo);
+		CvPoint point2=cvPoint((i+1)*scale, normalizer);
 		cvRectangle(hist_img, point1, point2, cvScalar(255, 0, 0, 0), -1, 8, 0);
 	}
     cvNamedWindow(nameWindow,1);
@@ -296,4 +387,51 @@ void Cvtools::drawTracking(IplImage* image, CvRect track_box) {
 	CvPoint p0=cvPoint(track_box.x, track_box.y);
 	CvPoint p1=cvPoint(track_box.x+track_box.width, track_box.y+track_box.height);
 	cvRectangle(image, p0, p1, CV_RGB(255,0,255), 3, CV_AA, 0);
+}
+
+
+// Draw motion field with grid spacing of xSpace ySpace, minimium displacement 1 pixel, arrow length multiplier of multiplier
+void Cvtools::drawMotionField(IplImage* imgU, IplImage* imgV, IplImage* imgMotion, int xSpace, int ySpace, float cutoff, float multiplier, CvScalar color)
+{
+     int x, y;
+    
+     CvPoint p0 = cvPoint(0,0);
+     CvPoint p1 = cvPoint(0,0);
+     
+     float deltaX, deltaY, angle, hyp;
+     
+     for(y = ySpace; y < imgU->height; y+= ySpace ) {
+        for(x = xSpace; x < imgU->width; x+= xSpace ){
+         
+            p0.x = x;
+            p0.y = y;
+            
+            deltaX = *((float*)(imgU->imageData + y*imgU->widthStep)+x);
+            deltaY = -(*((float*)(imgV->imageData + y*imgV->widthStep)+x));
+            
+            angle = atan2(deltaY, deltaX);
+            hyp = sqrt(deltaX*deltaX + deltaY*deltaY);
+   
+            if(hyp > cutoff){
+                   
+              p1.x = p0.x + cvRound(multiplier*hyp*cos(angle));
+              p1.y = p0.y + cvRound(multiplier*hyp*sin(angle));
+
+                //p1.x = p0.x + cvRound(multiplier*cos(angle));
+               // p1.y = p0.y + cvRound(multiplier*sin(angle));
+
+                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+                
+                p0.x = p1.x + cvRound(3*cos(angle-CV_PI + CV_PI/4));
+                p0.y = p1.y + cvRound(3*sin(angle-CV_PI + CV_PI/4));
+                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+                
+                p0.x = p1.x + cvRound(3*cos(angle-CV_PI - CV_PI/4));
+                p0.y = p1.y + cvRound(3*sin(angle-CV_PI - CV_PI/4));
+                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+            }
+      
+        }
+    }
+    
 }

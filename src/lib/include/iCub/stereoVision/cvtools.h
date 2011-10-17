@@ -14,9 +14,10 @@ class Cvtools
 {
 public:
 	static IplImage* readImage(string path);
-	static IplImage* thresholdColor(IplImage *im, int threshold, int x=0, int y=0);
+	static void thresholdColor(IplImage *im, IplImage* mask, int threshold, int x=0, int y=0, double value=0);
+    static void thresholdBW(IplImage* im, IplImage* mask, int threshold, int x=0, int y=0, double value=0);
 	static void binaryThresh(IplImage* img, IplImage* mask, IplImage * res);
-    static bool checkTS(double TSLeft, double TSRight);
+    static bool checkTS(double TSLeft, double TSRight, double th=0.020);
     static void saveStereoImage(const char * dir, IplImage* left, IplImage * right, int num);
     static void saveImgSegDisp(const char * dir, IplImage * img, IplImage* foreground, double norm, int num);
     static void preparePath(const char * dir, char* pathL, char* pathR, int num);
@@ -24,8 +25,11 @@ public:
     static void drawPoints(Mat& Img, vector<Point2f> Points);
     static void computeContrastandOrientation(IplImage* img, IplImage* arctan, IplImage* contrast);
     static void computeHOG(IplImage* image, CvHistogram* histTemp);
-    static void stampaIstogrammi1D(CvHistogram* hist, int n_bins, int scale, char* nameWindow);
+    static void showHist1D(CvHistogram* hist, int n_bins, int scale, char* nameWindow);
     static void getContour(IplImage* mask, IplImage* maschera, int x = 160, int y=120);
     static void drawTracking(IplImage* image, CvRect track_box);
+    static void AccumulateBackgroundOpticalFlow(IplImage* framefloat, IplImage* avg, IplImage* variance, double rate=0.05);
+    static void DiffBackgroundStandOpticalFlow(IplImage* framefloat, IplImage* avg, IplImage* variance);
+    static void drawMotionField(IplImage* imgU, IplImage* imgV, IplImage* imgMotion, int xSpace, int ySpace, float cutoff, float multiplier, CvScalar color);
 };
 
