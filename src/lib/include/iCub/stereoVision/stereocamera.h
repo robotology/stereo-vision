@@ -42,8 +42,8 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include <iCub/stereoVision/Camera.h>
-#include <iCub/stereoVision/Cvtools.h>
+#include <iCub/stereoVision/camera.h>
+#include <iCub/stereoVision/cvtools.h>
 #include <fstream>
 #include <yarp/os/all.h>
 

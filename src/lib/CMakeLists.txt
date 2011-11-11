@@ -16,13 +16,13 @@ include_directories(${OPENCV_INCLUDE_DIRS})
 include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
 
-set(folder_source src/Camera.cpp
-		  src/StereoCamera.cpp
-	          src/Cvtools.cpp)
+set(folder_source src/camera.cpp
+		  src/stereocamera.cpp
+	          src/cvtools.cpp)
 
-set(folder_header include/iCub/stereoVision/Camera.h
-		  include/iCub/stereoVision/StereoCamera.h
-	          include/iCub/stereoVision/Cvtools.h)
+set(folder_header include/iCub/stereoVision/camera.h
+		  include/iCub/stereoVision/stereocamera.h
+	          include/iCub/stereoVision/cvtools.h)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
