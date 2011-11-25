@@ -76,10 +76,18 @@ void disparityThread::printMatrixYarp(Matrix &A) {
     cout << endl;
 
 }
-void disparityThread::convert(Matrix& R, Mat& Rot) {
-    for(int i=0; i<Rot.rows; i++)
-        for(int j=0; j<Rot.cols; j++)
-            Rot.at<double>(i,j)=R(i,j);
+void disparityThread::convert(Matrix& matrix, Mat& mat) {
+    mat=cv::Mat(matrix.rows(),matrix.cols(),CV_64FC1);
+    for(int i=0; i<matrix.rows(); i++)
+        for(int j=0; j<matrix.cols(); j++)
+            mat.at<double>(i,j)=matrix(i,j);
+}
+
+void disparityThread::convert(Mat& mat, Matrix& matrix) {
+    matrix.resize(mat.rows,mat.cols);
+    for(int i=0; i<mat.rows; i++)
+        for(int j=0; j<mat.cols; j++)
+            matrix(i,j)=mat.at<double>(i,j);
 }
 
 void disparityThread::getH() {
@@ -119,74 +127,58 @@ void disparityThread::getH() {
 }
 
 
+
+
+Matrix disparityThread::getCameraH(int camera) {
+
+    yarp::sig::Vector x_curr;
+    yarp::sig::Vector o_curr;
+
+    if(camera==LEFT)
+        igaze->getLeftEyePose(x_curr, o_curr);
+    else
+        igaze->getLeftEyePose(x_curr, o_curr);
+
+    Matrix R_curr=axis2dcm(o_curr);
+
+    Matrix H_curr(4, 4);
+    for (int i=0; i<R_curr.cols(); i++)
+        H_curr.setCol(i, R_curr.getCol(i));
+    for (int i=0; i<x_curr.size(); i++)
+        H_curr(i,3)=x_curr[i];
+
+    this->mutexDisp->wait();
+    if(camera==LEFT)
+        convert(H_curr,HL_root);
+    this->mutexDisp->post();
+
+    return H_curr;
+}
+
 void disparityThread::run(){
 
     imageL=new ImageOf<PixelRgb>;
     imageR=new ImageOf<PixelRgb>;
 
-    Stamp TSLeft;
-    Stamp TSRight;
-
     bool initL=false;
     bool initR=false;
 
 
-
-    getH();
-
-    Matrix R=H.submatrix(0,2,0,2);
-    yarp::sig::Vector x=dcm2axis(R);
-    angle=x[3];
-
-    updateCameraThread updator(this->stereo,this->mutex,500);
-   // updator.start(); // It is not needed to update cameras at each iteration, only one update during the initialization is enough
+    Matrix yarp_initLeft,yarp_initRight;
+    Matrix yarp_H0;
 
     Point3d point;
     bool init=true;
-    while (!isStopping()) {      
+    while (!isStopping()) {
 
         ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
         ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
 
-        if(tmpL!=NULL)
-        {
-            *imageL=*tmpL;
-            imagePortInLeft.getEnvelope(TSLeft);
-            initL=true;
-        }
-        if(tmpR!=NULL) 
-        {
-            *imageR=*tmpR;
-            imagePortInRight.getEnvelope(TSRight);
-            initR=true;
-        }
-       
-
-
-        if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){        
-              getH();
-              Matrix R=H.submatrix(0,2,0,2);
-              yarp::sig::Vector x=dcm2axis(R);
-              Matrix newTras=H.submatrix(0,2,3,3);       
-              this->mutex->wait();
-
-              // Update Rotation
-              x[3]=x[3]-angle;
-              R=axis2dcm(x);
-              Mat Rot(3,3,CV_64FC1);
-              convert(R,Rot);
-              this->stereo->setRotation(Rot,2);
-              Mat traslation(3,1,CV_64FC1);
-
-              //Update Translation
-              Matrix temp2=newTras;
-              convert(temp2,traslation);
-              this->stereo->setTranslation(traslation,0);
-              this->mutex->post();
+        if(tmpL!=NULL && tmpR!=NULL){
 
               imgL= (IplImage*) imageL->getIplImage();
               imgR= (IplImage*) imageR->getIplImage();
-  
+
               this->mutex->wait();
               this->stereo->setImages(imgL,imgR);
               this->mutex->post();
@@ -198,7 +190,43 @@ void disparityThread::run(){
                    stereo->hornRelativeOrientations();
                    output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
                    init=false;
+
+                   Mat H0_R=this->stereo->getRotation();
+                   Mat H0_T=this->stereo->getTranslation();
+
+                   Mat H0=buildRotTras(H0_R,H0_T);
+
+                   convert(H0,yarp_H0);
+
+                   //get the initial left and right matrices
+                   yarp_initLeft=getCameraH(LEFT);
+                   yarp_initRight=getCameraH(RIGHT);
               }
+
+              //transformation matrices between prev and curr eye frames
+              Matrix yarp_Left=getCameraH(LEFT);
+              Matrix yarp_Right=getCameraH(RIGHT);
+
+              yarp_Left=SE3inv(yarp_Left)*yarp_initLeft;
+              yarp_Right=SE3inv(yarp_Right)*yarp_initRight;
+
+              Matrix Hcurr=SE3inv(yarp_Left)*yarp_H0*yarp_Right;
+
+              Matrix R=Hcurr.submatrix(0,2,0,2);
+              yarp::sig::Vector x=dcm2axis(R);
+              Matrix newTras=Hcurr.submatrix(0,2,3,3);
+              this->mutex->wait();
+
+              // Update Rotation
+              Mat Rot(3,3,CV_64FC1);
+              convert(R,Rot);
+              this->stereo->setRotation(Rot,0);
+
+              //Update Translation
+              Mat translation(3,1,CV_64FC1);
+              convert(newTras,translation);
+              this->stereo->setTranslation(translation,0);
+              this->mutex->post();
 
               this->mutexDisp->wait();
               this->stereo->computeDisparity();
@@ -209,7 +237,6 @@ void disparityThread::run(){
                  cvCvtColor(&disp,output,CV_GRAY2RGB);
                  ImageOf<PixelBgr>& outim=outPort.prepare();                   
                  outim.wrapIplImage(output);
-                 outPort.setEnvelope(TSLeft);
                  outPort.write();
              }
 
@@ -218,10 +245,112 @@ void disparityThread::run(){
     
       
    }
-   updator.stop();
    delete imageL;
    delete imageR;
 }
+
+//
+//void disparityThread::run(){
+//
+//    imageL=new ImageOf<PixelRgb>;
+//    imageR=new ImageOf<PixelRgb>;
+//
+//    Stamp TSLeft;
+//    Stamp TSRight;
+//
+//    bool initL=false;
+//    bool initR=false;
+//
+//    getH();
+//
+//    Matrix R=H.submatrix(0,2,0,2);
+//    yarp::sig::Vector x=dcm2axis(R);
+//    angle=x[3];
+//
+//    updateCameraThread updator(this->stereo,this->mutex,500);
+//   // updator.start(); // It is not needed to update cameras at each iteration, only one update during the initialization is enough
+//
+//    Point3d point;
+//    bool init=true;
+//    while (!isStopping()) {      
+//
+//        ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
+//        ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
+//
+//        if(tmpL!=NULL)
+//        {
+//            *imageL=*tmpL;
+//            imagePortInLeft.getEnvelope(TSLeft);
+//            initL=true;
+//        }
+//        if(tmpR!=NULL) 
+//        {
+//            *imageR=*tmpR;
+//            imagePortInRight.getEnvelope(TSRight);
+//            initR=true;
+//        }
+//       
+//
+//
+//        if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){        
+//              getH();
+//              Matrix R=H.submatrix(0,2,0,2);
+//              yarp::sig::Vector x=dcm2axis(R);
+//              Matrix newTras=H.submatrix(0,2,3,3);       
+//              this->mutex->wait();
+//
+//              // Update Rotation
+//              x[3]=x[3]-angle;
+//              R=axis2dcm(x);
+//              Mat Rot(3,3,CV_64FC1);
+//              convert(R,Rot);
+//              this->stereo->setRotation(Rot,2);
+//              Mat translation(3,1,CV_64FC1);
+//
+//              //Update Translation
+//              Matrix temp2=newTras;
+//              convert(temp2,translation);
+//              this->stereo->setTranslation(translation,0);
+//              this->mutex->post();
+//
+//              imgL= (IplImage*) imageL->getIplImage();
+//              imgR= (IplImage*) imageR->getIplImage();
+//  
+//              this->mutex->wait();
+//              this->stereo->setImages(imgL,imgR);
+//              this->mutex->post();
+//
+//              if(init) {
+//                   stereo->undistortImages();
+//                   stereo->findMatch();
+//                   stereo->estimateEssential();
+//                   stereo->hornRelativeOrientations();
+//                   output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
+//                   init=false;
+//              }
+//
+//              this->mutexDisp->wait();
+//              this->stereo->computeDisparity();
+//              this->mutexDisp->post();        
+//
+//              if(outPort.getOutputCount()>0) {
+//                 disp=stereo->getDisparity();
+//                 cvCvtColor(&disp,output,CV_GRAY2RGB);
+//                 ImageOf<PixelBgr>& outim=outPort.prepare();                   
+//                 outim.wrapIplImage(output);
+//                 outPort.setEnvelope(TSLeft);
+//                 outPort.write();
+//             }
+//
+//              initL=initR=false;
+//        }
+//    
+//      
+//   }
+//   updator.stop();
+//   delete imageL;
+//   delete imageR;
+//}
 
 void disparityThread::threadRelease() 
 {
@@ -339,7 +468,7 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
        }
        if(drive=="RIGHT") {
             Mat Rright = this->stereo->getRotation();
-            Mat Tright = this->stereo->getTraslation();
+            Mat Tright = this->stereo->getTranslation();
             Mat RRright = this->stereo->getRRrect().t();
             Mat TRright = Mat::zeros(0,3,CV_64F);
 

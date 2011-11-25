@@ -246,7 +246,7 @@ public:
   /**
     * It performs the metric triangulation given the pixel coordinates on the first image. The 3D Point is w.r.t the system defined by the parameter H. Run compute disparity before using this method.
     * @param point1 the pixel coordinates in the first image.
-    * @param H the 4x4 rototraslation matrix of the system.
+    * @param H the 4x4 rototranslation matrix of the system.
     * @return a metric 3D point w.r.t. the reference system defined by H.
     *
     */
@@ -349,7 +349,7 @@ public:
     * It returns the translation vector between the two cameras.
     * @return 3x1 translation matrix between the first and the second camera.
     */
-    const Mat getTraslation();
+    const Mat getTranslation();
 
     /**
     * It returns the rotation matrix between the two cameras.
@@ -388,6 +388,7 @@ public:
     * @param mode the following values are allowed:
     * @b mode=0 the rotation matrix R is set equal to Rot.
     * @b mode=1 the rotation matrix R is set equal to Rot*R.
+    * @b mode=2 the rotation matrix R is set equal to Rot*Rinit.
     */
     void setRotation(Mat& Rot, int mode=0);
 
@@ -397,6 +398,7 @@ public:
     * @param mode the following values are allowed:
     * @b mode=0 the translation vector T is set equal to Tras.
     * @b mode=1 the translation vector T is set equal to Tras+T.
+    * @b mode=2 the translation vector T is set equal to Tras+Tinit.
     */
     void setTranslation(Mat& Tras, int mul=0);
 

@@ -973,9 +973,9 @@ void StereoCamera::setTranslation(Mat& Tras, int mul) {
     if(mul==0)
         this->T=Tras;
     if(mul==1)
-        this->T=T+Tras;
+        this->T=Tras+T;
     if(mul==2)
-        this->T=Tinit+Tras;
+        this->T=Tras+Tinit;
 
     if(!this->Kleft.empty() && !this->Kright.empty())
         this->updatePMatrix();
@@ -1010,7 +1010,7 @@ void StereoCamera::updatePMatrix() {
 
 }
 
-const Mat StereoCamera::getTraslation() {
+const Mat StereoCamera::getTranslation() {
     return this->T;
 }
 

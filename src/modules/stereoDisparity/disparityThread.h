@@ -12,7 +12,9 @@
 #include <iCub/ctrl/math.h>
 #include <iCub/stereoVision/StereoCamera.h>
 
- 
+#define LEFT    0
+#define RIGHT   1
+
 using namespace std; 
 using namespace yarp::os; 
 using namespace yarp::sig;
@@ -56,8 +58,10 @@ private:
 
    
    void getH();
+   Matrix getCameraH(int camera);
    void printMatrixYarp(Matrix &A);
-   void convert(Matrix& R, Mat& Rot);
+   void convert(Matrix& matrix, Mat& mat);
+   void convert(Mat& mat, Matrix& matrix);
    Mat buildRotTras(Mat & R, Mat & T);
    void printMatrix(Mat &matrix);
 public:
