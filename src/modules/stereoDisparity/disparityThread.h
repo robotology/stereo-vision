@@ -10,7 +10,7 @@
 #include <iCub/iKin/iKinFwd.h>
 #include <yarp/dev/GazeControl.h>
 #include <iCub/ctrl/math.h>
-#include <iCub/stereoVision/StereoCamera.h>
+#include <iCub/stereoVision/stereoCamera.h>
 
 #define LEFT    0
 #define RIGHT   1

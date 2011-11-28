@@ -1,4 +1,4 @@
-#include "iCub/stereoVision/stereocamera.h"
+#include "iCub/stereoVision/stereoCamera.h"
 
 Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
     Mat A = Mat::eye(4, 4, CV_64F);

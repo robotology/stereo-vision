@@ -5,7 +5,7 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/Thread.h>
-#include <iCub/stereoVision/StereoCamera.h>
+#include <iCub/stereoVision/stereoCamera.h>
 #include <yarp/os/Stamp.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/ctrl/math.h>

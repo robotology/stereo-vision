@@ -17,11 +17,11 @@ include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
 
 set(folder_source src/camera.cpp
-		  src/stereocamera.cpp
+		  src/stereoCamera.cpp
 	          src/cvtools.cpp)
 
 set(folder_header include/iCub/stereoVision/camera.h
-		  include/iCub/stereoVision/stereocamera.h
+		  include/iCub/stereoVision/stereoCamera.h
 	          include/iCub/stereoVision/cvtools.h)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)

@@ -16,6 +16,6 @@ source_group("Header Files" FILES ${header})
 
 
 add_executable(stereoCalib ${source} ${header})
-target_link_libraries(stereoCalib stereoVision ${ICUB_LIBRARIES} ${YARP_LIBRARIES} ${OPENCV_LIBRARIES})
+target_link_libraries(stereoCalib stereoVision ${ICUB_LIBRARIES} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
 install(TARGETS stereoCalib DESTINATION ${ICUB_DIR}/bin)
 
