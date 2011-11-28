@@ -35,7 +35,6 @@ private:
    IplImage * output;
 
    StereoCamera *stereo;
-   Semaphore* mutex;
    Semaphore* mutexDisp;
 
    string inputLeftPortName;
@@ -74,17 +73,4 @@ public:
    void run(); 
    void onStop();
    Point3f get3DPoints(int u, int v,string drive="LEFT");
-};
-
-class updateCameraThread : public RateThread {
-
-    private:
-        StereoCamera *stereo;
-        Semaphore * mutex;
-
-
-    public:
-        updateCameraThread(StereoCamera *camera, Semaphore * mut, int period);
-        virtual void run();
-
 };
