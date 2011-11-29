@@ -121,22 +121,14 @@ Matrix disparityThread::getCameraH(int camera) {
 
 void disparityThread::run(){
 
-    imageL=new ImageOf<PixelRgb>;
-    imageR=new ImageOf<PixelRgb>;
-
-    bool initL=false;
-    bool initR=false;
-
-
     Matrix yarp_initLeft,yarp_initRight;
     Matrix yarp_H0;
 
     Point3d point;
     bool init=true;
     while (!isStopping()) {
-
-        imageL = imagePortInLeft.read(false);
-        imageR = imagePortInRight.read(false);
+        ImageOf<PixelRgb> *imageL = imagePortInLeft.read();
+        ImageOf<PixelRgb> *imageR = imagePortInRight.read();
 
         if(imageL!=NULL && imageR!=NULL){
             imgL= (IplImage*) imageL->getIplImage();
@@ -157,7 +149,6 @@ void disparityThread::run(){
 
                 // get the initial camera relative position
                 Mat H0=buildRotTras(H0_R,H0_T);
-
                 convert(H0,yarp_H0);
 
                 //get the initial left and right positions
@@ -199,8 +190,6 @@ void disparityThread::run(){
                     outim.wrapIplImage(output);
                     outPort.write();
                 }
-
-                initL=initR=false;
         }
 
     }
