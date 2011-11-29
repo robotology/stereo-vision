@@ -22,55 +22,53 @@ using namespace yarp::dev;
 using namespace yarp::math;
 using namespace iCub::ctrl;
 using namespace iCub::iKin;
-  
+
 class disparityThread : public Thread
 {
 private:
 
-   ImageOf<PixelRgb> *imageL;
-   ImageOf<PixelRgb> *imageR;
-   IplImage * imgL;   
-   IplImage * imgR;
-   IplImage disp;
-   IplImage * output;
+    ImageOf<PixelRgb> *imageL;
+    ImageOf<PixelRgb> *imageR;
+    IplImage * imgL;
+    IplImage * imgR;
+    IplImage disp;
+    IplImage * output;
 
-   StereoCamera *stereo;
-   Semaphore* mutexDisp;
+    StereoCamera *stereo;
+    Semaphore* mutexDisp;
 
-   string inputLeftPortName;
-   string inputRightPortName;
-   string outName;
+    string inputLeftPortName;
+    string inputRightPortName;
+    string outName;
 
 
-   BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
-   BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
-   BufferedPort<ImageOf<PixelBgr> > outPort;
+    BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
+    BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
+    BufferedPort<ImageOf<PixelBgr> > outPort;
 
-   Port *commandPort;
-   string dir;
+    Port *commandPort;
+    string dir;
 
-   PolyDriver* gazeCtrl;
-   IGazeControl* igaze;
-   Matrix H;
-   Mat HL_root;
-   double angle;
+    PolyDriver* gazeCtrl;
+    IGazeControl* igaze;
+    Matrix H;
+    Mat HL_root;
+    double angle;
 
-   
-   void getH();
-   Matrix getCameraH(int camera);
-   void printMatrixYarp(Matrix &A);
-   void convert(Matrix& matrix, Mat& mat);
-   void convert(Mat& mat, Matrix& matrix);
-   Mat buildRotTras(Mat & R, Mat & T);
-   void printMatrix(Mat &matrix);
+    Matrix getCameraH(int camera);
+    void printMatrixYarp(Matrix &A);
+    void convert(Matrix& matrix, Mat& mat);
+    void convert(Mat& mat, Matrix& matrix);
+    Mat buildRotTras(Mat & R, Mat & T);
+    void printMatrix(Mat &matrix);
 public:
 
-   disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
-                                 string calibPath,Port* commPort);
+    disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
+                    string calibPath,Port* commPort);
 
-   bool threadInit();     
-   void threadRelease();
-   void run(); 
-   void onStop();
-   Point3f get3DPoints(int u, int v,string drive="LEFT");
+    bool threadInit();
+    void threadRelease();
+    void run(); 
+    void onStop();
+    Point3f get3DPoints(int u, int v,string drive="LEFT");
 };

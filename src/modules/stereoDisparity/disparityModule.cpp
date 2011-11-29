@@ -93,7 +93,7 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
     if (command.get(0).asString()=="quit") {
         cout << "closing..." << endl;
         return false;
-   }
+    }
     else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" ) {
         int u = command.get(1).asInt();
         int v = command.get(2).asInt(); 
@@ -101,7 +101,7 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
-   }
+    }
     else if (command.size()==2) {
         int u = command.get(0).asInt();
         int v = command.get(1).asInt(); 
@@ -109,7 +109,7 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
-   }
+    }
     else if (command.get(0).asString()=="Right") {
         int u = command.get(1).asInt();
         int v = command.get(2).asInt(); 
@@ -117,7 +117,7 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
-   }
+    }
 
     else if (command.get(0).asString()=="Root") {
         int u = command.get(1).asInt();
@@ -126,21 +126,19 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
-   }
+    }
     return true;
 }
 
 
 bool stereoModule::updateModule()
 {
-   return true;
+    return true;
 }
 
 
 
 double stereoModule::getPeriod()
 {
-
-    
-   return 0.1;
+    return 0.1;
 }
