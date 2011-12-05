@@ -252,6 +252,17 @@ public:
     */
     Point3f metricTriangulation(Point2f &point1, Mat &H);
 
+      /**
+    * It performs the metric triangulation given the pixel coordinates on the first image and the disparity between the two RECTIFIED images. The 3D Point is w.r.t the system defined by the parameter H.
+    * @param u the pixel x coordinate in the first image.
+    * @param v the pixel y coordinate in the first image.
+    * @param d the disparity on the x coordinate between the two rectified images.
+    * @param H the 4x4 rototranslation matrix of the system can be an empty matrix.
+    * @return a metric 3D point w.r.t. the reference system defined by H.
+    *
+    */
+    Point3f StereoCamera::triangulateKnownDisparity(float u, float v, float d, Mat &H);
+
     /** 
     * It estimates the essential matrix (3x3) E between two views. The output is stored in the private member E.
     */
@@ -411,5 +422,22 @@ public:
     */
     void setIntrinsics(Mat& K1, Mat& K2, Mat& Dist1, Mat& Dist2);
 
+    /**
+    * The method rectifies the two images: it transform each image plane such that pairs
+    * conjugate epipolar lines become collinear and parallel to one of the image axes (i.e. there is 0 disparity on the Y axis).
+    */
+    void rectifyImages();
+
+    /**
+    * The method returns the first rectified image.
+    * @return The first rectified image.
+    */
+    Mat getLRectified();
+
+    /**
+    * The method returns the second rectified image.
+    * @return The second rectified image.
+    */
+    Mat getRRectified();
 
 };

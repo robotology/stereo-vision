@@ -392,6 +392,40 @@ const Mat StereoCamera::getDisparity16() {
 const Mat StereoCamera::getQ() {
     return this->Q;
 }
+void StereoCamera::rectifyImages()
+{
+    if(this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty()) {
+        cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
+        return;
+    }
+    if(this->imleft.empty() || this->imright.empty()) {
+          cout << "Images are not set! set the images first!" << endl;
+          return;
+    }
+    Size img_size = this->imleft.size();
+
+    Rect roi1, roi2;
+    if(cameraChanged)
+    {
+        mutex->wait();
+        stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1, img_size, &roi1, &roi2 );
+        mutex->post();
+    }
+
+    if(cameraChanged)
+    {
+        initUndistortRectifyMap(this->Kleft, this->DistL, this->RLrect, this->PLrect, img_size, CV_32FC1, this->map11, this->map12);
+        initUndistortRectifyMap(this->Kright,  this->DistR, this->RRrect, this->PRrect, img_size, CV_32FC1, this->map21, this->map22);
+    }
+    
+    Mat img1r, img2r;
+    remap(this->imleft, img1r, this->map11, this->map12, INTER_LINEAR);
+    remap(this->imright, img2r, this->map21,this->map22, INTER_LINEAR);
+    imgLeftRect=img1r;
+    imgRightRect=img2r;
+
+}
+
 void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleWindowSize,int speckleRange) {
     if(this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty()) {
         cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
@@ -1498,9 +1532,8 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H) {
         P.at<double>(2,0)=point.z;
         P.at<double>(3,0)=1;
 
-        Mat Hrect=buildRotTras(RLrectTmp,Tfake);           
-       
-        P=H*Hrect*P;     
+        Mat Hrect=buildRotTras(RLrectTmp,Tfake);
+        P=H*Hrect*P;
 
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
@@ -1511,3 +1544,65 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H) {
     return point;
 
 }
+
+
+Point3f StereoCamera::triangulateKnownDisparity(float u, float v, float d, Mat &H)
+{
+    mutex->wait();
+    if(Q.empty())
+    {
+        cout << "Run rectifyImages() method first!" << endl;
+        Point3f point;
+        point.x=-1.0;
+        point.y=-1.0;
+        point.z=-1.0;        
+        mutex->post();
+        return point;
+    }
+
+    if(H.empty())
+        H=H.eye(4,4,CV_64FC1);
+
+    Point3f point;
+
+    float w= (float) ((float) d*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
+    point.x= (float)((float) (u)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
+    point.y=(float)((float) (v)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
+    point.z=(float) Q.at<double>(2,3);
+
+    // Rectified Camera System
+    point.x=point.x/w;
+    point.y=point.y/w;
+    point.z=point.z/w;
+
+    // We transform to H Coordinate System
+    Mat RLrectTmp=this->getRLrect().t(); // First it transform the point to the unrectified camera reference system
+    Mat Tfake = Mat::zeros(0,3,CV_64F);
+    Mat P(4,1,CV_64FC1);
+    P.at<double>(0,0)=point.x;
+    P.at<double>(1,0)=point.y;
+    P.at<double>(2,0)=point.z;
+    P.at<double>(3,0)=1;
+
+    Mat Hrect=buildRotTras(RLrectTmp,Tfake);
+    P=H*Hrect*P;
+
+    point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
+    point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
+    point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+
+    mutex->post();
+    return point;
+}
+
+Mat StereoCamera::getLRectified()
+{
+    return this->imgLeftRect;
+}
+
+Mat StereoCamera::getRRectified()
+{
+    return this->imgRightRect;
+}
+
+
