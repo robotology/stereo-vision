@@ -440,4 +440,10 @@ public:
     */
     Mat getRRectified();
 
+    /**
+    * The method returns the 2D projection of a 3D point in the cartesian space to the specified camera.
+    * @return The 2D position.
+    */
+    Point2f projectPoint(string camera, Point3f point3D, Mat &H);
+
 };

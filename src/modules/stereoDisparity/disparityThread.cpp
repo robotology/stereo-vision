@@ -26,8 +26,9 @@ disparityThread::disparityThread(string inputLeftPortName, string inputRightPort
     angle=0;
     this->mutexDisp = new Semaphore(1);
     this->HL_root= Mat::zeros(4,4,CV_64F);
+    this->HR_root= Mat::zeros(4,4,CV_64F);
     this->output=NULL;
-    this->max_match_displacement=1.5;
+    this->max_match_displacement=500.0;
 }
 
 
@@ -115,6 +116,12 @@ Matrix disparityThread::getCameraH(int camera) {
         convert(H_curr,HL_root);
         this->mutexDisp->post();
     }
+    else if(camera==RIGHT)
+    {
+        this->mutexDisp->wait();
+        convert(H_curr,HR_root);
+        this->mutexDisp->post();
+    }
 
 
     return H_curr;
@@ -141,7 +148,7 @@ void disparityThread::run(){
                 stereo->undistortImages();
                 stereo->findMatch();
                 stereo->estimateEssential();
-                stereo->hornRelativeOrientations();
+                //stereo->hornRelativeOrientations();
                 output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
                 init=false;
 
@@ -359,7 +366,7 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
 }
 
 
-Point3f disparityThread::get3DPointMatch(int u1, int v1, int u2, int v2, string drive)
+Point3f disparityThread::get3DPointMatch(double u1, double v1, double u2, double v2, string drive)
 {
     Point3f point;
     if(drive!="RIGHT" && drive !="LEFT" && drive!="ROOT") {
@@ -384,11 +391,15 @@ Point3f disparityThread::get3DPointMatch(int u1, int v1, int u2, int v2, string 
     }
 
 
-    float urect1=MapperL.ptr<float>(v1)[2*u1];
-    float vrect1=MapperL.ptr<float>(v1)[2*u1+1]; 
+    float urect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)];
+    float vrect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)+1]; 
 
-    float urect2=MapperR.ptr<float>(v2)[2*u2];
-    float vrect2=MapperR.ptr<float>(v2)[2*u2+1]; 
+    float urect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)];
+    float vrect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)+1]; 
+
+
+    fprintf(stdout,"%f %f ... %f %f\n",u1,v1,u2,v2);
+    fprintf(stdout,"%f %f ... %f %f\n",urect1,vrect1,urect2,vrect2);
 
     if(abs(vrect1-vrect2)>max_match_displacement)
     {
@@ -401,15 +412,19 @@ Point3f disparityThread::get3DPointMatch(int u1, int v1, int u2, int v2, string 
     }
 
     Mat Q=this->stereo->getQ();
-    double disparity=urect1-urect2;
+    double disparity=urect2-urect1;
     float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
     point.x= (float)((float) (urect1+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
     point.y=(float)((float) (vrect1+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
     point.z=(float) Q.at<double>(2,3);
 
+    fprintf(stdout,"disparity %f\n",disparity);
+
     point.x=point.x/w;
     point.y=point.y/w;
     point.z=point.z/w;
+
+    fprintf(stdout,"point %f %f %f\n\n",point.x,point.y,point.z);
 
    if(drive=="LEFT") {
         Mat P(3,1,CV_64FC1);
@@ -464,3 +479,47 @@ Point3f disparityThread::get3DPointMatch(int u1, int v1, int u2, int v2, string 
     this->mutexDisp->post();
     return point;
 }
+
+
+
+
+
+
+
+
+Point2f disparityThread::projectPoint(string camera, double x, double y, double z)
+{
+    Point3f point3D;
+    point3D.x=x;
+    point3D.y=y;
+    point3D.z=z;
+
+    Point2f response;
+
+    this->mutexDisp->wait();
+
+    if(camera=="left")
+        response=this->stereo->projectPoint("left",point3D,HL_root);
+    else
+        response=this->stereo->projectPoint("right",point3D,HR_root);
+
+    this->mutexDisp->post();
+
+    return response;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

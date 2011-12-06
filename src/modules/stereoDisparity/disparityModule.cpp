@@ -128,16 +128,31 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.z);
     }
 
+    else if (command.get(0).asString()=="cart2stereo") {
+        double x = command.get(1).asDouble();
+        double y = command.get(2).asDouble();
+        double z = command.get(3).asDouble();
+
+        
+        Point2f pointL = dispThread->projectPoint("left",x,y,z);
+        //Point2f pointR = dispThread->projectPoint("right",x,y,z);
+
+        reply.addDouble(pointL.x);
+        reply.addDouble(pointL.y);
+        //reply.addDouble(pointR.x);
+        //reply.addDouble(pointR.y);
+    }
+
     else if(command.size()>0 && command.size()%4==0)
     {
         for(int i=0; i<command.size(); i+=4)
         {
-            int ul = command.get(i).asInt();
-            int vl = command.get(i+1).asInt();
-            int ur = command.get(i+2).asInt();
-            int vr = command.get(i+3).asInt();
+            double ul = command.get(i).asDouble();
+            double vl = command.get(i+1).asDouble();
+            double ur = command.get(i+2).asDouble();
+            double vr = command.get(i+3).asDouble();
 
-            Point3f point= dispThread->get3DPointMatch(ul,vl,ur,ul);
+            Point3f point= dispThread->get3DPointMatch(ul,vl,ur,vr,"ROOT");
             reply.addDouble(point.x);
             reply.addDouble(point.y);
             reply.addDouble(point.z);

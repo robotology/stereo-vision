@@ -1605,4 +1605,36 @@ Mat StereoCamera::getRRectified()
     return this->imgRightRect;
 }
 
+Point2f StereoCamera::projectPoint(string camera, Point3f point3D, Mat &H)
+{
+    if(H.empty())
+        H=H.eye(4,4,CV_64FC1);
+
+ 
+    Mat P(4,1,CV_64FC1);
+    P.at<double>(0,0)=point3D.x;
+    P.at<double>(1,0)=point3D.y;
+    P.at<double>(2,0)=point3D.z;
+    P.at<double>(3,0)=1;
+
+    P=H.inv()*P;
+
+    Mat point2D;
+
+    if(camera=="left")
+        point2D=Pleft*P;
+    else
+        point2D=Pright*P;
+
+    Point2f response;
+    response.x=(float) ((float) P.at<double>(0,0)/P.at<double>(2,0));
+    response.y=(float) ((float) P.at<double>(1,0)/P.at<double>(2,0));
+
+    return response;
+}
+
+
+
+
+
 
