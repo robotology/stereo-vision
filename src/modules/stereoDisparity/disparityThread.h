@@ -54,6 +54,7 @@ private:
     Matrix H;
     Mat HL_root;
     double angle;
+    double max_match_displacement;
 
     Matrix getCameraH(int camera);
     void printMatrixYarp(Matrix &A);
@@ -71,4 +72,5 @@ public:
     void run(); 
     void onStop();
     Point3f get3DPoints(int u, int v,string drive="LEFT");
+    Point3f get3DPointMatch(int u1, int v1, int u2, int v2, string drive="LEFT");
 };

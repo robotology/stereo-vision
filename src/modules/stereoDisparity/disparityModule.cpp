@@ -112,7 +112,7 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
     }
     else if (command.get(0).asString()=="Right") {
         int u = command.get(1).asInt();
-        int v = command.get(2).asInt(); 
+        int v = command.get(2).asInt();
         Point3f point = dispThread->get3DPoints(u,v,"RIGHT");
         reply.addDouble(point.x);
         reply.addDouble(point.y);
@@ -121,11 +121,28 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
 
     else if (command.get(0).asString()=="Root") {
         int u = command.get(1).asInt();
-        int v = command.get(2).asInt(); 
+        int v = command.get(2).asInt();
         Point3f point = dispThread->get3DPoints(u,v,"ROOT");
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
+    }
+
+    else if(command.size()>0 && command.size()%4==0)
+    {
+        for(int i=0; i<command.size(); i+=4)
+        {
+            int ul = command.get(i).asInt();
+            int vl = command.get(i+1).asInt();
+            int ur = command.get(i+2).asInt();
+            int vr = command.get(i+3).asInt();
+
+            Point3f point= dispThread->get3DPointMatch(ul,vl,ur,ul);
+            reply.addDouble(point.x);
+            reply.addDouble(point.y);
+            reply.addDouble(point.z);
+        }
+
     }
     return true;
 }
