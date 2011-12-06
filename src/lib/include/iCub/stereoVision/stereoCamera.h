@@ -261,7 +261,7 @@ public:
     * @return a metric 3D point w.r.t. the reference system defined by H.
     *
     */
-    Point3f StereoCamera::triangulateKnownDisparity(float u, float v, float d, Mat &H);
+    Point3f triangulateKnownDisparity(float u, float v, float d, Mat &H);
 
     /** 
     * It estimates the essential matrix (3x3) E between two views. The output is stored in the private member E.
