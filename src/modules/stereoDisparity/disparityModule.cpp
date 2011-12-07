@@ -7,43 +7,12 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
 {    
 
 
-    moduleName            = rf.check("name", 
-                           Value("stereoDisparity"), 
-                           "module name (string)").asString();
-
+    string moduleName = rf.check("name", Value("stereoDisparity"), "module name (string)").asString();
     setName(moduleName.c_str());
 
 
-    robotName             = rf.check("robot", 
-                           Value("icub"), 
-                           "Robot name (string)").asString();
-
-
-    inputLeftPortName         = "/";
-    inputLeftPortName        += getName(
-                           rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString());
-
-    inputRightPortName        = "/";
-    inputRightPortName       += getName(
-                           rf.check("InputPortRight", 
-                           Value("/cam/right:i"),
-                           "Input image port (string)").asString()
-                           );
-
-    outputPortName        = "/";
-    outputPortName       += getName(
-                           rf.check("OutPort", 
-                           Value("/disparity:o"),
-                           "Output image port (string)").asString()
-                           );
-
-
-    handlerPortName        = "/";
-    handlerPortName       += getName(
-                           rf.check("CommandPort", 
-                           Value("/rpc"),
-                           "Output image port (string)").asString()
-                           );
+    handlerPortName = "/";
+    handlerPortName += getName(rf.check("CommandPort",Value("/rpc"),"Output image port (string)").asString());
 
 
 
@@ -52,12 +21,10 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
         return false;
     }
 
-    string calibPath=(rf.getContextPath()+"/").c_str();
-
     attach(handlerPort);
 
 
-    dispThread = new disparityThread(inputLeftPortName, inputRightPortName,outputPortName, calibPath,&handlerPort);
+    dispThread = new disparityThread(rf,&handlerPort);
 
     dispThread->start(); 
 

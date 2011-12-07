@@ -64,8 +64,7 @@ private:
     void printMatrix(Mat &matrix);
 public:
 
-    disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
-                    string calibPath,Port* commPort);
+    disparityThread(yarp::os::ResourceFinder &rf,Port* commPort);
 
     bool threadInit();
     void threadRelease();

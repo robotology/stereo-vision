@@ -14,12 +14,6 @@ using namespace yarp::sig;
 
 class stereoModule:public RFModule
 {
-
-   string moduleName;
-   string robotName; 
-   string inputLeftPortName;
-   string inputRightPortName;
-   string outputPortName;  
    string handlerPortName;
    int thresholdValue;
 

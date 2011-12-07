@@ -15,13 +15,24 @@ void disparityThread::printMatrix(Mat &matrix) {
         cout << endl;
 }
 
-disparityThread::disparityThread(string inputLeftPortName, string inputRightPortName, string outName, 
-                                 string calibPath,Port* commPort)
+disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
 {
-    this->inputLeftPortName=inputLeftPortName;
-    this->inputRightPortName=inputRightPortName;
-    this->outName=outName;
+    string moduleName = rf.check("name",Value("stereoDisparity"), "module name (string)").asString();
+    this->inputLeftPortName = "/";
+    this->inputLeftPortName += moduleName;
+    this->inputLeftPortName += rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString();
+
+
+    this->inputRightPortName ="/";
+    this->inputRightPortName +=moduleName;
+    this->inputRightPortName += rf.check("InputPortRight", Value("/cam/right:i"), "Input image port (string)").asString();
+
+    this->outName= "/";
+    this->outName += moduleName;
+    this->outName += rf.check("OutPort", Value("/disparity:o"), "Output image port (string)").asString();
+
     this->commandPort=commPort;
+    string calibPath=(rf.getContextPath()+"/").c_str();
     this->stereo=new StereoCamera(calibPath+"/intrinsics.yml", calibPath+"/extrinsics.yml");
     angle=0;
     this->mutexDisp = new Semaphore(1);
