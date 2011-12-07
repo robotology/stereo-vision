@@ -484,6 +484,8 @@ Point2f disparityThread::projectPoint(string camera, double x, double y, double 
 
     this->mutexDisp->wait();
 
+    fprintf(stdout, "Point: %f %f %f \n", point3D.x,point3D.y,point3D.z);
+
     if(camera=="left")
         response=this->stereo->projectPoints3D("left",points3D,HL_root);
     else
