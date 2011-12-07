@@ -1665,9 +1665,9 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
     {
         cameraMatrix=this->Kright;
         distCoeff=this->DistR;
-        Mat R2= this->R;
+        Mat R2= Mat::eye(3,3,CV_64FC1);
         Rodrigues(R2,rvec);
-        tvec=this->T;
+        tvec=Mat::zeros(3,1,CV_64FC1);
         fprintf(stdout, "***** RIGHT PARAMETERS *****\n");
         printMatrix(cameraMatrix);
         printMatrix(distCoeff);

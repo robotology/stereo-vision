@@ -489,7 +489,7 @@ Point2f disparityThread::projectPoint(string camera, double x, double y, double 
     if(camera=="left")
         response=this->stereo->projectPoints3D("left",points3D,HL_root);
     else
-        response=this->stereo->projectPoints3D("right",points3D,HL_root);
+        response=this->stereo->projectPoints3D("right",points3D,HR_root);
 
     this->mutexDisp->post();
 

@@ -133,8 +133,6 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         double y = command.get(2).asDouble();
         double z = command.get(3).asDouble();
 
-        fprintf(stdout, "Command Received: %s\n",command.toString().c_str());
-
         Point2f pointL = dispThread->projectPoint("left",x,y,z);
         Point2f pointR = dispThread->projectPoint("right",x,y,z);
 
