@@ -135,12 +135,12 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
 
         
         Point2f pointL = dispThread->projectPoint("left",x,y,z);
-        //Point2f pointR = dispThread->projectPoint("right",x,y,z);
+        Point2f pointR = dispThread->projectPoint("right",x,y,z);
 
         reply.addDouble(pointL.x);
         reply.addDouble(pointL.y);
-        //reply.addDouble(pointR.x);
-        //reply.addDouble(pointR.y);
+        reply.addDouble(pointR.x);
+        reply.addDouble(pointR.y);
     }
 
     else if(command.size()>0 && command.size()%4==0)

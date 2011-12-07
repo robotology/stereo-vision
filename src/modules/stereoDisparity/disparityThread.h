@@ -55,7 +55,6 @@ private:
     Mat HL_root;
     Mat HR_root;
     double angle;
-    double max_match_displacement;
 
     Matrix getCameraH(int camera);
     void printMatrixYarp(Matrix &A);

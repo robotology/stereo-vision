@@ -28,7 +28,6 @@ disparityThread::disparityThread(string inputLeftPortName, string inputRightPort
     this->HL_root= Mat::zeros(4,4,CV_64F);
     this->HR_root= Mat::zeros(4,4,CV_64F);
     this->output=NULL;
-    this->max_match_displacement=500.0;
 }
 
 
@@ -398,19 +397,6 @@ Point3f disparityThread::get3DPointMatch(double u1, double v1, double u2, double
     float vrect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)+1]; 
 
 
-    fprintf(stdout,"%f %f ... %f %f\n",u1,v1,u2,v2);
-    fprintf(stdout,"%f %f ... %f %f\n",urect1,vrect1,urect2,vrect2);
-
-    if(abs(vrect1-vrect2)>max_match_displacement)
-    {
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
-
-        this->mutexDisp->post();   
-        return point;
-    }
-
     Mat Q=this->stereo->getQ();
     double disparity=urect2-urect1;
     float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
@@ -418,13 +404,9 @@ Point3f disparityThread::get3DPointMatch(double u1, double v1, double u2, double
     point.y=(float)((float) (vrect1+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
     point.z=(float) Q.at<double>(2,3);
 
-    fprintf(stdout,"disparity %f\n",disparity);
-
     point.x=point.x/w;
     point.y=point.y/w;
     point.z=point.z/w;
-
-    fprintf(stdout,"point %f %f %f\n\n",point.x,point.y,point.z);
 
    if(drive=="LEFT") {
         Mat P(3,1,CV_64FC1);
@@ -494,32 +476,20 @@ Point2f disparityThread::projectPoint(string camera, double x, double y, double 
     point3D.y=y;
     point3D.z=z;
 
-    Point2f response;
+    vector<Point3f> points3D;
+
+    points3D.push_back(point3D);
+
+    vector<Point2f> response;
 
     this->mutexDisp->wait();
 
     if(camera=="left")
-        response=this->stereo->projectPoint("left",point3D,HL_root);
+        response=this->stereo->projectPoints3D("left",points3D,HL_root);
     else
-        response=this->stereo->projectPoint("right",point3D,HR_root);
+        response=this->stereo->projectPoints3D("right",points3D,HR_root);
 
     this->mutexDisp->post();
 
-    return response;
+    return response[0];
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

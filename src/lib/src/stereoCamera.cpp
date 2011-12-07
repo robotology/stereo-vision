@@ -1605,32 +1605,65 @@ Mat StereoCamera::getRRectified()
     return this->imgRightRect;
 }
 
-Point2f StereoCamera::projectPoint(string camera, Point3f point3D, Mat &H)
+vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &points3D, Mat &H)
 {
+    vector<Point2f> points2D;
+
+    if(this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty()) {
+        cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
+        return points2D;
+    }
+
     if(H.empty())
         H=H.eye(4,4,CV_64FC1);
 
- 
-    Mat P(4,1,CV_64FC1);
-    P.at<double>(0,0)=point3D.x;
-    P.at<double>(1,0)=point3D.y;
-    P.at<double>(2,0)=point3D.z;
-    P.at<double>(3,0)=1;
+    mutex->wait();
 
-    P=H.inv()*P;
 
-    Mat point2D;
+    for (int i=0; i<points3D.size(); i++)
+    {   
+        // Apply inverse Trasformation for each point
+        Point3f point=points3D[i];
+        Mat P(4,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+        P.at<double>(3,0)=1;
+
+        P=H.inv()*P;
+
+        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+
+        points3D[i]=point;
+    }
+
+    Mat cameraMatrix, distCoeff, rvec, tvec;
+    rvec=Mat::zeros(3,1,CV_64FC1);
 
     if(camera=="left")
-        point2D=Pleft*P;
+    {
+        cameraMatrix=this->Kleft;
+        distCoeff=this->DistL;
+        Mat R2= Mat::eye(3,3,CV_64FC1);
+        Rodrigues(R2,rvec);
+        tvec=Mat::zeros(3,1,CV_64FC1);
+    }
     else
-        point2D=Pright*P;
+    {
+        cameraMatrix=this->Kright;
+        distCoeff=this->DistR;
+        Mat R2= this->R;
+        Rodrigues(R2,rvec);
+        tvec=this->T;
+    }
 
-    Point2f response;
-    response.x=(float) ((float) P.at<double>(0,0)/P.at<double>(2,0));
-    response.y=(float) ((float) P.at<double>(1,0)/P.at<double>(2,0));
+    Mat points3Mat(points3D);
+    projectPoints(points3Mat,rvec,tvec,cameraMatrix,distCoeff,points2D);
+    mutex->post();
 
-    return response;
+    return points2D;
 }
 
 
