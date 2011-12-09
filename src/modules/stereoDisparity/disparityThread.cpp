@@ -510,3 +510,14 @@ Point2f disparityThread::projectPoint(string camera, double x, double y, double 
 
     return response[0];
 }
+
+void disparityThread::compute(bool compute)
+{ 
+    this->computeDisparity=compute;
+}
+
+bool disparityThread::isComputing()
+{ 
+    return this->computeDisparity;
+}
+

@@ -71,6 +71,8 @@ public:
     void threadRelease();
     void run(); 
     void onStop();
+    void compute(bool compute);
+    bool isComputing();
     Point3f get3DPoints(int u, int v,string drive="LEFT");
     Point3f get3DPointMatch(double u1, double v1, double u2, double v2, string drive="LEFT");
     Point2f projectPoint(string camera, double x, double y, double z);

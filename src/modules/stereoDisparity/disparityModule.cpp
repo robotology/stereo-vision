@@ -61,6 +61,18 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         cout << "closing..." << endl;
         return false;
     }
+    if (command.get(0).asString()=="disparity") {
+        if(command.size()==2  && command.get(1).asString()=="on" )
+            dispThread->compute(true);
+        else
+            dispThread->compute(false);
+
+        if(dispThread->isComputing())
+            reply.addString("Disparity Computation ON");
+        else
+            reply.addString("Disparity Computation OFF");
+        return true;
+    }
     else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" ) {
         int u = command.get(1).asInt();
         int v = command.get(2).asInt(); 
@@ -125,6 +137,7 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         }
 
     }
+    reply.addString("NACK");
     return true;
 }
 
