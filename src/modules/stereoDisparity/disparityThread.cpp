@@ -22,6 +22,9 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     this->inputLeftPortName += moduleName;
     this->inputLeftPortName += rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString().c_str();
 
+    int cmdisp= rf.check("computeDisparity",Value(1)).asInt();
+
+    this->computeDisparity= cmdisp ? true : false;
 
     this->inputRightPortName ="/";
     this->inputRightPortName +=moduleName;
@@ -197,11 +200,12 @@ void disparityThread::run(){
                 Mat translation(3,1,CV_64FC1);
                 convert(newTras,translation);
                 this->stereo->setTranslation(translation,0);
-                this->stereo->computeDisparity();
+                if(this->computeDisparity)
+                    this->stereo->computeDisparity();
 
                 this->mutexDisp->post();
 
-                if(outPort.getOutputCount()>0) {
+                if(outPort.getOutputCount()>0 && this->computeDisparity) {
                     disp=stereo->getDisparity();
                     cvCvtColor(&disp,output,CV_GRAY2RGB);
                     ImageOf<PixelBgr>& outim=outPort.prepare();

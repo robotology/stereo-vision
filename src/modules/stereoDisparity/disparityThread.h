@@ -55,6 +55,7 @@ private:
     Mat HL_root;
     Mat HR_root;
     double angle;
+    bool computeDisparity;
 
     Matrix getCameraH(int camera);
     void printMatrixYarp(Matrix &A);
