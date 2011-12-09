@@ -158,7 +158,7 @@ void disparityThread::run(){
                 stereo->undistortImages();
                 stereo->findMatch();
                 stereo->estimateEssential();
-                //stereo->hornRelativeOrientations();
+               // stereo->hornRelativeOrientations();
                 output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
                 init=false;
 
