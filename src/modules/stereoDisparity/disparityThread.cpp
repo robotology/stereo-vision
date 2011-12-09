@@ -271,6 +271,10 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
     }
 
     this->mutexDisp->wait();   
+
+    if(!computeDisparity)
+        this->stereo->computeDisparity();
+
     // Mapping from Rectified Cameras to Original Cameras
     Mat Mapper=this->stereo->getMapperL();
 
@@ -391,6 +395,7 @@ Point3f disparityThread::get3DPointMatch(double u1, double v1, double u2, double
     }
 
     this->mutexDisp->wait();   
+
     // Mapping from Rectified Cameras to Original Cameras
     Mat MapperL=this->stereo->getMapperL();
     Mat MapperR=this->stereo->getMapperR();
@@ -498,8 +503,6 @@ Point2f disparityThread::projectPoint(string camera, double x, double y, double 
     vector<Point2f> response;
 
     this->mutexDisp->wait();
-
-    fprintf(stdout, "Point: %f %f %f \n", point3D.x,point3D.y,point3D.z);
 
     if(camera=="left")
         response=this->stereo->projectPoints3D("left",points3D,HL_root);
