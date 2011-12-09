@@ -7,12 +7,12 @@ bool stereoModule::configure(yarp::os::ResourceFinder &rf)
 {    
 
 
-    string moduleName = rf.check("name", Value("stereoDisparity"), "module name (string)").asString();
+    string moduleName = rf.check("name", Value("stereoDisparity"), "module name (string)").asString().c_str();
     setName(moduleName.c_str());
 
 
     handlerPortName = "/";
-    handlerPortName += getName(rf.check("CommandPort",Value("/rpc"),"Output image port (string)").asString());
+    handlerPortName += getName(rf.check("CommandPort",Value("/rpc"),"Output image port (string)").asString().c_str());
 
 
 

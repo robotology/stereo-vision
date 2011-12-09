@@ -17,19 +17,19 @@ void disparityThread::printMatrix(Mat &matrix) {
 
 disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
 {
-    string moduleName = rf.check("name",Value("stereoDisparity"), "module name (string)").asString();
+    string moduleName = rf.check("name",Value("stereoDisparity"), "module name (string)").asString().c_str();
     this->inputLeftPortName = "/";
     this->inputLeftPortName += moduleName;
-    this->inputLeftPortName += rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString();
+    this->inputLeftPortName += rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString().c_str();
 
 
     this->inputRightPortName ="/";
     this->inputRightPortName +=moduleName;
-    this->inputRightPortName += rf.check("InputPortRight", Value("/cam/right:i"), "Input image port (string)").asString();
+    this->inputRightPortName += rf.check("InputPortRight", Value("/cam/right:i"), "Input image port (string)").asString().c_str();
 
     this->outName= "/";
     this->outName += moduleName;
-    this->outName += rf.check("OutPort", Value("/disparity:o"), "Output image port (string)").asString();
+    this->outName += rf.check("OutPort", Value("/disparity:o"), "Output image port (string)").asString().c_str();
 
     this->commandPort=commPort;
     string calibPath=(rf.getContextPath()+"/").c_str();
