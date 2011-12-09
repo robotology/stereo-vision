@@ -1618,11 +1618,6 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
         H=H.eye(4,4,CV_64FC1);
 
     mutex->wait();
-    fprintf(stdout,"**************************************\n");
-    fprintf(stdout,"Transformation Matrix \n");
-    printMatrix(H);
-    fprintf(stdout,"**************************************\n");
-    fprintf(stdout, "Point Before Trasformation: %f %f %f \n", points3D[0].x,points3D[0].y,points3D[0].z); 
 
     for (int i=0; i<points3D.size(); i++)
     {   
@@ -1642,7 +1637,6 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
 
         points3D[i]=point;
     }
-    fprintf(stdout, "Point After Trasformation: %f %f %f \n", points3D[0].x,points3D[0].y,points3D[0].z); 
 
     Mat cameraMatrix, distCoeff, rvec, tvec;
     rvec=Mat::zeros(3,1,CV_64FC1);
@@ -1654,12 +1648,6 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
         Mat R2= Mat::eye(3,3,CV_64FC1);
         Rodrigues(R2,rvec);
         tvec=Mat::zeros(3,1,CV_64FC1);
-        fprintf(stdout, "***** LEFT PARAMETERS *****\n");
-        printMatrix(cameraMatrix);
-        printMatrix(distCoeff);
-        printMatrix(rvec);
-        printMatrix(tvec);
-        fprintf(stdout,"**************************************\n");
     }
     else
     {
@@ -1668,19 +1656,11 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
         Mat R2= this->R;
         Rodrigues(R2,rvec);
         tvec=this->T;
-        fprintf(stdout, "***** RIGHT PARAMETERS *****\n");
-        printMatrix(cameraMatrix);
-        printMatrix(distCoeff);
-        printMatrix(rvec);
-        printMatrix(tvec);
-        fprintf(stdout,"**************************************\n");
     }
 
     Mat points3Mat(points3D);
     projectPoints(points3Mat,rvec,tvec,cameraMatrix,distCoeff,points2D);
     mutex->post();
-
-    fprintf(stdout, "Point Projected: %f %f\n", points2D[0].x,points2D[0].y); 
 
     return points2D;
 }

@@ -202,6 +202,8 @@ void disparityThread::run(){
                 this->stereo->setTranslation(translation,0);
                 if(this->computeDisparity)
                     this->stereo->computeDisparity();
+                else
+                    this->stereo->rectifyImages();
 
                 this->mutexDisp->post();
 
