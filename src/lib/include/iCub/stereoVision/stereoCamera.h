@@ -48,9 +48,27 @@
 #include <yarp/os/all.h>
 
 using namespace std;
-using namespace cv;
 using namespace yarp::os;
 
+using cv::Mat;
+using cv::Point2f;
+using cv::Point3f;
+using cv::Size;
+using cv::Ptr;
+using cv::FileStorage;
+using cv::DMatch;
+using cv::FileNode;
+using cv::FeatureDetector;
+using cv::DescriptorMatcher;
+using cv::KeyPoint;
+using cv::StereoSGBM;
+using cv::Rect;
+using cv::SVD;
+using cv::Vec3f;
+using cv::Vector;
+using cv::Range;
+using cv::Scalar;
+using cv::TermCriteria;
 /**
 * \ingroup StereoVisionLib
 *

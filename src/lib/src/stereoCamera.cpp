@@ -171,7 +171,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
         for( k = 0; k < 2; k++ )
         {
             const string& filename = imagelist[i*2+k];
-            Mat img = imread(filename, 0);
+            Mat img = cv::imread(filename, 0);
             if(img.empty())
                 break;
             if( imageSize == Size() )
@@ -209,7 +209,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 cvtColor(img, cimg, CV_GRAY2BGR);
                 drawChessboardCorners(cimg, boardSize, corners, found);
                 imshow("corners", cimg);
-                char c = (char)waitKey(500);
+                char c = (char)cv::waitKey(500);
                 if( c == 27 || c == 'q' || c == 'Q' ) //Allow ESC to quit
                     exit(-1);
             }
@@ -419,8 +419,8 @@ void StereoCamera::rectifyImages()
     }
     
     Mat img1r, img2r;
-    remap(this->imleft, img1r, this->map11, this->map12, INTER_LINEAR);
-    remap(this->imright, img2r, this->map21,this->map22, INTER_LINEAR);
+    remap(this->imleft, img1r, this->map11, this->map12, cv::INTER_LINEAR);
+    remap(this->imright, img2r, this->map21,this->map22, cv::INTER_LINEAR);
     imgLeftRect=img1r;
     imgRightRect=img2r;
 
@@ -456,8 +456,8 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         }
         
         Mat img1r, img2r;
-        remap(this->imleft, img1r, this->map11, this->map12, INTER_LINEAR);
-        remap(this->imright, img2r, this->map21,this->map22, INTER_LINEAR);
+        remap(this->imleft, img1r, this->map11, this->map12, cv::INTER_LINEAR);
+        remap(this->imright, img2r, this->map21,this->map22, cv::INTER_LINEAR);
   
         numberOfDisparities=64;        
         sgbm.preFilterCap = 63; //63
@@ -507,7 +507,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         }
 
         Mat x;
-        remap(map,dispTemp,this->MapperL,x,INTER_LINEAR);
+        remap(map,dispTemp,this->MapperL,x,cv::INTER_LINEAR);
         dispTemp.convertTo(disp8, CV_8U); 
 
         this->mutex->wait();
@@ -563,7 +563,7 @@ void StereoCamera::findMatch(bool visualize, double displacement, double radius)
     if(visualize) {
         Mat matchImg;      
         drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
-        namedWindow("Match",1);
+        cv::namedWindow("Match",1);
         imshow("Match",matchImg); 
         cvWaitKey(0);
     }

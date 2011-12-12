@@ -7,9 +7,14 @@
 #include "opencv2/highgui/highgui.hpp"
 
 using namespace std;
-using namespace cv;
-
-
+using cv::Mat;
+using cv::Point2f;
+using cv::Size;
+using cv::Point3f;
+using cv::FileStorage;
+using cv::FileNodeIterator;
+using cv::FileNode;
+using cv::DescriptorExtractor;
 /**
 * \ingroup StereoVisionLib
 *

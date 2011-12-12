@@ -43,7 +43,7 @@ void Camera::calibrate(vector<string> imageList, int boardWidth, int boardHeight
     for(i = 0; i<(int)imageList.size();i++)
     {
 
-         view = imread(imageList[i], 1);
+         view = cv::imread(imageList[i], 1);
          imageSize = view.size();
          vector<Point2f> pointbuf;
          cvtColor(view, viewGray, CV_BGR2GRAY); 
@@ -86,7 +86,7 @@ void Camera::calibrate(string imagesFilePath, int boardWidth, int boardHeight) {
     for(i = 0; i<(int)imageList.size();i++)
     {
 
-         view = imread(imageList[i], 1);
+        view = cv::imread(imageList[i], 1);
          imageSize = view.size();
          vector<Point2f> pointbuf;
          cvtColor(view, viewGray, CV_BGR2GRAY); 
