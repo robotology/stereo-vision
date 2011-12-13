@@ -48,6 +48,7 @@ private:
     BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
     BufferedPort<ImageOf<PixelBgr> > outPort;
     BufferedPort<ImageOf<PixelRgbFloat> > worldPort;
+    BufferedPort<Bottle> boxPort;
 
     Port *commandPort;
     string dir;
@@ -66,7 +67,7 @@ private:
     void convert(Mat& mat, Matrix& matrix);
     Mat buildRotTras(Mat & R, Mat & T);
     void printMatrix(Mat &matrix);
-    void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg);
+    void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
 public:
 
     disparityThread(yarp::os::ResourceFinder &rf,Port* commPort);

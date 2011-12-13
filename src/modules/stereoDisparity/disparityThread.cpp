@@ -229,8 +229,22 @@ void disparityThread::run(){
                 if(worldPort.getOutputCount()>0 && this->computeDisparity)
                 {
                     ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
-                    outim.resize(imgL->width,imgL->height);
-                    fillWorld3D(outim);
+                    if(boxPort.getInputCount()>0)
+                    {
+                        Bottle *b =(Bottle *) boxPort.read(true);
+                        int u0=b->get(0).asInt();
+                        int v0=b->get(1).asInt();
+                        int width=b->get(2).asInt();
+                        int height=b->get(3).asInt();
+                        outim.resize(width,height);
+                        fillWorld3D(outim,u0,v0,width,height);
+                    }
+                    else
+                    {
+                        outim.resize(imgL->width,imgL->height);
+                        fillWorld3D(outim,0,0,imgL->width,imgL->height);
+                    }
+
                     worldPort.write();
                 }
         }
@@ -549,13 +563,13 @@ bool disparityThread::isComputing()
     return this->computeDisparity;
 }
 
-void disparityThread::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
+void disparityThread::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height)
 {
     worldImg.zero();
     IplImage* img=(IplImage*) worldImg.getIplImage();
-    for(int i=0; i<worldImg.height(); i++)
+    for(int i=v0; i<height; i++)
     {
-        for(int j=0; j<worldImg.width(); j++)
+        for(int j=u0; j<width; j++)
         {
             
             Point3f point=get3DPoints(j,i,"ROOT");
@@ -566,9 +580,9 @@ void disparityThread::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
                 point.z=0.0;
             }
             
-            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 0]=point.x;
-            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 1]=point.y;
-            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 2]=point.z;
+            ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 0]=point.x;
+            ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 1]=point.y;
+            ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 2]=point.z;
         }
     }
 }
