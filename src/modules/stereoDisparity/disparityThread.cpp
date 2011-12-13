@@ -34,6 +34,11 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     this->outName += moduleName;
     this->outName += rf.check("OutPort", Value("/disparity:o"), "Output image port (string)").asString().c_str();
 
+    this->worldPortName="/";
+    this->worldPortName+= moduleName;
+    this->worldPortName+=rf.check("WorldOutPort", Value("/world:o"), "Output image port (string)").asString().c_str();
+
+
     this->commandPort=commPort;
     string calibPath=(rf.getContextPath()+"/").c_str();
     this->stereo=new StereoCamera(calibPath+"/intrinsics.yml", calibPath+"/extrinsics.yml");
@@ -60,6 +65,12 @@ bool disparityThread::threadInit()
 
     if (!outPort.open(outName.c_str())) {
         cout << ": unable to open port " << outName << endl;
+        return false;
+    }
+
+    
+    if (!worldPort.open(worldPortName.c_str())) {
+        cout << ": unable to open port " << worldPortName << endl;
         return false;
     }
 
@@ -145,7 +156,7 @@ void disparityThread::run(){
     Matrix yarp_initLeft,yarp_initRight;
     Matrix yarp_H0;
 
-    Point3d point;
+    Point3f point;
     bool init=true;
     while (!isStopping()) {
         ImageOf<PixelRgb> *imageL = imagePortInLeft.read();
@@ -163,6 +174,7 @@ void disparityThread::run(){
                 stereo->estimateEssential();
                // stereo->hornRelativeOrientations();
                 output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
+                outputWorld=cvCreateImage(cvSize(imgL->width,imgL->height),32,3);
                 init=false;
 
                 Mat H0_R=this->stereo->getRotation();
@@ -181,13 +193,12 @@ void disparityThread::run(){
                 Matrix yarp_Left=getCameraH(LEFT);
                 Matrix yarp_Right=getCameraH(RIGHT);
 
-                yarp_Left=SE3inv(yarp_Left)*yarp_initLeft;
-                yarp_Right=SE3inv(yarp_Right)*yarp_initRight;
+                yarp_Left=SE3inv(yarp_Left)*yarp_initLeft; // Left eye transformation between time t0 and t
+                yarp_Right=SE3inv(yarp_Right)*yarp_initRight; // Right eye transformation between time t0 and t
 
-                Matrix Hcurr=yarp_Right*yarp_H0*SE3inv(yarp_Left);
+                Matrix Hcurr=yarp_Right*yarp_H0*SE3inv(yarp_Left); // Transformation from Left to Right eye at time t
 
                 Matrix R=Hcurr.submatrix(0,2,0,2);
-                yarp::sig::Vector x=dcm2axis(R);
                 Matrix newTras=Hcurr.submatrix(0,2,3,3);
 
                 this->mutexDisp->wait();
@@ -214,6 +225,14 @@ void disparityThread::run(){
                     outim.wrapIplImage(output);
                     outPort.write();
                 }
+
+                if(worldPort.getOutputCount()>0 && this->computeDisparity)
+                {
+                    ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
+                    outim.resize(imgL->width,imgL->height);
+                    fillWorld3D(outim);
+                    worldPort.write();
+                }
         }
 
     }
@@ -225,6 +244,7 @@ void disparityThread::threadRelease()
     imagePortInRight.close();
     imagePortInLeft.close();
     outPort.close();
+    worldPort.close();
     commandPort->close();
     delete this->stereo;
     delete this->mutexDisp;
@@ -232,12 +252,15 @@ void disparityThread::threadRelease()
 
     if(output!=NULL)
         cvReleaseImage(&output);
+    if(outputWorld!=NULL)
+        cvReleaseImage(&outputWorld);
 
 }
 void disparityThread::onStop() {
     imagePortInRight.interrupt();
     imagePortInLeft.interrupt();
     commandPort->interrupt();
+    worldPort.interrupt();
 }
 
 Mat disparityThread::buildRotTras(Mat & R, Mat & T) {
@@ -272,7 +295,7 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
         return point;
     }
 
-    this->mutexDisp->wait();   
+    this->mutexDisp->wait();
 
     if(!computeDisparity)
         this->stereo->computeDisparity();
@@ -526,3 +549,26 @@ bool disparityThread::isComputing()
     return this->computeDisparity;
 }
 
+void disparityThread::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
+{
+    worldImg.zero();
+    IplImage* img=(IplImage*) worldImg.getIplImage();
+    for(int i=0; i<worldImg.height(); i++)
+    {
+        for(int j=0; j<worldImg.width(); j++)
+        {
+            
+            Point3f point=get3DPoints(j,i,"ROOT");
+            if(point.x==-1.0 && point.y==-1.0 && point.z==-1.0)
+            {
+                point.x=0.0;
+                point.y=0.0;
+                point.z=0.0;
+            }
+            
+            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 0]=point.z;
+            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 1]=point.y;
+            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 2]=point.x;
+        }
+    }
+}

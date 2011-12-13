@@ -28,8 +28,8 @@ class stereoCalibModule:public RFModule
 
 
 
-   BufferedPort<ImageOf<PixelBgr> > imageOut;    
-   Port handlerPort;     
+   BufferedPort<ImageOf<PixelBgr> > imageOut;
+   Port handlerPort;
 
 
    stereoCalibThread *myThread;

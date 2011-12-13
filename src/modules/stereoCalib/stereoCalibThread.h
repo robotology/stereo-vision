@@ -24,8 +24,8 @@ private:
 
    ImageOf<PixelRgb> *imageL;
    ImageOf<PixelRgb> *imageR;
-   IplImage * imgL;   
-   IplImage * imgR;  
+   IplImage * imgL;
+   IplImage * imgR;
 
    string inputLeftPortName;
    string inputRightPortName;

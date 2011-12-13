@@ -29,10 +29,11 @@ private:
 
     ImageOf<PixelRgb> *imageL;
     ImageOf<PixelRgb> *imageR;
-    IplImage * imgL;
-    IplImage * imgR;
+    IplImage* imgL;
+    IplImage* imgR;
     IplImage disp;
-    IplImage * output;
+    IplImage* output;
+    IplImage* outputWorld;
 
     StereoCamera *stereo;
     Semaphore* mutexDisp;
@@ -40,11 +41,13 @@ private:
     string inputLeftPortName;
     string inputRightPortName;
     string outName;
+    string worldPortName;
 
 
     BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
     BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
     BufferedPort<ImageOf<PixelBgr> > outPort;
+    BufferedPort<ImageOf<PixelRgbFloat>> worldPort;
 
     Port *commandPort;
     string dir;
@@ -63,6 +66,7 @@ private:
     void convert(Mat& mat, Matrix& matrix);
     Mat buildRotTras(Mat & R, Mat & T);
     void printMatrix(Mat &matrix);
+    void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg);
 public:
 
     disparityThread(yarp::os::ResourceFinder &rf,Port* commPort);

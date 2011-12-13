@@ -38,6 +38,9 @@ For convenience, a chessboard calibration image is provided in the
 $ICUB_ROOT/main/app/cameraCalibration/data directory.
 
 \note Opencv 2.2 is required!
+\note The calibration must be done with the appropriate images. If you use the output of the calibrated cameras (i.e. /icub/camcalib/...)
+you have to calibrate with those images.
+\note If you are using low resolution images (320x240) you should use a big chessboard pattern (i.e. with square size of ~4cm^2). 
   
 \section lib_sec Libraries 
 YARP libraries and OpenCV 2.2

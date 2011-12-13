@@ -1,8 +1,8 @@
 <application>
 <name>Stereo Calibration</name>
 <dependencies>
-      <port>/icub/cam/left</port>
-      <port>/icub/cam/right</port>
+      <port>/icub/camcalib/left/out</port>
+      <port>/icub/camcalib/right/out</port>
 </dependencies>
 
 <module>
@@ -40,13 +40,13 @@
 </connection>
 
 <connection>
-  <output>/icub/cam/right</output>
+  <output>/icub/camcalib/right/out</output>
   <input>/stereoCalib/cam/right:i</input>
   <protocol>udp</protocol>
 </connection>
 
 <connection>
-  <output>/icub/cam/left</output>
+  <output>/icub/camcalib/left/out</output>
   <input>/stereoCalib/cam/left:i</input>
   <protocol>udp</protocol>
 </connection>

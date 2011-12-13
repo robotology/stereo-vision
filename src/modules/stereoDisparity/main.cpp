@@ -37,7 +37,10 @@ using the H. Hirschmuller Algorithm (CVPR 2006) implemented in Opencv 2.2. The c
 is robust to camera movements exploiting the encoders information and updating the camera reference system. 
 The module is also able to refine the estimation of the cameras movements using the Horn Relative Orientations Algorithm.
 Before start make sure you have calibrated the stereo system (in ${ICUB_ROOT}/app/stereoVision/conf you should have the files
-intrinsics.yml and extrinsics.yml). For the stereo calibration see the module stereoCalib.
+intrinsics.yml and extrinsics.yml). For the stereo calibration see the module stereoCalib. The module provides two output ports: the first one
+is the disparity map in grayscale values, the second port is the WorldImage, that is a 3-channels float image, in each pixel are stored the three
+X Y Z coordinates with respect to Root reference frame. Non valid points are handled with the value (0,0,0). In addition a RPC port supports requests for
+3D/2D points computation (see below).
 
 \note Opencv 2.2 is required!
 \note When you start the module make sure that vergence, pan and tilt eyes angles are set to 0.
@@ -62,8 +65,11 @@ YARP libraries and OpenCV 2.2
 --DriveEye   \e drive
 - The parameter \e drive specifies drive eye. Each 3D point coordinates will be wrt the drive eye.
 
---OutPort   \e disparityPort 
-- The parameter \e disparityPort specifies the output port for the disparity image.
+--OutPort   \e disparity:o 
+- The parameter \e disparity:o specifies the output port for the disparity image.
+
+--WorldOutPort   \e world:o 
+- The parameter \e world:o specifies the output port for the world image.
 
 --CommandPort   \e comm 
 - The parameter \e comm specifies the command port for rpc protocol.
@@ -74,13 +80,14 @@ YARP libraries and OpenCV 2.2
 - <i> /<stemName>/<inputRight> </i> accepts the incoming images from the right eye. 
 
 
-- <i> /<stemName>/<disparityPort> </i> outputs the disparity map
+- <i> /<stemName>/<disparity:o> </i> outputs the disparity map in grayscale values.
+- <i> /<stemName>/<world:o> </i> outputs the world image (3-channel float with X Y Z values).
 - <i> /<stemName>/<comm> </i> for terminal commands comunication. 
-    - [Point x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left) the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye.
-    - [x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left) the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye.
-    - [Left x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left)) the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye.
-    - [Right x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left) the response is the 3D Point: X Y Z computed using the depth map wrt the RIGHT eye.
-    - [Root x y]: Given the pixel coordinate x,y in the Left image (uncalibrated! i.e. icub/cam/left) the response is the 3D Point: X Y Z computed using the depth map wrt the ROOT reference system.
+    - [Point x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye.
+    - [x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye.
+    - [Left x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye.
+    - [Right x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the RIGHT eye.
+    - [Root x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the ROOT reference system.
     - [uL_1 vL_1 uR_1 vR_1 ... uL_n vL_n uR_n vR_n]: Given n quadruples uL_i vL_i uR_i vR_i, where uL_i vL_i are the pixel coordinates in the Left image and uR_i vR_i are the coordinates of the matched pixel in the Right image, the response is a set of 3D points (X1 Y1 Z1 ... Xn Yn Zn) wrt the ROOT reference system.
     - [cart2stereo X Y Z]: Given a world point X Y Z wrt to ROOT reference frame the response is the projection (uL vL uR vR) in the Left and Right images.
     - [disparity ON/OFF]: It sets ON/OFF the disparity computation (it saves computational time when the disparity is not needed).
