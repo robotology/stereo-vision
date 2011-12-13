@@ -465,6 +465,8 @@ public:
     * @param H the transformation from the camera reference system to the H reference system
     * @return The 2D positions.
     */
-vector<Point2f> projectPoints3D(string camera, vector<Point3f> &points3D, Mat &H);
+    vector<Point2f> projectPoints3D(string camera, vector<Point3f> &points3D, Mat &H);
+
+    Mat computeWorldImage(Mat &H);
 
 };

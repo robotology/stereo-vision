@@ -42,6 +42,7 @@ private:
     string inputRightPortName;
     string outName;
     string worldPortName;
+    string boxPortName;
 
 
     BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;

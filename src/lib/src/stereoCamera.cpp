@@ -1665,6 +1665,58 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
     return points2D;
 }
 
+Mat StereoCamera::computeWorldImage(Mat &H)
+{
+
+    Mat worldImg(Disparity16.rows,Disparity16.cols,CV_32FC3);
+
+    if(H.empty())
+        H=H.eye(4,4,CV_64FC1);
+
+    if(Disparity16.empty() || MapperL.empty() || Q.empty())
+    {
+        cout <<" Run computeDisparity() method first" << endl;
+        return worldImg;
+    }
+
+
+    Mat dispTemp;
+    Mat x;
+    remap(this->Disparity16,dispTemp,this->MapperL,x,cv::INTER_LINEAR);
+    reprojectImageTo3D(dispTemp, worldImg,this->Q,true);
+
+    for(int i=0; i<worldImg.rows; i++)
+    {
+       for(int j=0; j<worldImg.cols; j++)
+        {   
+            Mat RLrectTmp=this->getRLrect().t();
+            Mat Tfake = Mat::zeros(0,3,CV_64F);
+            Mat P(4,1,CV_64FC1);
+            if((worldImg.data + worldImg.step * i)[j * worldImg.channels() + 2]>100)
+            {
+                P.at<double>(0,0)=-1.0;
+                P.at<double>(1,0)=-1.0;
+                P.at<double>(2,0)=-1.0;
+                P.at<double>(3,0)=1.0;
+            }
+            else
+            {
+                P.at<double>(0,0)=(worldImg.data + worldImg.step * i)[j * worldImg.channels() + 0];
+                P.at<double>(1,0)=(worldImg.data + worldImg.step * i)[j * worldImg.channels() + 1];
+                P.at<double>(2,0)=(worldImg.data + worldImg.step * i)[j * worldImg.channels() + 2];
+                P.at<double>(3,0)=1;
+
+                Mat Hrect=buildRotTras(RLrectTmp,Tfake);
+                P=H*Hrect*P;
+            }
+            (worldImg.data + worldImg.step * i)[j * worldImg.channels() + 0]=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
+            (worldImg.data + worldImg.step * i)[j * worldImg.channels() + 1]=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
+            (worldImg.data + worldImg.step * i)[j * worldImg.channels() + 2]=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+        }
+    }
+    
+    return worldImg;
+}
 
 
 

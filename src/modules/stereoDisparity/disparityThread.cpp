@@ -38,6 +38,9 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     this->worldPortName+= moduleName;
     this->worldPortName+=rf.check("WorldOutPort", Value("/world:o"), "Output image port (string)").asString().c_str();
 
+    this->boxPortName="/";
+    this->boxPortName+=moduleName;
+    this->boxPortName+=rf.check("BoxPort", Value("/box:i"), "Output image port (string)").asString().c_str();
 
     this->commandPort=commPort;
     string calibPath=(rf.getContextPath()+"/").c_str();
@@ -71,6 +74,12 @@ bool disparityThread::threadInit()
     
     if (!worldPort.open(worldPortName.c_str())) {
         cout << ": unable to open port " << worldPortName << endl;
+        return false;
+    }
+
+    
+    if (!boxPort.open(boxPortName.c_str())) {
+        cout << ": unable to open port " << boxPortName << endl;
         return false;
     }
 
@@ -229,23 +238,28 @@ void disparityThread::run(){
                 if(worldPort.getOutputCount()>0 && this->computeDisparity)
                 {
                     ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
+
                     if(boxPort.getInputCount()>0)
                     {
-                        Bottle *b =(Bottle *) boxPort.read(true);
-                        int u0=b->get(0).asInt();
-                        int v0=b->get(1).asInt();
-                        int width=b->get(2).asInt();
-                        int height=b->get(3).asInt();
-                        outim.resize(width,height);
-                        fillWorld3D(outim,u0,v0,width,height);
+                        Bottle *b =(Bottle *) boxPort.read(false);
+                        if(b!=NULL)
+                        {
+                            int u0=b->get(0).asInt();
+                            int v0=b->get(1).asInt();
+                            int width=b->get(2).asInt();
+                            int height=b->get(3).asInt();
+                            outim.resize(width,height);
+                            fillWorld3D(outim,u0,v0,width,height);
+                            worldPort.write();
+                        }
                     }
                     else
                     {
                         outim.resize(imgL->width,imgL->height);
                         fillWorld3D(outim,0,0,imgL->width,imgL->height);
+                        worldPort.write();
                     }
 
-                    worldPort.write();
                 }
         }
 
@@ -259,6 +273,7 @@ void disparityThread::threadRelease()
     imagePortInLeft.close();
     outPort.close();
     worldPort.close();
+    boxPort.close();
     commandPort->close();
     delete this->stereo;
     delete this->mutexDisp;
@@ -275,6 +290,7 @@ void disparityThread::onStop() {
     imagePortInLeft.interrupt();
     commandPort->interrupt();
     worldPort.interrupt();
+    boxPort.interrupt();
 }
 
 Mat disparityThread::buildRotTras(Mat & R, Mat & T) {
@@ -567,9 +583,9 @@ void disparityThread::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int 
 {
     worldImg.zero();
     IplImage* img=(IplImage*) worldImg.getIplImage();
-    for(int i=v0; i<height; i++)
+    for(int i=v0; i<(v0+height); i++)
     {
-        for(int j=u0; j<width; j++)
+        for(int j=u0; j<(u0+width); j++)
         {
             
             Point3f point=get3DPoints(j,i,"ROOT");
