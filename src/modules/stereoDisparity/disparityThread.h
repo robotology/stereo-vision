@@ -47,7 +47,7 @@ private:
     BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
     BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
     BufferedPort<ImageOf<PixelBgr> > outPort;
-    BufferedPort<ImageOf<PixelRgbFloat>> worldPort;
+    BufferedPort<ImageOf<PixelRgbFloat> > worldPort;
 
     Port *commandPort;
     string dir;

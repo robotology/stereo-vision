@@ -566,9 +566,9 @@ void disparityThread::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
                 point.z=0.0;
             }
             
-            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 0]=point.z;
+            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 0]=point.x;
             ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 1]=point.y;
-            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 2]=point.x;
+            ((float *)(img->imageData + i*img->widthStep))[j*img->nChannels + 2]=point.z;
         }
     }
 }

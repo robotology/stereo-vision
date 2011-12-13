@@ -137,7 +137,8 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         }
 
     }
-    reply.addString("NACK");
+    else
+        reply.addString("NACK");
     return true;
 }
 
