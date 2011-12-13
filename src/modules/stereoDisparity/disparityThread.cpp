@@ -581,7 +581,6 @@ bool disparityThread::isComputing()
 
 void disparityThread::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height)
 {
-    worldImg.zero();
     IplImage* img=(IplImage*) worldImg.getIplImage();
     for(int i=v0; i<(v0+height); i++)
     {

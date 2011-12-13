@@ -467,6 +467,11 @@ public:
     */
     vector<Point2f> projectPoints3D(string camera, vector<Point3f> &points3D, Mat &H);
 
+    /**
+    * The method returns a 3-Channels float image with the world coordinates w.r.t H reference system.
+    * @param H the transformation from the camera reference system to the H reference system
+    * @return The 3-Channels float image with the world coordinates w.r.t H reference system.
+    */
     Mat computeWorldImage(Mat &H);
 
 };
