@@ -43,7 +43,6 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <iCub/stereoVision/camera.h>
-#include <iCub/stereoVision/cvtools.h>
 #include <fstream>
 #include <yarp/os/all.h>
 

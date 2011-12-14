@@ -22,39 +22,41 @@ class stereoCalibThread : public Thread
 {
 private:
 
-   ImageOf<PixelRgb> *imageL;
-   ImageOf<PixelRgb> *imageR;
-   IplImage * imgL;
-   IplImage * imgR;
+    ImageOf<PixelRgb> *imageL;
+    ImageOf<PixelRgb> *imageR;
+    IplImage * imgL;
+    IplImage * imgR;
 
-   string inputLeftPortName;
-   string inputRightPortName;
-   string outNameRight;
-   string outNameLeft;
-   BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
-   BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
-   BufferedPort<ImageOf<PixelRgb> > outPortRight;
-   BufferedPort<ImageOf<PixelRgb> > outPortLeft;
+    string inputLeftPortName;
+    string inputRightPortName;
+    string outNameRight;
+    string outNameLeft;
+    BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
+    BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
+    BufferedPort<ImageOf<PixelRgb> > outPortRight;
+    BufferedPort<ImageOf<PixelRgb> > outPortLeft;
 
-   Port *commandPort;
-   string dir;
-   int startCalibration;
-   int boardWidth;
-   int boardHeight;
-   float squareSize;
-   char pathL[256];
-   char pathR[256];
-   void printMatrix(Mat &matrix);
-
+    Port *commandPort;
+    string dir;
+    int startCalibration;
+    int boardWidth;
+    int boardHeight;
+    float squareSize;
+    char pathL[256];
+    char pathR[256];
+    void printMatrix(Mat &matrix);
+    bool checkTS(double TSLeft, double TSRight, double th=0.020);
+    void preparePath(const char * dir, char* pathL, char* pathR, int num);
+    void saveStereoImage(const char * dir, IplImage* left, IplImage * right, int num);
 public:
 
 
-   stereoCalibThread(ResourceFinder &rf, Port* commPort, const char *dir);
-   void startCalib();
-   bool threadInit();     
-   void threadRelease();
-   void run(); 
-   void onStop();
+    stereoCalibThread(ResourceFinder &rf, Port* commPort, const char *dir);
+    void startCalib();
+    bool threadInit();
+    void threadRelease();
+    void run(); 
+    void onStop();
 };
 
 

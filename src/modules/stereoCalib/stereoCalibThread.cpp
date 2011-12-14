@@ -91,12 +91,12 @@ void stereoCalibThread::run(){
             initR=true;
         }
 
-        if(initL && initR && Cvtools::checkTS(TSLeft.getTime(),TSRight.getTime())){
+        if(initL && initR && checkTS(TSLeft.getTime(),TSRight.getTime())){
 
             if(startCalibration>0) {
 
                 string pathImg=dir;
-                Cvtools::preparePath(pathImg.c_str(), pathL,pathR,count);
+                preparePath(pathImg.c_str(), pathL,pathR,count);
                 string iml(pathL);
                 string imr(pathR);
                 imgL= (IplImage*) imageL->getIplImage();
@@ -112,7 +112,7 @@ void stereoCalibThread::run(){
                 if(foundL && foundR) {
                         cvCvtColor(imgL,imgL,CV_RGB2BGR);
                         cvCvtColor(imgR,imgR, CV_RGB2BGR);                        
-                        Cvtools::saveStereoImage(pathImg.c_str(),imgL,imgR,count);
+                        saveStereoImage(pathImg.c_str(),imgL,imgR,count);
 
                         imageListR.push_back(imr);
                         imageListL.push_back(iml);
@@ -194,4 +194,44 @@ void stereoCalibThread::printMatrix(Mat &matrix) {
         cout << endl;
     }
         cout << endl;
+}
+
+
+bool stereoCalibThread::checkTS(double TSLeft, double TSRight, double th) {
+    double diff=fabs(TSLeft-TSRight);
+    if(diff <th)
+        return true;
+    else return false;
+
+}
+
+void stereoCalibThread::preparePath(const char * dir, char* pathL, char* pathR, int count) {
+    char num[5];
+    sprintf(num, "%i", count); 
+
+
+    strncpy(pathL,dir, strlen(dir));
+    pathL[strlen(dir)]='\0';
+    strcat(pathL,"left");
+    strcat(pathL,num);
+    strcat(pathL,".png");
+
+    strncpy(pathR,dir, strlen(dir));
+    pathR[strlen(dir)]='\0';
+    strcat(pathR,"right");
+    strcat(pathR,num);
+    strcat(pathR,".png");
+
+}
+
+
+void stereoCalibThread::saveStereoImage(const char * dir, IplImage* left, IplImage * right, int num) {
+    char pathL[256];
+    char pathR[256];
+    preparePath(dir, pathL,pathR,num);
+    
+    fprintf(stdout,"Saving images number %d \n",num);
+
+    cvSaveImage(pathL,left);
+    cvSaveImage(pathR,right);
 }
