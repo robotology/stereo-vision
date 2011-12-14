@@ -1461,13 +1461,15 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1) {
 Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H) {
     mutex->wait();
 
+    if(H.empty())
+        H=H.eye(4,4,CV_64FC1);
+
     if(Q.empty() || Disparity16.empty()) {
         cout << "Run computeDisparity() method first!" << endl;
         Point3f point;
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
-        
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
         mutex->post();
         return point;
     }
@@ -1481,9 +1483,9 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H) {
     Mat Mapper=this->getMapperL();
 
     if(Mapper.empty()) {
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
         
         mutex->post();
         return point;
@@ -1500,46 +1502,48 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H) {
     
 
     if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        mutex->post();
+        return point;
     }
-    else {
-        CvScalar scal= cvGet2D(&disp16,v,u);
-        double disparity=-scal.val[0]/16.0;
-        float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
-        point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
-        point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
-        point.z=(float) Q.at<double>(2,3);
 
-        point.x=point.x/w;
-        point.y=point.y/w;
-        point.z=point.z/w;
-    }
+    CvScalar scal= cvGet2D(&disp16,v,u);
+    double disparity=-scal.val[0]/16.0;
+    float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
+    point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
+    point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
+    point.z=(float) Q.at<double>(2,3);
+
+    point.x=point.x/w;
+    point.y=point.y/w;
+    point.z=point.z/w;
 
     // discard points far more than 2.5 meters or with not valid disparity (<0)
     if(point.z>2.5 || point.z<0) {
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        mutex->post();
+        return point;
     } 
-    else {
-        Mat RLrectTmp=this->getRLrect().t();
-        Mat Tfake = Mat::zeros(0,3,CV_64F);
-        Mat P(4,1,CV_64FC1);
-        P.at<double>(0,0)=point.x;
-        P.at<double>(1,0)=point.y;
-        P.at<double>(2,0)=point.z;
-        P.at<double>(3,0)=1;
 
-        Mat Hrect=buildRotTras(RLrectTmp,Tfake);
-        P=H*Hrect*P;
+    Mat RLrectTmp=this->getRLrect().t();
+    Mat Tfake = Mat::zeros(0,3,CV_64F);
+    Mat P(4,1,CV_64FC1);
+    P.at<double>(0,0)=point.x;
+    P.at<double>(1,0)=point.y;
+    P.at<double>(2,0)=point.z;
+    P.at<double>(3,0)=1;
 
-        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
-        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
-        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
-    }
- 
+    Mat Hrect=buildRotTras(RLrectTmp,Tfake);
+    P=H*Hrect*P;
+
+    point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
+    point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
+    point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+
     mutex->post();
     return point;
 
@@ -1553,9 +1557,9 @@ Point3f StereoCamera::triangulateKnownDisparity(float u, float v, float d, Mat &
     {
         cout << "Run rectifyImages() method first!" << endl;
         Point3f point;
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;        
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
         mutex->post();
         return point;
     }
@@ -1694,9 +1698,9 @@ Mat StereoCamera::computeWorldImage(Mat &H)
             Mat P(4,1,CV_64FC1);
             if((worldImg.data + worldImg.step * i)[j * worldImg.channels() + 2]>100)
             {
-                P.at<double>(0,0)=-1.0;
-                P.at<double>(1,0)=-1.0;
-                P.at<double>(2,0)=-1.0;
+                P.at<double>(0,0)=0.0;
+                P.at<double>(1,0)=0.0;
+                P.at<double>(2,0)=0.0;
                 P.at<double>(3,0)=1.0;
             }
             else

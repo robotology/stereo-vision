@@ -84,7 +84,7 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
     else if (command.size()==2) {
         int u = command.get(0).asInt();
         int v = command.get(1).asInt(); 
-        Point3f point = dispThread->get3DPoints(u,v);
+        Point3f point = dispThread->get3DPoints(u,v,"ROOT");
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
