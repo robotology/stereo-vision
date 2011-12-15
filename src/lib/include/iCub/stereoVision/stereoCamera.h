@@ -259,7 +259,7 @@ public:
     * @return a metric 3D point w.r.t. the first camera reference system.
     *
     */
-    Point3f metricTriangulation(Point2f &point1);
+    Point3f metricTriangulation(Point2f &point1,double thMeters=10);
   /**
     * It performs the metric triangulation given the pixel coordinates on the first image. The 3D Point is w.r.t the system defined by the parameter H. Run compute disparity before using this method.
     * @param point1 the pixel coordinates in the first image.
@@ -267,7 +267,7 @@ public:
     * @return a metric 3D point w.r.t. the reference system defined by H.
     *
     */
-    Point3f metricTriangulation(Point2f &point1, Mat &H);
+    Point3f metricTriangulation(Point2f &point1, Mat &H, double thMeters=10);
 
       /**
     * It performs the metric triangulation given the pixel coordinates on the first image and the disparity between the two RECTIFIED images. The 3D Point is w.r.t the system defined by the parameter H.

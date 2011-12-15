@@ -1372,15 +1372,15 @@ void StereoCamera::setIntrinsics(Mat& KL, Mat& KR, Mat& DistL, Mat& DistR) {
     this->mutex->post();
 }
 
-Point3f StereoCamera::metricTriangulation(Point2f &point1) {
+Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
     mutex->wait();
 
     if(Q.empty() || Disparity16.empty()) {
         cout << "Run computeDisparity() method first!" << endl;
         Point3f point;
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
 
         mutex->post();
         return point;
@@ -1395,9 +1395,9 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1) {
     Mat Mapper=this->getMapperL();
 
     if(Mapper.empty()) {
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
        
         mutex->post();
         return point;
@@ -1414,28 +1414,30 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1) {
     
 
     if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
-    }
-    else {
-        CvScalar scal= cvGet2D(&disp16,v,u);
-        double disparity=-scal.val[0]/16.0;
-        float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
-        point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
-        point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
-        point.z=(float) Q.at<double>(2,3);
-
-        point.x=point.x/w;
-        point.y=point.y/w;
-        point.z=point.z/w;
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        mutex->post();
+        return point;
     }
 
-    // discard points far more than 2.5 meters or with not valid disparity (<0)
-    if(point.z>2.5 || point.z<0) {
-        point.x=-1.0;
-        point.y=-1.0;
-        point.z=-1.0;
+    CvScalar scal= cvGet2D(&disp16,v,u);
+    double disparity=-scal.val[0]/16.0;
+    float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
+    point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
+    point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
+    point.z=(float) Q.at<double>(2,3);
+
+    point.x=point.x/w;
+    point.y=point.y/w;
+    point.z=point.z/w;
+
+
+    // discard points far more than thMeters meters or with not valid disparity (<0)
+    if(point.z>thMeters || point.z<0) {
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
     } 
     else {
             Mat P(3,1,CV_64FC1);
@@ -1458,7 +1460,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1) {
 
 
 
-Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H) {
+Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMeters) {
     mutex->wait();
 
     if(H.empty())
@@ -1520,8 +1522,8 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H) {
     point.y=point.y/w;
     point.z=point.z/w;
 
-    // discard points far more than 2.5 meters or with not valid disparity (<0)
-    if(point.z>2.5 || point.z<0) {
+    // discard points far more than thMeters meters or with not valid disparity (<0)
+    if(point.z>thMeters || point.z<0) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
