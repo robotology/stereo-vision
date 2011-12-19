@@ -1,0 +1,77 @@
+<application>
+<name>Test World Image</name>
+<dependencies>
+      <port>/icub/camcalib/left/out</port>
+      <port>/icub/camcalib/right/out</port>
+      <port>/iKinGazeCtrl/head/x:o</port>
+      <port>/iKinGazeCtrl/head/q:o</port>
+</dependencies>
+
+<module>
+	<name>stereoDisparity</name>
+	<parameters>--from stereoDisparity.ini</parameters>
+	<node>icub-b14</node>
+          <stdio>icub14</stdio>
+	<tag>stereoDisparity</tag>
+</module>
+
+<module>
+	<name>testWorldImage</name>
+	<parameters>--from testWorldImage.ini</parameters>
+	<node>icub14</node>
+          <stdio>icub14</stdio>
+	<tag>testWorldImage</tag>
+</module>
+   
+<module>
+      <name>yarpview</name>
+      <parameters>--name /viewDisp --synch</parameters>
+      <node>icub14</node>
+	<tag>view1</tag>
+</module>
+
+<module>
+	  <name>yarpview</name>
+	  <parameters>--name /imgL --out /imgL/out --synch</parameters>
+	  <node>icub14</node>
+	<tag>view2</tag>
+</module>
+
+
+<connection>
+  <output>/stereoDisparity/disparity:o</output>
+  <input>/viewDisp </input>
+  <protocol>tcp</protocol>
+</connection>
+
+<connection>
+  <output>/icub/camcalib/right/out</output>
+  <input>/stereoDisparity/cam/right:i</input>
+  <protocol>tcp</protocol>
+</connection>
+
+<connection>
+  <output>/icub/camcalib/left/out</output>
+  <input>/stereoDisparity/cam/left:i</input>
+  <protocol>tcp</protocol>
+</connection>
+
+<connection>
+  <output>/stereoDisparity/world:o</output>
+  <input>/world:i</input>
+  <protocol>tcp</protocol>
+</connection>
+
+<connection>
+  <output>/imgL/out</output>
+  <input>/pixelPort</input>
+  <protocol>tcp</protocol>
+</connection>
+
+<connection>
+  <output>/icub/camcalib/left/out</output>
+  <input>/imgL</input>
+  <protocol>tcp</protocol>
+</connection>
+
+</application>
