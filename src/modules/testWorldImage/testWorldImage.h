@@ -32,7 +32,7 @@ Date: 19/12/2011
 CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 \section intro_sec Description
-The module simply reads two pixel coordinates (u,v) and the 3-channel float image from stereoDisparity and prints the 3D position of the pixel (u,v) w.r.t ROOT reference system.
+The module simply reads two pixel coordinates (u,v) and the 3-channel float image from stereoDisparity and it prints the 3D position of the pixel (u,v) w.r.t ROOT reference system.
 In $ICUB_ROOT$/contrib/src/stereoVision/app/scripts is placed a simple application manager testWorldImage.xml in order to run all the modules and to set the connections properly.
 
 \section lib_sec Libraries 
