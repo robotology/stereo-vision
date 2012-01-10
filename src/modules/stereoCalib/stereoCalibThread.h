@@ -31,6 +31,8 @@ private:
     string inputRightPortName;
     string outNameRight;
     string outNameLeft;
+    string camCalibFile;
+
     BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
     BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
     BufferedPort<ImageOf<PixelRgb> > outPortRight;
@@ -57,6 +59,8 @@ public:
     void threadRelease();
     void run(); 
     void onStop();
+    bool writeCalibrationToFile( int width, int height, float fx, float fy,float cx, float cy, float k1, float k2, float p1, float p2, string groupname);
+
 };
 
 

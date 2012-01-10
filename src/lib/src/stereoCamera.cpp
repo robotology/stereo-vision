@@ -1723,8 +1723,12 @@ Mat StereoCamera::computeWorldImage(Mat &H)
     
     return worldImg;
 }
+Mat StereoCamera::getDistCoeffLeft()
+{
+    return this->DistL;
+}
 
-
-
-
-
+Mat StereoCamera::getDistCoeffRight()
+{
+    return this->DistR;
+}

@@ -16,33 +16,35 @@ class stereoCalibModule:public RFModule
 {
 
 
-   string moduleName;
-   string robotName; 
-   string inputLeftPortName;
-   string inputRightPortName;
-   string outputPortNameRight;
-   string outputPortNameLeft;  
-   string handlerPortName;
-   string outputCalibPath;
-   int thresholdValue;
+    string moduleName;
+    string robotName; 
+    string inputLeftPortName;
+    string inputRightPortName;
+    string outputPortNameRight;
+    string outputPortNameLeft;  
+    string handlerPortName;
+    string outputCalibPath;
+
+    int thresholdValue;
 
 
 
-   BufferedPort<ImageOf<PixelBgr> > imageOut;
-   Port handlerPort;
+    BufferedPort<ImageOf<PixelBgr> > imageOut;
+    Port handlerPort;
 
 
-   stereoCalibThread *myThread;
+    stereoCalibThread *myThread;
 
 
 public:
-   
-   bool configure(yarp::os::ResourceFinder &rf);
-   bool interruptModule();                       
-   bool close();                                 
-   bool respond(const Bottle& command, Bottle& reply);
-   double getPeriod(); 
-   bool updateModule();
-   void createFullPath(const char* path);
+
+    bool configure(yarp::os::ResourceFinder &rf);
+    bool interruptModule();                       
+    bool close();                                 
+    bool respond(const Bottle& command, Bottle& reply);
+    double getPeriod(); 
+    bool updateModule();
+    void createFullPath(const char* path);
+
 };
 

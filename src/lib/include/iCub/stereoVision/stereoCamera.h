@@ -473,4 +473,16 @@ public:
     */
     Mat computeWorldImage(Mat &H);
 
+    /**
+    * It returns the 5x1 right distortion coefficients.
+    * @return 5x1 right distortion coefficients.
+    */
+    Mat getDistCoeffRight();
+
+    /**
+    * It returns the 5x1 left distortion coefficients.
+    * @return 5x1 left distortion coefficients.
+    */
+    Mat getDistCoeffLeft();
+
 };

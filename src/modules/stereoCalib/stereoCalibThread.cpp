@@ -11,11 +11,11 @@ stereoCalibThread::stereoCalibThread(ResourceFinder &rf, Port* commPort, const c
    
     this->inputRightPortName        = "/"+moduleName;
     this->inputRightPortName       += rf.check("imgRight", Value("/cam/right:i"),"Input image port (string)").asString();
-	
+
 
     this->outNameRight        = "/"+moduleName;
     this->outNameRight       += rf.check("outRight",Value("/cam/right:o"),"Output image port (string)").asString();
-	
+
     this->outNameLeft        = "/"+moduleName;
     this->outNameLeft       +=rf.check("outLeft",Value("/cam/left:o"),"Output image port (string)").asString();
 
@@ -26,6 +26,11 @@ stereoCalibThread::stereoCalibThread(ResourceFinder &rf, Port* commPort, const c
     this->dir=dir;
     this->startCalibration=0;
 
+    ResourceFinder camCalib;
+    camCalib.setDefaultContext("cameraCalibration/conf");
+    camCalib.configure("ICUB_ROOT",0,NULL);
+    camCalibFile=camCalib.getContextPath().c_str();
+    camCalibFile=camCalibFile+"/iCubEyes.ini";
     fprintf(stdout, "%s \n", dir);
 }
 
@@ -56,8 +61,8 @@ bool stereoCalibThread::threadInit()
 
 void stereoCalibThread::run(){
 
-	imageL=new ImageOf<PixelRgb>;
-	imageR=new ImageOf<PixelRgb>;
+    imageL=new ImageOf<PixelRgb>;
+    imageR=new ImageOf<PixelRgb>;
 
     Stamp TSLeft;
     Stamp TSRight;
@@ -139,6 +144,15 @@ void stereoCalibThread::run(){
                     fprintf(stdout," Saving Calibration Results... \n");
 
                     stereo.saveCalibration(dir+"/../extrinsics",dir+"/../intrinsics");
+
+                    Mat Kright=stereo.getKright();
+                    Mat DistR=stereo.getDistCoeffRight();
+                    writeCalibrationToFile(imgL->width,imgL->height,Kright.at<double>(0,0),Kright.at<double>(1,1),Kright.at<double>(0,2),Kright.at<double>(1,2),DistR.at<double>(0,0),DistR.at<double>(1,0),DistR.at<double>(2,0),DistR.at<double>(3,0),"CAMERA_CALIBRATION_RIGHT");
+
+                    Mat Kleft=stereo.getKleft();
+                    Mat DistL=stereo.getDistCoeffLeft();
+                    writeCalibrationToFile(imgL->width,imgL->height,Kleft.at<double>(0,0),Kleft.at<double>(1,1),Kleft.at<double>(0,2),Kleft.at<double>(1,2),DistL.at<double>(0,0),DistL.at<double>(1,0),DistL.at<double>(2,0),DistL.at<double>(3,0),"CAMERA_CALIBRATION_LEFT");
+
                     fprintf(stdout,"Configuration Files Saved! Now you can run stereoDisparity! \n");
                     startCalibration=0;
                 }
@@ -235,3 +249,150 @@ void stereoCalibThread::saveStereoImage(const char * dir, IplImage* left, IplIma
     cvSaveImage(pathL,left);
     cvSaveImage(pathR,right);
 }
+bool stereoCalibThread::writeCalibrationToFile( int width, int height, float fx, float fy,float cx, float cy, float k1, float k2, float p1, float p2, string groupname){
+
+    vector<string> lines;
+
+    bool append = false;
+
+    ifstream in;
+    in.open(camCalibFile.c_str()); //camCalibFile.c_str());
+    
+    if(in.is_open()){
+        // file exists
+        string line;
+        bool sectionFound = false;
+        bool sectionClosed = false;
+
+        // process lines
+        while(std::getline(in, line)){
+            // check if we left calibration section
+            if (sectionFound == true && line.find("[", 0) != string::npos)
+                sectionClosed = true;   // also valid if no groupname specified
+            // check if we enter calibration section
+            if (line.find(string("[") + groupname + string("]"), 0) != string::npos)
+                sectionFound = true;
+            // if no groupname specified
+            if (groupname == "")
+                sectionFound = true;
+            // if we are in calibration section (or no section/group specified)
+            if (sectionFound == true && sectionClosed == false){
+                // replace w line
+                if (line.find("w",0) != string::npos){
+                    stringstream ss;
+                    ss << width;
+                    line = "w " + string(ss.str());
+                }
+                // replace h line
+                if (line.find("h",0) != string::npos){
+                    stringstream ss;
+                    ss << height;
+                    line = "h " + string(ss.str());
+                }
+                // replace fx line
+                if (line.find("fx",0) != string::npos){
+                    stringstream ss;
+                    ss << fx;
+                    line = "fx " + string(ss.str());
+                }
+                // replace fy line
+                if (line.find("fy",0) != string::npos){
+                    stringstream ss;
+                    ss << fy;
+                    line = "fy " + string(ss.str());
+                }
+                // replace cx line
+                if (line.find("cx",0) != string::npos){
+                    stringstream ss;
+                    ss << cx;
+                    line = "cx " + string(ss.str());
+                }
+                // replace cy line
+                if (line.find("cy",0) != string::npos){
+                    stringstream ss;
+                    ss << cy;
+                    line = "cy " + string(ss.str());
+                }
+                // replace k1 line
+                if (line.find("k1",0) != string::npos){
+                    stringstream ss;
+                    ss << k1;
+                    line = "k1 " + string(ss.str());
+                }
+                // replace k2 line
+                if (line.find("k2",0) != string::npos){
+                    stringstream ss;
+                    ss << k2;
+                    line = "k2 " + string(ss.str());
+                }
+                // replace p1 line
+                if (line.find("p1",0) != string::npos){
+                    stringstream ss;
+                    ss << p1;
+                    line = "p1 " + string(ss.str());
+                }
+                // replace p2 line
+                if (line.find("p2",0) != string::npos){
+                    stringstream ss;
+                    ss << p2;
+                    line = "p2 " + string(ss.str());
+                }
+       
+            }
+            // buffer line
+            lines.push_back(line);
+        }
+        
+        in.close();
+
+        // rewrite file
+        if (!sectionFound){
+            append = true;
+            cout << "Camera calibration parameter section " + string("[") + groupname + string("]") + " not found in file " << camCalibFile << ". Adding group..." << endl;
+        }
+        else{
+            // rewrite file
+            ofstream out;
+            out.open(camCalibFile.c_str(), ios::trunc);
+            if (out.is_open()){
+                for (int i = 0; i < (int)lines.size(); i++)
+                    out << lines[i] << endl;
+                out.close();
+            }
+            else
+                return false;
+        }
+        
+    }
+    else{
+        append = true;
+    }
+
+    if (append){
+        // file doesn't exist or section is appended 
+        ofstream out;
+        out.open(camCalibFile.c_str(), ios::app);
+        if (out.is_open()){
+            out << string("[") + groupname + string("]") << endl;
+            out << endl;
+            out << "w  " << width << endl;
+            out << "h  " << height << endl;
+            out << "fx " << fx << endl;
+            out << "fy " << fy << endl;
+            out << "cx " << cx << endl;
+            out << "cy " << cy << endl;
+            out << "k1 " << k1 << endl;
+            out << "k2 " << k2 << endl;
+            out << "p1 " << p1 << endl;
+            out << "p2 " << p2 << endl;
+            out << endl;
+            out.close();
+        }
+        else
+            return false;
+    }
+
+    return true;
+}
+
+

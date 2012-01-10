@@ -33,10 +33,13 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
 
 
     string dir = rf.getContextPath().c_str();
+
+
+
     for (int i=1; proceed; i++)
         {
            sprintf(dirName,"%s/%s_%.5d",dir.c_str(),"calibImg",i);
-		   proceed=!yarp::os::stat(dirName);
+           proceed=!yarp::os::stat(dirName);
            sprintf(dirName,"%s/%s_%.5d/",dir.c_str(),"calibImg",i);
         }
     
@@ -59,8 +62,8 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
 
    myThread->start();
 
-   return true;      
-                      
+   return true;
+
 }
 
 
@@ -108,7 +111,7 @@ double stereoCalibModule::getPeriod()
 
 void stereoCalibModule::createFullPath(const char* path)
 {
-	if (yarp::os::stat(path))
+    if (yarp::os::stat(path))
     {
         string strPath=string(path);
         size_t found=strPath.find_last_of("/");
@@ -117,6 +120,8 @@ void stereoCalibModule::createFullPath(const char* path)
             found--;
 
         createFullPath(strPath.substr(0,found+1).c_str());
-		yarp::os::mkdir(strPath.c_str());
+        yarp::os::mkdir(strPath.c_str());
     }
 }
+
+
