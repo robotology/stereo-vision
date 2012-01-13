@@ -76,6 +76,7 @@ StereoCamera::StereoCamera(std::string intrinsicPath, std::string exstrinsicPath
         Pright=Kright*A;
         this->mutex= new Semaphore(1);
         this->cameraChanged=true;
+        buildUndistortRemap();
 }
 
 StereoCamera::StereoCamera(Camera Left, Camera Right) {
@@ -86,6 +87,8 @@ StereoCamera::StereoCamera(Camera Left, Camera Right) {
     this->DistR=Right.getDistVector();
     this->mutex=new Semaphore(1);
     this->cameraChanged=true;
+
+    buildUndistortRemap();
 }
 
 void StereoCamera::setImages(IplImage * left, IplImage * right) {
@@ -225,11 +228,11 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
             j++;
         }
     }
-    cout << j << " pairs have been successfully detected.\n";
+    fprintf(stdout,"%i pairs have been successfully detected.\n",j);
     nimages = j;
     if( nimages < 2 )
     {
-        cout << "Error: too little pairs to run the calibration\n";
+        fprintf(stdout,"Error: too few pairs detected");
         return;
     }
     
@@ -244,7 +247,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 objectPoints[i].push_back(Point3f(j*squareSize, k*squareSize, 0));
     }
     
-    cout << "Running stereo calibration ...\n";
+    fprintf(stdout,"Running stereo calibration ...\n");
     
     Mat cameraMatrix[2], distCoeffs[2];
     Mat E, F;
@@ -261,7 +264,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                         CV_CALIB_SAME_FOCAL_LENGTH +
                         CV_CALIB_RATIONAL_MODEL +
                         CV_CALIB_FIX_K3 + CV_CALIB_FIX_K4 + CV_CALIB_FIX_K5);
-        cout << "done with RMS error=" << rms << endl;
+        fprintf(stdout,"done with RMS error= %f\n",rms);
     } else
     {
         double rms = stereoCalibrate(objectPoints, imagePoints[0], imagePoints[1],
@@ -269,7 +272,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 this->Kright, this->DistR,
                 imageSize, this->R, this->T, E, F,
                 TermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5),CV_CALIB_FIX_INTRINSIC);
-        cout << "done with RMS error=" << rms << endl;
+        fprintf(stdout,"done with RMS error= %f\n",rms);
     }
 // CALIBRATION QUALITY CHECK
 // because the output fundamental matrix implicitly
@@ -306,10 +309,11 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
         }
         npoints += npt;
     }
-   Mat R1,R2,P1,P2;
-   Rect roi1, roi2;
-   stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, imageSize, this->R, this->T, R1, R2, P1, P2, this->Q, -1, imageSize, &roi1, &roi2 );
-    cout << "average reprojection err = " <<  err/npoints << endl;
+    Mat R1,R2,P1,P2;
+    Rect roi1, roi2;
+    stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, imageSize, this->R, this->T, R1, R2, P1, P2, this->Q, -1, imageSize, &roi1, &roi2 );
+    fprintf(stdout,"average reprojection err = %f\n",err/npoints);
+
 }
 
 void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFilePath) {
@@ -1731,4 +1735,34 @@ Mat StereoCamera::getDistCoeffLeft()
 Mat StereoCamera::getDistCoeffRight()
 {
     return this->DistR;
+}
+
+void StereoCamera::buildUndistortRemap()
+{
+    Mat newCam;
+    Size img_size = this->imleft.size();
+    initUndistortRectifyMap(this->Kleft, this->DistL, Mat::eye(3,3,CV_64FC1), newCam, img_size, CV_32FC1,this->mapxL,this->mapyL);
+    initUndistortRectifyMap(this->Kright, this->DistR, Mat::eye(3,3,CV_64FC1), newCam, img_size, CV_32FC1,this->mapxR,this->mapyR);
+
+}
+
+Point2f StereoCamera::getDistortedPixel(int u, int v, int cam)
+{
+    Point2f distortedPixel;
+    Mat MapperX,MapperY;
+
+    if(cam==1)
+    {
+        MapperX=mapxL;
+        MapperY=mapyL;
+    }
+    else
+    {
+        MapperX=mapxR;
+        MapperY=mapyR;
+    }
+    distortedPixel.x=MapperX.ptr<float>(v)[u];
+    distortedPixel.y=MapperY.ptr<float>(v)[u];
+
+    return distortedPixel;
 }

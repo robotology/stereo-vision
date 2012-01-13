@@ -116,7 +116,7 @@ void stereoCalibThread::run(){
                 
                 if(foundL && foundR) {
                         cvCvtColor(imgL,imgL,CV_RGB2BGR);
-                        cvCvtColor(imgR,imgR, CV_RGB2BGR);                        
+                        cvCvtColor(imgR,imgR, CV_RGB2BGR);
                         saveStereoImage(pathImg.c_str(),imgL,imgR,count);
 
                         imageListR.push_back(imr);
@@ -125,7 +125,7 @@ void stereoCalibThread::run(){
                         imageListLR.push_back(imr);
                         Time::delay(2.0);
 
-                        count++;                    
+                        count++;
              }
 
                 if(count>30) {
@@ -168,8 +168,6 @@ void stereoCalibThread::run(){
                 outPortRight.write();
                 initL=initR=false;
         }
-    
-      
    }
 
    delete imageL;

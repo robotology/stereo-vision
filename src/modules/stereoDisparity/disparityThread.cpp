@@ -23,8 +23,10 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     this->inputLeftPortName += rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString().c_str();
 
     int cmdisp= rf.check("computeDisparity",Value(1)).asInt();
+    int calib= rf.check("useCalibrated",Value(1)).asInt();
 
     this->computeDisparity= cmdisp ? true : false;
+    this->useCalibrated= calib ? true : false;
 
     this->inputRightPortName ="/";
     this->inputRightPortName +=moduleName;
@@ -50,6 +52,14 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     this->HL_root= Mat::zeros(4,4,CV_64F);
     this->HR_root= Mat::zeros(4,4,CV_64F);
     this->output=NULL;
+
+    if(useCalibrated)
+    {
+        Mat KL=this->stereo->getKleft();
+        Mat KR=this->stereo->getKright();
+        Mat zeroDist=Mat::zeros(1,8,CV_64FC1);
+        this->stereo->setIntrinsics(KL,KR,zeroDist,zeroDist);
+    }
 }
 
 
@@ -343,10 +353,11 @@ Point3f disparityThread::get3DPoints(int u, int v, string drive) {
 
 
     float usign=Mapper.ptr<float>(v)[2*u];
-    float vsign=Mapper.ptr<float>(v)[2*u+1]; 
+    float vsign=Mapper.ptr<float>(v)[2*u+1];
 
     u=cvRound(usign);
     v=cvRound(vsign);
+
 
     IplImage disp16=this->stereo->getDisparity16();
 

@@ -111,7 +111,10 @@ private:
     Mat map12; //Mapping from from rectified to original
     Mat map21; //Mapping from from rectified to original
     Mat map22; //Mapping from from rectified to original
-
+    Mat mapxL; //Mapping from Undistorted to Original Left image for the x coordinates
+    Mat mapyL; //Mapping from Undistorted to Original Left image for the y coordinates
+    Mat mapxR; //Mapping from Undistorted to Original Right image for the x coordinates
+    Mat mapyR; //Mapping from Undistorted to Original Right image for the y coordinates
 
     Mat MapperL; // pixels mapping from original left camera to rectified left camera
     Mat MapperR; // pixels mapping from original right camera to rectified right camera
@@ -139,6 +142,7 @@ private:
     void printStereoIntrinsic();
     void printExtrinsic();
     Mat buildRotTras(Mat & R, Mat & T);
+    void buildUndistortRemap();
 
 
 public:
@@ -485,4 +489,12 @@ public:
     */
     Mat getDistCoeffLeft();
 
+    /**
+    * Given the u,v pixel coordinates in the undistorted image the method returns the original position of the pixel in the distorted frame.
+    * @param u the x pixel coordinate in the undistorted image.
+    * @param v the y pixel coordinate in the undistorted image.
+    * @param cam cam=1 for left image, cam=2 for right image.
+    * @return the pixel position in the distorted image.
+    */
+    Point2f getDistortedPixel(int u, int v, int cam=1);
 };
