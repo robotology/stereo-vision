@@ -17,7 +17,6 @@ class stereoCalibModule:public RFModule
 
 
     string moduleName;
-    string robotName; 
     string inputLeftPortName;
     string inputRightPortName;
     string outputPortNameRight;
@@ -33,7 +32,7 @@ class stereoCalibModule:public RFModule
     Port handlerPort;
 
 
-    stereoCalibThread *myThread;
+    stereoCalibThread *calibThread;
 
 
 public:

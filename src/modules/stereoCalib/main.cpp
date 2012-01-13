@@ -70,8 +70,7 @@ YARP libraries and OpenCV 2.2
  Recognized remote commands:
     - [start]: Starts the calibration procedure, you have to show the chessboard image in different positions and orientations. 
     In the stdout is printed a message each time the pattern has been recognized by both the eyes. After 30 times the module will run the stereo calibration
-    and it will produce the files intrisincs.yml and extrinsics.yml in ${ICUB_ROOT}/app/stereoVision/conf.
-    These files are required by stereoDisparity for the computation of the depth map.
+
  
 \section in_files_sec Input Data Files
 None.
@@ -98,7 +97,7 @@ int main(int argc, char * argv[])
    ResourceFinder rf;
    rf.setVerbose(true);
    rf.setDefaultConfigFile("stereoCalib.ini"); 
-   rf.setDefaultContext("stereoVision/conf");   
+   rf.setDefaultContext("cameraCalibration/conf");   
    rf.configure("ICUB_ROOT", argc, argv);
  
    stereoModule.runModule(rf);

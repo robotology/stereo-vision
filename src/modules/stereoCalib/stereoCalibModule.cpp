@@ -14,14 +14,6 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
    
     setName(moduleName.c_str());
 
-
-    robotName             = rf.check("robot", 
-                           Value("icub"), 
-                           "Robot name (string)").asString();
-
- 
-
-
     handlerPortName        = "/";
     handlerPortName       += getName(
                            rf.check("CommandPort", 
@@ -30,8 +22,6 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
                            );
     char dirName[255];
     bool proceed=true;
-
-
     string dir = rf.getContextPath().c_str();
 
 
@@ -56,11 +46,11 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
    }
    attach(handlerPort);
 
-   myThread = new stereoCalibThread(rf,&handlerPort, dirName);
+   calibThread = new stereoCalibThread(rf,&handlerPort, dirName);
 
 
 
-   myThread->start();
+   calibThread->start();
 
    return true;
 
@@ -69,7 +59,7 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
 
 bool stereoCalibModule::interruptModule()
 {
-   myThread->stop();
+   calibThread->stop();
 
 
    return true;
@@ -80,8 +70,8 @@ bool stereoCalibModule::close()
 {
 
 
-   myThread->stop();
-   delete myThread;
+   calibThread->stop();
+   delete calibThread;
 
    return true;
 }
@@ -90,9 +80,8 @@ bool stereoCalibModule::close()
 bool stereoCalibModule::respond(const Bottle& command, Bottle& reply) 
 {
    if (command.get(0).asString()=="start") {
-        reply.addString("Show for 30 times the chess board pattern with different orientations and positions");
-        myThread->startCalib();
-        fprintf(stdout, "Show for 30 times the chess board pattern with different orientations and positions \n");
+        reply.addString("Starting Calibration... \n");
+        calibThread->startCalib();
    }
   return true;
 }
