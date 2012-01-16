@@ -50,6 +50,7 @@ private:
     string outNameRight;
     string outNameLeft;
     string camCalibFile;
+    string currentPathDir;
 
     BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
     BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
@@ -57,7 +58,7 @@ private:
     BufferedPort<ImageOf<PixelRgb> > outPortLeft;
 
     Port *commandPort;
-    string dir;
+    string imageDir;
     int startCalibration;
     int boardWidth;
     int boardHeight;
@@ -66,8 +67,8 @@ private:
     char pathR[256];
     void printMatrix(Mat &matrix);
     bool checkTS(double TSLeft, double TSRight, double th=0.020);
-    void preparePath(const char * dir, char* pathL, char* pathR, int num);
-    void saveStereoImage(const char * dir, IplImage* left, IplImage * right, int num);
+    void preparePath(const char * imageDir, char* pathL, char* pathR, int num);
+    void saveStereoImage(const char * imageDir, IplImage* left, IplImage * right, int num);
     void monoCalibration(vector<string> imageList, int boardWidth, int boardHeight, Mat K, Mat Dist);
     void stereoCalibration(vector<string> imagelist, int boardWidth, int boardHeight,float sqsizee);
     void saveCalibration(string extrinsicFilePath, string intrinsicFilePath);
@@ -78,7 +79,7 @@ private:
 public:
 
 
-    stereoCalibThread(ResourceFinder &rf, Port* commPort, const char *dir);
+    stereoCalibThread(ResourceFinder &rf, Port* commPort, const char *imageDir);
     void startCalib();
     bool threadInit();
     void threadRelease();

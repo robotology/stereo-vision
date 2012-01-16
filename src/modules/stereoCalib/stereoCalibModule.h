@@ -14,8 +14,6 @@ using namespace yarp::sig;
 
 class stereoCalibModule:public RFModule
 {
-
-
     string moduleName;
     string inputLeftPortName;
     string inputRightPortName;

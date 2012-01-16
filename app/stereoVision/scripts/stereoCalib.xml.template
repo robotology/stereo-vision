@@ -40,13 +40,13 @@
 </connection>
 
 <connection>
-  <output>/icub/camcalib/right/out</output>
+  <output>/icub/cam/right</output>
   <input>/stereoCalib/cam/right:i</input>
   <protocol>udp</protocol>
 </connection>
 
 <connection>
-  <output>/icub/camcalib/left/out</output>
+  <output>/icub/cam/left</output>
   <input>/stereoCalib/cam/left:i</input>
   <protocol>udp</protocol>
 </connection>

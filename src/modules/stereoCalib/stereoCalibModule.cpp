@@ -5,13 +5,11 @@
 
 
 bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
-{    
-
-
+{
     moduleName            = rf.check("name", 
                            Value("stereoCalib"), 
                            "module name (string)").asString();
-   
+
     setName(moduleName.c_str());
 
     handlerPortName        = "/";
@@ -24,71 +22,57 @@ bool stereoCalibModule::configure(yarp::os::ResourceFinder &rf)
     bool proceed=true;
     string dir = rf.getContextPath().c_str();
 
-
-
     for (int i=1; proceed; i++)
-        {
+    {
            sprintf(dirName,"%s/%s_%.5d",dir.c_str(),"calibImg",i);
            proceed=!yarp::os::stat(dirName);
            sprintf(dirName,"%s/%s_%.5d/",dir.c_str(),"calibImg",i);
-        }
+     }
     
     createFullPath(dirName);
-    string outoutCalibPath=dirName;
-    outoutCalibPath +="/";
-
-
-
 
     if (!handlerPort.open(handlerPortName.c_str())) {
       cout << ": unable to open port " << handlerPortName << endl;
       return false;
-   }
-   attach(handlerPort);
+    }
+    attach(handlerPort);
 
-   calibThread = new stereoCalibThread(rf,&handlerPort, dirName);
+    calibThread = new stereoCalibThread(rf,&handlerPort, dirName);
+    calibThread->start();
 
-
-
-   calibThread->start();
-
-   return true;
+    return true;
 
 }
 
 
 bool stereoCalibModule::interruptModule()
 {
-   calibThread->stop();
-
-
-   return true;
+    calibThread->stop();
+    return true;
 }
 
 
 bool stereoCalibModule::close()
 {
+    calibThread->stop();
+    delete calibThread;
 
-
-   calibThread->stop();
-   delete calibThread;
-
-   return true;
+    return true;
 }
 
 
 bool stereoCalibModule::respond(const Bottle& command, Bottle& reply) 
 {
-   if (command.get(0).asString()=="start") {
+    if (command.get(0).asString()=="start") {
         reply.addString("Starting Calibration... \n");
         calibThread->startCalib();
    }
-  return true;
+    return true;
 }
 
 bool stereoCalibModule::updateModule()
 {
-   return true;
+    return true;
 }
 
 

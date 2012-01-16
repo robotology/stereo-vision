@@ -1,7 +1,7 @@
 #include "stereoCalibThread.h"
 
 
-stereoCalibThread::stereoCalibThread(ResourceFinder &rf, Port* commPort, const char *dir)
+stereoCalibThread::stereoCalibThread(ResourceFinder &rf, Port* commPort, const char *imageDir)
 {
 
     string moduleName=rf.check("name", Value("stereoCalib"),"module name (string)").asString().c_str();
@@ -18,17 +18,19 @@ stereoCalibThread::stereoCalibThread(ResourceFinder &rf, Port* commPort, const c
     this->outNameLeft        = "/"+moduleName;
     this->outNameLeft       +=rf.check("outLeft",Value("/cam/left:o"),"Output image port (string)").asString();
 
-    this->boardWidth=  rf.check("boardWidth", Value(8)).asInt();
-    this->boardHeight= rf.check("boardHeight", Value(6)).asInt();
-    this->numOfPairs=rf.check("boardHeight", Value(30)).asInt();
-    this->squareSize= (float)rf.check("boardSize", Value(0.09241)).asDouble();
+    Bottle stereoCalibOpts=rf.findGroup("STEREO_CALIBRATION_CONFIGURATION");
+    this->boardWidth=  stereoCalibOpts.check("boardWidth", Value(11)).asInt();
+    this->boardHeight= stereoCalibOpts.check("boardHeight", Value(6)).asInt();
+    this->numOfPairs=stereoCalibOpts.check("numberOfPairs", Value(30)).asInt();
+    this->squareSize= (float)stereoCalibOpts.check("boardSize", Value(0.09241)).asDouble();
     this->commandPort=commPort;
-    this->dir=dir;
+    this->imageDir=imageDir;
     this->startCalibration=0;
+    this->currentPathDir=rf.getContextPath().c_str();
 
-    camCalibFile=rf.getContextPath().c_str();
-    camCalibFile=camCalibFile+"/icubEyes.ini";
-    fprintf(stdout, "%s \n", dir);
+    this->camCalibFile=rf.getContextPath().c_str();
+
+    this->camCalibFile=this->camCalibFile+"/icubEyes.ini";
 }
 
 bool stereoCalibThread::threadInit() 
@@ -98,7 +100,7 @@ void stereoCalibThread::run(){
 
             if(startCalibration>0) {
 
-                string pathImg=dir;
+                string pathImg=imageDir;
                 preparePath(pathImg.c_str(), pathL,pathR,count);
                 string iml(pathL);
                 string imr(pathR);
@@ -137,7 +139,7 @@ void stereoCalibThread::run(){
                     stereoCalibration(imageListLR, this->boardWidth,this->boardHeight,this->squareSize);
 
                     fprintf(stdout," Saving Calibration Results... \n");
-                    saveCalibration(dir+"/../extrinsics",dir+"/../intrinsics");
+                    saveCalibration(this->currentPathDir+"/extrinsics",this->currentPathDir+"/intrinsics");
                     updateIntrinsics(imgL->width,imgL->height,Kright.at<double>(0,0),Kright.at<double>(1,1),Kright.at<double>(0,2),Kright.at<double>(1,2),DistR.at<double>(0,0),DistR.at<double>(0,1),DistR.at<double>(0,2),DistR.at<double>(0,3),"CAMERA_CALIBRATION_RIGHT");
                     updateIntrinsics(imgL->width,imgL->height,Kleft.at<double>(0,0),Kleft.at<double>(1,1),Kleft.at<double>(0,2),Kleft.at<double>(1,2),DistL.at<double>(0,0),DistL.at<double>(0,1),DistL.at<double>(0,2),DistL.at<double>(0,3),"CAMERA_CALIBRATION_LEFT");
 
@@ -216,19 +218,19 @@ bool stereoCalibThread::checkTS(double TSLeft, double TSRight, double th) {
 
 }
 
-void stereoCalibThread::preparePath(const char * dir, char* pathL, char* pathR, int count) {
+void stereoCalibThread::preparePath(const char * imageDir, char* pathL, char* pathR, int count) {
     char num[5];
     sprintf(num, "%i", count); 
 
 
-    strncpy(pathL,dir, strlen(dir));
-    pathL[strlen(dir)]='\0';
+    strncpy(pathL,imageDir, strlen(imageDir));
+    pathL[strlen(imageDir)]='\0';
     strcat(pathL,"left");
     strcat(pathL,num);
     strcat(pathL,".png");
 
-    strncpy(pathR,dir, strlen(dir));
-    pathR[strlen(dir)]='\0';
+    strncpy(pathR,imageDir, strlen(imageDir));
+    pathR[strlen(imageDir)]='\0';
     strcat(pathR,"right");
     strcat(pathR,num);
     strcat(pathR,".png");
@@ -236,10 +238,10 @@ void stereoCalibThread::preparePath(const char * dir, char* pathL, char* pathR, 
 }
 
 
-void stereoCalibThread::saveStereoImage(const char * dir, IplImage* left, IplImage * right, int num) {
+void stereoCalibThread::saveStereoImage(const char * imageDir, IplImage* left, IplImage * right, int num) {
     char pathL[256];
     char pathR[256];
-    preparePath(dir, pathL,pathR,num);
+    preparePath(imageDir, pathL,pathR,num);
     
     fprintf(stdout,"Saving images number %d \n",num);
 
@@ -518,7 +520,7 @@ void stereoCalibThread::stereoCalibration(vector<string> imagelist, int boardWid
     nimages = j;
     if( nimages < 2 )
     {
-        fprintf(stdout,"Error: too few pairs detected");
+        fprintf(stdout,"Error: too few pairs detected \n");
         return;
     }
     
