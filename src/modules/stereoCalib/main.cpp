@@ -38,11 +38,13 @@ For convenience, a chessboard calibration image is provided in the
 $ICUB_ROOT/main/app/cameraCalibration/data directory. In the config file $ICUB_ROOT/main/app/cameraCalibration/conf/icubEyes.ini
 you should add the following group:
 
+\code
 [STEREO_CALIBRATION_CONFIGURATION]
 boardWidth W
 boardHeight H
 boardSize S
 numberOfPairs N
+\endcode
 
 See below for the parameter description.
 
