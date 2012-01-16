@@ -49,7 +49,7 @@ numberOfPairs N
 See below for the parameter description.
 
 \note Opencv 2.2 is required!
-\note If you are using low resolution images (320x240) you should use a big chessboard pattern (i.e. with square size of ~4cm^2). 
+\note If you are using low resolution images (320x240) you should use a big chessboard pattern (i.e. with square side length of ~4cm). 
 \note Make sure to show the pattern horizontally.
 \section lib_sec Libraries 
 YARP libraries and OpenCV 2.2
