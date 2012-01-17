@@ -139,11 +139,11 @@ private:
     void printMatrix(Mat &matrix);
     double reprojectionErrorAvg();
     void savePoints(string pointsLPath, string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR);
-    void printStereoIntrinsic();
-    void printExtrinsic();
+
     Mat buildRotTras(Mat & R, Mat & T);
     void buildUndistortRemap();
-
+    void printStereoIntrinsic();
+    void printExtrinsic();
 
 public:
 
@@ -151,7 +151,7 @@ public:
     * Default Constructor. You should initialize all the intrinsic and extrinsic parameters
     * using the provided methods.
     */
-    StereoCamera() {}; 
+    StereoCamera() {this->mutex=new Semaphore(1); }; 
 
     ~StereoCamera() { delete mutex; };
 

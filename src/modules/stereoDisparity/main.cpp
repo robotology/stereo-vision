@@ -115,8 +115,8 @@ int main(int argc, char * argv[])
 
    ResourceFinder rf;
    rf.setVerbose(true);
-   rf.setDefaultConfigFile("stereoDisparity.ini"); 
-   rf.setDefaultContext("stereoVision/conf");   
+   rf.setDefaultConfigFile("icubEyes.ini"); 
+   rf.setDefaultContext("cameraCalibration/conf");   
    rf.configure("ICUB_ROOT", argc, argv);
  
 

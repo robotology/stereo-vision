@@ -1373,6 +1373,7 @@ void StereoCamera::setIntrinsics(Mat& KL, Mat& KR, Mat& DistL, Mat& DistR) {
     if(!this->R.empty() && !this->T.empty())
         updatePMatrix();
     this->cameraChanged=true;
+    buildUndistortRemap();
     this->mutex->post();
 }
 

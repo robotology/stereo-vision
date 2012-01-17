@@ -139,7 +139,6 @@ void stereoCalibThread::run(){
                     stereoCalibration(imageListLR, this->boardWidth,this->boardHeight,this->squareSize);
 
                     fprintf(stdout," Saving Calibration Results... \n");
-                    saveCalibration(this->currentPathDir+"/extrinsics",this->currentPathDir+"/intrinsics");
                     updateIntrinsics(imgL->width,imgL->height,Kright.at<double>(0,0),Kright.at<double>(1,1),Kright.at<double>(0,2),Kright.at<double>(1,2),DistR.at<double>(0,0),DistR.at<double>(0,1),DistR.at<double>(0,2),DistR.at<double>(0,3),"CAMERA_CALIBRATION_RIGHT");
                     updateIntrinsics(imgL->width,imgL->height,Kleft.at<double>(0,0),Kleft.at<double>(1,1),Kleft.at<double>(0,2),Kleft.at<double>(1,2),DistL.at<double>(0,0),DistL.at<double>(0,1),DistL.at<double>(0,2),DistL.at<double>(0,3),"CAMERA_CALIBRATION_LEFT");
 

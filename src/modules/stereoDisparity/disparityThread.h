@@ -70,6 +70,7 @@ private:
     Mat buildRotTras(Mat & R, Mat & T);
     void printMatrix(Mat &matrix);
     void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
+    bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &R, Mat &T);
 public:
 
     disparityThread(yarp::os::ResourceFinder &rf,Port* commPort);
