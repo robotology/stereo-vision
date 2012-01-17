@@ -27,7 +27,6 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${stereoVision_INCLUDE_DIRS})
 
 add_subdirectory(stereoDisparity)
-add_subdirectory(stereoCalib)
 add_subdirectory(testWorldImage)
 
 
