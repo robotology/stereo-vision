@@ -9,7 +9,7 @@
 
 <module>
       <name>stereoDisparity</name>
-      <parameters>--from stereoDisparity.ini</parameters>
+      <parameters>--from icubEyes.ini</parameters>
 	  <node>pcNode</node>
           <stdio>pcNode</stdio>
 	<tag>stereoDisparity</tag>
