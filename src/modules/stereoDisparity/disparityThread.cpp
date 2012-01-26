@@ -665,7 +665,7 @@ bool disparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
     Ro=Mat::zeros(3,3,CV_64FC1);
     T=Mat::zeros(3,1,CV_64FC1);
 
-    Bottle extrinsics=rf.findGroup("ALIGN_KIN_RIGHT");
+    Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
     if (Bottle *pXo=extrinsics.find("HN").asList()) {
         for (int i=0; i<(pXo->size()-4); i+=4) {
             Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
