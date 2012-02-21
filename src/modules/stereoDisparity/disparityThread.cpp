@@ -104,7 +104,7 @@ bool disparityThread::threadInit()
     Property option;
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");
-    option.put("local","/client/gaze");
+    option.put("local","/clientGaze/stereoDisparity");
     gazeCtrl=new PolyDriver(option);
     if (gazeCtrl->isValid()) {
         gazeCtrl->view(igaze);
