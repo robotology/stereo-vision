@@ -104,7 +104,7 @@ bool disparityThread::threadInit()
     Property option;
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");
-    option.put("local","/clientGaze/stereoDisparity");
+    option.put("local","/client/disparityClient");
     gazeCtrl=new PolyDriver(option);
     if (gazeCtrl->isValid()) {
         gazeCtrl->view(igaze);
@@ -479,6 +479,22 @@ Point3f disparityThread::get3DPointMatch(double u1, double v1, double u2, double
         return point;
     }
 
+
+    if(cvRound(u1)<0 || cvRound(u1)>=MapperL.cols || cvRound(v1)<0 || cvRound(v1)>=MapperL.rows) {
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        this->mutexDisp->post();
+        return point;
+    }
+    
+        if(cvRound(u2)<0 || cvRound(u2)>=MapperL.cols || cvRound(v2)<0 || cvRound(v2)>=MapperL.rows) {
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        this->mutexDisp->post();
+        return point;
+    }
 
     float urect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)];
     float vrect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)+1]; 

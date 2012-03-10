@@ -90,7 +90,7 @@ YARP libraries and OpenCV 2.2
     - [Root x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the ROOT reference system. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
     - [uL_1 vL_1 uR_1 vR_1 ... uL_n vL_n uR_n vR_n]: Given n quadruples uL_i vL_i uR_i vR_i, where uL_i vL_i are the pixel coordinates in the Left image and uR_i vR_i are the coordinates of the matched pixel in the Right image, the response is a set of 3D points (X1 Y1 Z1 ... Xn Yn Zn) wrt the ROOT reference system.
     - [cart2stereo X Y Z]: Given a world point X Y Z wrt to ROOT reference frame the response is the projection (uL vL uR vR) in the Left and Right images.
-    - [disparity ON/OFF]: It sets ON/OFF the disparity computation (it saves computational time when the disparity is not needed).
+    - [disparity on/off]: It sets on/off the disparity computation (it saves computational time when the disparity is not needed).
 \section in_files_sec Input Data Files
 None.
 
