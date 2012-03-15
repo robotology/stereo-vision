@@ -28,5 +28,5 @@ include_directories(${stereoVision_INCLUDE_DIRS})
 
 add_subdirectory(stereoDisparity)
 add_subdirectory(testWorldImage)
-
+add_subdirectory(sceneFlow)
 

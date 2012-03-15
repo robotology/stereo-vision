@@ -17,10 +17,16 @@ include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
 
 set(folder_source src/camera.cpp
-		  src/stereoCamera.cpp)
+		  src/stereoCamera.cpp
+		  src/disparityThread.cpp
+		  src/opticalFlowThread.cpp
+		  src/sceneFlow.cpp)
 
 set(folder_header include/iCub/stereoVision/camera.h
-		  include/iCub/stereoVision/stereoCamera.h)
+		  include/iCub/stereoVision/stereoCamera.h
+		  include/iCub/stereoVision/disparityThread.h
+		  include/iCub/stereoVision/opticalFlowThread.h
+		  include/iCub/stereoVision/sceneFlow.h)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
