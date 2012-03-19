@@ -1,4 +1,4 @@
-#include <iCub/stereoVision/StereoCamera.h>
+#include <iCub/stereoVision/stereoCamera.h>
 #include <yarp/dev/PolyDriver.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <yarp/dev/GazeControl.h>

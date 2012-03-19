@@ -7,6 +7,7 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf) : RateThread(10)
     Mat KL, KR, DistL, DistR, R, T;
     success=loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
     this->mutexDisp = new Semaphore(1);
+    this->stereo=new StereoCamera();
 
     if(success)
     {
@@ -22,11 +23,13 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf) : RateThread(10)
             Mat zeroDist=Mat::zeros(1,8,CV_64FC1);
             this->stereo->setIntrinsics(KL,KR,zeroDist,zeroDist);
         }
+        
+        fprintf(stdout, "Disparity Thread has started...\n");
 
     }
     this->init=true;
     this->work=false;
-    this->done=true;
+    this->done=false;
 }
 
 bool DisparityThread::isOpen()
@@ -43,6 +46,7 @@ void DisparityThread::run()
 
     if(work && init && success) 
     {
+
         stereo->undistortImages();
         stereo->findMatch(false,20,0.25);
         stereo->estimateEssential();
@@ -56,14 +60,19 @@ void DisparityThread::run()
         convert(H0,yarp_H0);
 
         //get the initial left and right positions
+        mutexDisp->wait();
         yarp_initLeft=getCameraH(LEFT);
         yarp_initRight=getCameraH(RIGHT);
+        mutexDisp->post();
         init=false;
+
     }
 
     if(work && success) 
     {
+        
         mutexDisp->wait();
+
         //transformation matrices between prev and curr eye frames
         Matrix yarp_Left=getCameraH(LEFT);
         Matrix yarp_Right=getCameraH(RIGHT);
@@ -75,7 +84,6 @@ void DisparityThread::run()
 
         Matrix R=Hcurr.submatrix(0,2,0,2);
         Matrix newTras=Hcurr.submatrix(0,2,3,3);
-
         // Update Rotation
         Mat Rot(3,3,CV_64FC1);
         convert(R,Rot);
@@ -87,9 +95,9 @@ void DisparityThread::run()
         this->stereo->setTranslation(translation,0);
         // Compute Disparity
         this->stereo->computeDisparity(false);
+        mutexDisp->post();
         work=false;
         done=true;
-        mutexDisp->post();
         this->suspend();
     }
 
@@ -109,34 +117,39 @@ void DisparityThread::setImages(Mat &left, Mat &right)
 void DisparityThread::getDisparity(Mat &Disp)
 {
     mutexDisp->wait();
-    Disp= stereo->getDisparity();
+    Mat tmp=stereo->getDisparity();
+    Disp= tmp.clone();
     mutexDisp->post();
 }
 
 void DisparityThread::getDisparityFloat(Mat &Disp) 
 {
     mutexDisp->wait();
-    Disp= stereo->getDisparity16();
+    Mat tmp=stereo->getDisparity16();
+    Disp= tmp.clone();
     mutexDisp->post();
 }
 void DisparityThread::getQMat(Mat &Q) 
 {
     mutexDisp->wait();
-    Q= stereo->getQ();
+    Mat tmp=stereo->getQ();
+    Q= tmp.clone();
     mutexDisp->post();
 }
 
 void DisparityThread::getMapper(Mat &Mapper) 
 {
     mutexDisp->wait();
-    Mapper= stereo->getMapperL();
+    Mat tmp=stereo->getMapperL();
+    Mapper= tmp.clone();
     mutexDisp->post();
 }
 
 void DisparityThread::getRectMatrix(Mat &RL) 
 {
     mutexDisp->wait();
-    RL= stereo->getRLrect();
+    Mat tmp=stereo->getRLrect();
+    RL= tmp.clone();
     mutexDisp->post();
 }
 
@@ -148,9 +161,11 @@ bool DisparityThread::threadInit()
     option.put("local","/clientGaze/disparityThread");
     gazeCtrl=new PolyDriver(option);
     if (gazeCtrl->isValid()) {
+    	mutexDisp->wait();
         gazeCtrl->view(igaze);
         getCameraH(LEFT);
         getCameraH(RIGHT);
+        mutexDisp->post();
     }
     else {
         cout<<"Devices not available"<<endl;
@@ -171,6 +186,7 @@ void DisparityThread::threadRelease()
     if(gazeCtrl->isValid())
         delete gazeCtrl;
     delete mutexDisp;
+	fprintf(stdout,"Disparity Thread Closed... \n");
 
 }
 
@@ -387,9 +403,9 @@ void DisparityThread::getRootTransformation(Mat & Trans,int eye)
     mutexDisp->wait();
 
     if(eye==LEFT)
-       Trans= HL_root;
+       Trans= HL_root.clone();
     else
-       Trans= HR_root;
+       Trans= HR_root.clone();
 
     mutexDisp->post();
 
@@ -415,19 +431,23 @@ Matrix DisparityThread::getCameraH(int camera) {
 
     if(camera==LEFT)
     {
-        this->mutexDisp->wait();
         convert(H_curr,HL_root);
-        this->mutexDisp->post();
     }
     else if(camera==RIGHT)
     {
-        this->mutexDisp->wait();
         convert(H_curr,HR_root);
-        this->mutexDisp->post();
     }
 
 
     return H_curr;
+}
+
+void DisparityThread::onStop()
+{
+	this->work=false;
+	this->done=true;
+
+
 }
 
 

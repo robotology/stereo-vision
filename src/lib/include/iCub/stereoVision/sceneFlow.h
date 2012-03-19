@@ -61,6 +61,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortInRight;
     void triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disparity, Mat &Q, Mat &RLrect);
     void buildRotTras(Mat & R, Mat & T, Mat & A);
+    void printMatrix(Mat &matrix);
 public:
 
     SceneFlow(yarp::os::ResourceFinder &rf);
@@ -76,9 +77,10 @@ public:
     void onStop(void);
     void close();
     Point3f getSceneFlowPixel(int u, int v);
-    void draw2DMotionField(IplImage* imgMotion);
+    IplImage* draw2DMotionField();
     void drawFlowModule(IplImage* imgMotion);
     int getImgWidth();
     int getImgHeight();
     void getSceneFlow(Mat &flow3D);
+    void threadRelease();
 };

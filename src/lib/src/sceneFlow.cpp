@@ -1,4 +1,4 @@
-#include "iCub/stereoVision/SceneFlow.h"
+#include "iCub/stereoVision/sceneFlow.h"
 
 SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10) 
 {
@@ -24,9 +24,11 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
 
     success=success & Network::connect(inputL.c_str(),localPortL.c_str());
     success=success & Network::connect(inputR.c_str(),localPortR.c_str());
+	
 
     if(success)
     {
+        fprintf(stdout, "Starting Disparity and Optical Flow Threads...\n");
         ResourceFinder cameraFinder;
         cameraFinder.setDefaultContext("cameraCalibration/conf");
         cameraFinder.setDefaultConfigFile(configFileDisparity.c_str());
@@ -35,13 +37,18 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
 
         disp=new DisparityThread(cameraFinder);
         opt=new OpticalFlowThread(rf);
+        
+        fprintf(stdout, "Threads created...\n");
 
-        disp->getRootTransformation(HL_root,0);
+
         disp->start();
         opt->start();
+        Time::delay(0.5);
+        disp->getRootTransformation(HL_root,0);
     }
     else
         fprintf(stdout,"Initialization Failed. Check the input ports \n");
+        
 }
 
 
@@ -52,27 +59,39 @@ bool SceneFlow::isOpen()
 
 void SceneFlow::close()
 {
+    flowSem->wait();
+    disp->suspend();
     disp->stop();
-    delete disp;
-    opt->stop();
-    delete opt;
 
+    opt->suspend();
+    opt->stop();
+	flowSem->post();
+	
     imagePortInLeft.interrupt();
     imagePortInLeft.close();
     imagePortInRight.interrupt();
     imagePortInRight.close();
 
+
+
+}
+
+void SceneFlow::threadRelease()
+{
+    fprintf(stdout, "Scene Flow Closed...\n");
+    delete disp;
     delete imageL;
     delete imageR;
     delete flowSem;
+    delete opt;
 
 }
 
 void SceneFlow::run()
 {
     if(!success)
-        return;
-
+        return;        
+    
     ImageOf<PixelRgb> *tmpL = imagePortInLeft.read(false);
     ImageOf<PixelRgb> *tmpR = imagePortInRight.read(false);
 
@@ -94,6 +113,7 @@ void SceneFlow::run()
     {
         if (init)
         {
+            fprintf(stdout, "Initializing Scene Flow..\n");
             flowSem->wait();
             imgLNext= (IplImage*) imageL->getIplImage();
             imgRNext= (IplImage*) imageR->getIplImage();
@@ -114,9 +134,7 @@ void SceneFlow::run()
             disp->getMapper(mapperNew);
             disp->getQMat(QNew);
             disp->getDisparityFloat(dispFloatNew);
-            RLOld=RLNew;
-            QOld=QNew;
-            mapperOld=mapperNew;
+
 
             init=false;
             initL=initR=false;
@@ -131,13 +149,19 @@ void SceneFlow::run()
             imgLPrev=(IplImage*)cvClone(imgLNext);
             imgRPrev=(IplImage*)cvClone(imgRNext);
             flowSem->post();
+            fprintf(stdout, "Init Scene Flow Done...\n");
         }
         else
         {
+        
+            flowSem->wait();
             imgLNext= (IplImage*) imageL->getIplImage();
             imgRNext= (IplImage*) imageR->getIplImage();
 
 
+            RLOld=RLNew.clone();
+            QOld=QNew.clone();
+            mapperOld=mapperNew.clone();
             dispOld=dispNew.clone();
             dispFloatOld=dispFloatNew.clone();
             Mat tmpLNext(imgLNext);
@@ -148,14 +172,21 @@ void SceneFlow::run()
             opt->setImages(tmpLPrev,tmpLNext);
             opt->resume();
 
+            
+            if(disp==NULL || opt==NULL)
+            	return;
+            	
             while (!disp->checkDone()||!opt->checkDone())
               Time::delay(0.01);
 
-            flowSem->wait();
             disp->getDisparity(dispNew);
             disp->getDisparityFloat(dispFloatNew);
+            disp->getRectMatrix(RLNew);
+            disp->getMapper(mapperNew);
+            disp->getQMat(QNew);            
             opt->getOptFlow(optFlow);
-            flowSem->post();
+
+                        
 
             if (imgLPrev!=NULL)
                 cvReleaseImage(&imgLPrev);
@@ -164,10 +195,13 @@ void SceneFlow::run()
 
             imgLPrev=(IplImage*)cvClone(imgLNext);
             imgRPrev=(IplImage*)cvClone(imgRNext);
+            flowSem->post();
         }
     }
 
 }
+
+
 
 void SceneFlow::triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disparity, Mat &Q, Mat &RLrect) 
 {
@@ -206,12 +240,15 @@ void SceneFlow::triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disp
         point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
         point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
         point.z=(float) Q.at<double>(2,3);
-
+        
+     
         point.x=point.x/w;
         point.y=point.y/w;
         point.z=point.z/w;
+
     }
     // discard points far more than 2.5 meters or with not valid disparity (<0)
+    //fprintf(stdout, "Point Before Trans: %f %f %f %f %f\n",usign, vsign,point.x,point.y,point.z);
     if(point.z>2.5 || point.z<0) 
     {
         point.x=0.0;
@@ -233,9 +270,12 @@ void SceneFlow::triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disp
         buildRotTras(RLrecttemp,Tfake,Hrect);
       
         P=HL_root*Hrect*P;
+        
+
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+        //fprintf(stdout, "Point After Trans: %f %f %f \n",point.x,point.y,point.z);
     }
 }
 
@@ -316,6 +356,7 @@ void SceneFlow::getSceneFlow(Mat &flow3D)
 {
     flowSem->wait();
     flow3D.create(optFlow.rows,optFlow.cols,CV_32FC3);
+    flow3D.setTo(Scalar(0));
     Point3f flowPoint;
     flowPoint.x=0.0;
     flowPoint.y=0.0;
@@ -358,6 +399,8 @@ void SceneFlow::getSceneFlow(Mat &flow3D)
             Point2f point2Dnew;
             point2Dnew.x=u+optFlow.ptr<float>(v)[2*u];
             point2Dnew.y=v+optFlow.ptr<float>(v)[2*u+1];
+            
+     
             Point3f point3Dnew;
             triangulate(point2Dnew,point3Dnew,mapperNew,dispFloatNew,QNew,RLNew);
             if (point3Dnew.x==0.0)
@@ -367,7 +410,8 @@ void SceneFlow::getSceneFlow(Mat &flow3D)
                 flow3D.ptr<float>(v)[2*u+2]=(float)0.0;
                 continue;
             }
-
+            
+            //fprintf(stdout, "2dFlow: %f %f %f %f 3dPoints %f %f %f %f %f %f\n",point2Dold.x,point2Dold.y, point2Dnew.x,point2Dnew.y,point3Dold.x,point3Dold.y,point3Dold.z,point3Dnew.x,point3Dnew.y,point3Dnew.z);
             flowPoint.x=point3Dnew.x-point3Dold.x;
             flowPoint.y=point3Dnew.y-point3Dold.y;
             flowPoint.z=point3Dnew.z-point3Dold.z;
@@ -383,28 +427,26 @@ void SceneFlow::getSceneFlow(Mat &flow3D)
 }
 
 
-void SceneFlow::draw2DMotionField(IplImage* imgMotion)
+IplImage* SceneFlow::draw2DMotionField()
 {
     flowSem->wait();
     int xSpace=7;
     int ySpace=7;
-    float cutoff=0.2;
-    float multiplier=10;
+    float cutoff=1;
+    float multiplier=5;
     CvScalar color=CV_RGB(255,0,0);
 
     CvPoint p0 = cvPoint(0,0);
     CvPoint p1 = cvPoint(0,0);
 
-    if(imgMotion!=NULL)
-        cvReleaseImage(&imgMotion);
-    imgMotion=(IplImage*) cvClone(imgLPrev);
-
-
-    if(optFlow.empty())
+    if(optFlow.empty() || imgLPrev==NULL)
     {
         flowSem->post();
-        return;
+        return NULL;
     }
+    
+
+    IplImage* imgMotion=(IplImage*) cvClone(imgLPrev);
     
     float deltaX, deltaY, angle, hyp;
 
@@ -412,8 +454,8 @@ void SceneFlow::draw2DMotionField(IplImage* imgMotion)
     {
         for (int j=0; j<optFlow.cols; j++)
         {
-            p0.x = i;
-            p0.y = j;
+            p0.x = j;
+            p0.y = i;
             deltaX = optFlow.ptr<float>(i)[2*j];
             deltaY = -optFlow.ptr<float>(i)[2*j+1];
             angle = atan2(deltaY, deltaX);
@@ -422,18 +464,20 @@ void SceneFlow::draw2DMotionField(IplImage* imgMotion)
             if(hyp > cutoff){
                 p1.x = p0.x + cvRound(multiplier*hyp*cos(angle));
                 p1.y = p0.y + cvRound(multiplier*hyp*sin(angle));
-                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
-                p0.x = p1.x + cvRound(3*cos(angle-CV_PI + CV_PI/4));
-                p0.y = p1.y + cvRound(3*sin(angle-CV_PI + CV_PI/4));
-                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+	            cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+	            p0.x = p1.x + cvRound(3*cos(angle-CV_PI + CV_PI/4));
+	            p0.y = p1.y + cvRound(3*sin(angle-CV_PI + CV_PI/4));
+	            cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
 
-                p0.x = p1.x + cvRound(3*cos(angle-CV_PI - CV_PI/4));
-                p0.y = p1.y + cvRound(3*sin(angle-CV_PI - CV_PI/4));
-                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+	            p0.x = p1.x + cvRound(3*cos(angle-CV_PI - CV_PI/4));
+	            p0.y = p1.y + cvRound(3*sin(angle-CV_PI - CV_PI/4));
+	            cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+                
             }
         }
     }
     flowSem->post();
+    return imgMotion;
 }
 
 void SceneFlow::drawFlowModule(IplImage* imgMotion)
@@ -457,7 +501,7 @@ void SceneFlow::drawFlowModule(IplImage* imgMotion)
     cvNormalize(module, module, 0.0, 1.0, CV_MINMAX, NULL);
     cvZero(imgMotion);
     cvConvertScale(module,moduleU,255,0);
-    cvMerge(moduleU,moduleU,moduleU,moduleU,imgMotion);
+    cvMerge(moduleU,moduleU,moduleU,NULL,imgMotion);
     cvReleaseImage(&module);
     cvReleaseImage(&moduleU);
     flowSem->post();
@@ -478,3 +522,19 @@ int SceneFlow::getImgHeight()
 {
     return height;
 }
+
+
+void SceneFlow::printMatrix(Mat &matrix) {
+    int row=matrix.rows;
+    int col =matrix.cols;
+        cout << endl;
+    for(int i = 0; i < matrix.rows; i++)
+    {
+        const double* Mi = matrix.ptr<double>(i);
+        for(int j = 0; j < matrix.cols; j++)
+            cout << Mi[j] << " ";
+        cout << endl;
+    }
+        cout << endl;
+}
+

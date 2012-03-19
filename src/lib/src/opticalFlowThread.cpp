@@ -3,12 +3,14 @@
 using namespace cv;
 using namespace yarp::os;
 
-OpticalFlowThread::OpticalFlowThread(yarp::os::ResourceFinder &rf) : RateThread(20) 
+OpticalFlowThread::OpticalFlowThread(yarp::os::ResourceFinder &rf) : RateThread(10) 
 {
     work=false;
     done=true;
     int useD= rf.check("denseFlow",Value(1)).asInt();
     this->dense= useD ? true : false;
+    fprintf(stdout, "Optical Flow Thread has started...\n");
+
 }
 
 void OpticalFlowThread::run() 
@@ -21,11 +23,10 @@ void OpticalFlowThread::run()
             Mat leftNextGray;
             cvtColor(leftPrev,leftPrevGray,CV_RGB2GRAY,1);
             cvtColor(leftNext,leftNextGray,CV_RGB2GRAY,1);
-            int flag;
-            if(optFlow.empty())
-                flag=0;
-            else
-                flag=OPTFLOW_USE_INITIAL_FLOW;
+            int flag=0;
+            if(!optFlow.empty())
+                optFlow.setTo(Scalar(0));
+            
             calcOpticalFlowFarneback(leftPrevGray,leftNextGray,optFlow,0.25,5,9,5,7,1.5,flag);
         }
         else
@@ -58,7 +59,7 @@ void OpticalFlowThread::setFlow(int flowType)
 
 void OpticalFlowThread::getOptFlow(Mat &_optFlow) 
 {
-    _optFlow=optFlow;
+    _optFlow=optFlow.clone();
 }
 
 bool OpticalFlowThread::threadInit() 
@@ -67,8 +68,8 @@ bool OpticalFlowThread::threadInit()
 }
 
 void OpticalFlowThread::threadRelease() 
-{
-
+{	
+	fprintf(stdout,"Optical Flow Thread Closed... \n");
 }
 
 bool OpticalFlowThread::checkDone() 
@@ -77,6 +78,7 @@ bool OpticalFlowThread::checkDone()
 }
 void OpticalFlowThread::computeFlowSparse(IplImage* previous, IplImage* current, Mat &optFlow)
 {
+	optFlow.setTo(Scalar(0));
     optFlow.create(previous->height,previous->width,CV_32FC2);
 
     IplImage* leftPrevGray = cvCreateImage(cvSize(previous->width,previous->height),previous->depth,1);
@@ -131,3 +133,11 @@ void OpticalFlowThread::computeFlowSparse(IplImage* previous, IplImage* current,
     delete currCorners;
 }
 
+
+void OpticalFlowThread::onStop()
+{
+	this->work=false;
+	this->done=true;
+
+
+}

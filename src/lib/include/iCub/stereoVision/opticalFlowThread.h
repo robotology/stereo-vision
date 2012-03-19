@@ -42,5 +42,6 @@ public:
     bool threadInit();
     void threadRelease();
     void run();
+    void onStop(void);
  
 };
