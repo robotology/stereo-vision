@@ -168,7 +168,6 @@ void SceneFlow::run()
             Mat tmpRNext(imgRNext);
             Mat tmpLPrev(imgLPrev);
             disp->setImages(tmpLNext,tmpRNext);
-            disp->resume();
             opt->setImages(tmpLPrev,tmpLNext);
             opt->resume();
 

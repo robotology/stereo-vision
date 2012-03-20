@@ -112,6 +112,7 @@ void DisparityThread::setImages(Mat &left, Mat &right)
     stereo->setImages(&l,&r);
     this->done=false;
     this->work=true;
+    this->resume();
 }
 
 void DisparityThread::getDisparity(Mat &Disp)
