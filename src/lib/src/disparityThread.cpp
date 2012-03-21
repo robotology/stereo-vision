@@ -87,14 +87,14 @@ void DisparityThread::run()
         // Update Rotation
         Mat Rot(3,3,CV_64FC1);
         convert(R,Rot);
-        this->stereo->setRotation(Rot,0);
+        //this->stereo->setRotation(Rot,0);
 
         //Update Translation
         Mat translation(3,1,CV_64FC1);
         convert(newTras,translation);
-        this->stereo->setTranslation(translation,0);
+        //this->stereo->setTranslation(translation,0);
         // Compute Disparity
-        this->stereo->computeDisparity(false);
+        this->stereo->computeDisparity(true,15,0,16);
         mutexDisp->post();
         work=false;
         done=true;
