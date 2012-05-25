@@ -30,6 +30,7 @@ private:
     bool init;
     bool success;
     bool useCalibrated;
+    bool useHorn;
 
     Matrix yarp_initLeft,yarp_initRight;
     Matrix yarp_H0;
@@ -49,7 +50,7 @@ private:
 
 public:
 
-    DisparityThread(yarp::os::ResourceFinder &rf);
+    DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true);
     ~DisparityThread(void) {};
 
 

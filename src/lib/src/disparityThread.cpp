@@ -1,9 +1,10 @@
 #include "iCub/stereoVision/disparityThread.h"
 
-DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf) : RateThread(10) 
+DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn) : RateThread(10) 
 {
     int calib= rf.check("useCalibrated",Value(1)).asInt();
     this->useCalibrated= calib ? true : false;
+    this->useHorn=useHorn;
     Mat KL, KR, DistL, DistR, R, T;
     success=loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
     this->mutexDisp = new Semaphore(1);
@@ -50,7 +51,8 @@ void DisparityThread::run()
         stereo->undistortImages();
         stereo->findMatch(false,20,0.25);
         stereo->estimateEssential();
-        stereo->hornRelativeOrientations();
+        if (useHorn)
+            stereo->hornRelativeOrientations();
         Mat H0_R=this->stereo->getRotation();
         Mat H0_T=this->stereo->getTranslation();
 
