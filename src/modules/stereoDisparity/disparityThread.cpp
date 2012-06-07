@@ -17,10 +17,25 @@ void disparityThread::printMatrix(Mat &matrix) {
 
 disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
 {
+
+
+
     string moduleName = rf.check("name",Value("stereoDisparity"), "module name (string)").asString().c_str();
     this->inputLeftPortName = "/";
     this->inputLeftPortName += moduleName;
     this->inputLeftPortName += rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString().c_str();
+    
+    Bottle pars=rf.findGroup("STEREO_DISPARITY");
+    string headType=pars.check("HeadType",Value("v1"), "module name (string)").asString().c_str();
+
+    LeyeKin=new iCubEye(("left_"+headType).c_str());
+    ReyeKin=new iCubEye(("right_"+headType).c_str());
+    LeyeKin->releaseLink(0);
+    LeyeKin->releaseLink(1);
+    LeyeKin->releaseLink(2);
+    ReyeKin->releaseLink(0);
+    ReyeKin->releaseLink(1);
+    ReyeKin->releaseLink(2);
 
     int cmdisp= rf.check("computeDisparity",Value(1)).asInt();
     int calib= rf.check("useCalibrated",Value(1)).asInt();
@@ -114,6 +129,42 @@ bool disparityThread::threadInit()
         return false;
     }
 
+    Property optHead;
+    optHead.put("device","remote_controlboard");
+    optHead.put("remote","/icubSim/head");
+    optHead.put("local","/disparityClient/head/position");
+    if (polyHead.open(optHead))
+    {
+        polyHead.view(posHead);
+        polyHead.view(HctrlLim);
+    }
+    else {
+        cout<<"Devices not available"<<endl;
+        return false;
+    }
+
+    Property optTorso;
+    optTorso.put("device","remote_controlboard");
+    optTorso.put("remote","/icubSim/torso");
+    optTorso.put("local","/disparityClient/torso/position");
+
+    if (polyTorso.open(optTorso))
+    {
+        polyTorso.view(posTorso);
+        polyTorso.view(TctrlLim);
+    }
+    else {
+        cout<<"Devices not available"<<endl;
+        return false;
+    }
+
+    deque<IControlLimits*> lim;
+    lim.push_back(TctrlLim);
+    lim.push_back(HctrlLim);
+    LeyeKin->alignJointsBounds(lim);
+    ReyeKin->alignJointsBounds(lim);
+
+
     return true;
 }
 
@@ -141,8 +192,54 @@ void disparityThread::convert(Mat& mat, Matrix& matrix) {
         for(int j=0; j<mat.cols; j++)
             matrix(i,j)=mat.at<double>(i,j);
 }
+Matrix disparityThread::getCameraH(yarp::sig::Vector head_angles, yarp::sig::Vector torso_angles, iCubEye *eyeKin, int camera)
+{
+    //torso_angles=0.0;
 
-Matrix disparityThread::getCameraH(int camera) {
+    yarp::sig::Vector q(torso_angles.size()+head_angles.size());
+
+    //torso angles are inverted
+    /*head_angles[0]=0.0;
+    head_angles[1]=0.0;
+    head_angles[2]=0.0;*/
+    for(int i=0; i<torso_angles.size(); i++)
+        q[i]=torso_angles[torso_angles.size()-i-1];
+
+    for(int i=0; i<head_angles.size()-2; i++)
+        q[i+torso_angles.size()]=head_angles[i];
+
+    // Vs=(L+R)/2  Vg=L-R
+    q[7]=head_angles[4]+(0.5-(camera))*head_angles[5];
+
+    q=CTRL_DEG2RAD*q;
+
+
+    Matrix H_curr=eyeKin->getH(q);
+
+    q=eyeKin->getAng();
+    
+
+
+    if(camera==LEFT)
+    {
+        /*q=q*CTRL_RAD2DEG;
+        cout << " Q Chain" << endl;
+        cout << q.toString(5,5).c_str() << endl;*/
+        this->mutexDisp->wait();
+        convert(H_curr,HL_root);
+        this->mutexDisp->post();
+    }
+    else if(camera==RIGHT)
+    {
+        this->mutexDisp->wait();
+        convert(H_curr,HR_root);
+        this->mutexDisp->post();
+    }
+
+
+    return H_curr;
+}
+Matrix disparityThread::getCameraHGazeCtrl(int camera) {
 
     yarp::sig::Vector x_curr;
     yarp::sig::Vector o_curr;
@@ -155,11 +252,10 @@ Matrix disparityThread::getCameraH(int camera) {
     Matrix R_curr=axis2dcm(o_curr);
 
     Matrix H_curr(4, 4);
-    for (int i=0; i<R_curr.cols(); i++)
-        H_curr.setCol(i, R_curr.getCol(i));
-    for (int i=0; i<x_curr.size(); i++)
-        H_curr(i,3)=x_curr[i];
-
+    H_curr=R_curr;
+    H_curr(0,3)=x_curr[0];
+    H_curr(1,3)=x_curr[1];
+    H_curr(2,3)=x_curr[2];
 
     if(camera==LEFT)
     {
@@ -199,7 +295,7 @@ void disparityThread::run(){
                 stereo->undistortImages();
                 stereo->findMatch();
                 stereo->estimateEssential();
-               // stereo->hornRelativeOrientations();
+                //stereo->hornRelativeOrientations();
                 output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
                 outputWorld=cvCreateImage(cvSize(imgL->width,imgL->height),32,3);
                 init=false;
@@ -212,13 +308,37 @@ void disparityThread::run(){
                 convert(H0,yarp_H0);
 
                 //get the initial left and right positions
-                yarp_initLeft=getCameraH(LEFT);
-                yarp_initRight=getCameraH(RIGHT);
+                yarp::sig::Vector headAngles(6);
+                headAngles=0.0;
+                posHead->getEncoders(headAngles.data());
+
+                yarp::sig::Vector torsoAngles(3);
+                torsoAngles=0.0;
+                posTorso->getEncoders(torsoAngles.data());
+
+               // yarp_initLeft=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
+               // yarp_initRight=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
+                yarp_initLeft=getCameraHGazeCtrl(LEFT);
+                yarp_initRight=getCameraHGazeCtrl(RIGHT);
             }
 
                 //transformation matrices between prev and curr eye frames
-                Matrix yarp_Left=getCameraH(LEFT);
-                Matrix yarp_Right=getCameraH(RIGHT);
+                yarp::sig::Vector headAngles(6);
+                headAngles=0.0;
+                posHead->getEncoders(headAngles.data());
+                yarp::sig::Vector torsoAngles(3);
+                torsoAngles=0.0;
+                posTorso->getEncoders(torsoAngles.data());
+
+               // Matrix yarp_Left=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
+               // Matrix yarp_Right=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
+
+               /* Matrix yarp_LeftG=getCameraHGazeCtrl(LEFT);
+                Matrix DiffM=yarp_Left-yarp_LeftG;
+                printMatrixYarp(DiffM);*/
+
+                Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
+                Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
 
                 yarp_Left=SE3inv(yarp_Left)*yarp_initLeft; // Left eye transformation between time t0 and t
                 yarp_Right=SE3inv(yarp_Right)*yarp_initRight; // Right eye transformation between time t0 and t
@@ -296,6 +416,10 @@ void disparityThread::threadRelease()
     delete this->stereo;
     delete this->mutexDisp;
     delete gazeCtrl;
+    //delete LeyeKin;
+    //delete ReyeKin;
+    //if (polyHead.isValid())
+    //    polyHead.close();
 
     if(output!=NULL)
         cvReleaseImage(&output);

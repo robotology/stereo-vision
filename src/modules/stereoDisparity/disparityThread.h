@@ -11,6 +11,8 @@
 #include <yarp/dev/GazeControl.h>
 #include <iCub/ctrl/math.h>
 #include <iCub/stereoVision/stereoCamera.h>
+#include <iCub/iKin/iKinFwd.h>
+
 
 #define LEFT    0
 #define RIGHT   1
@@ -38,6 +40,16 @@ private:
     StereoCamera *stereo;
     Semaphore* mutexDisp;
 
+    iCubEye *LeyeKin;
+    iCubEye *ReyeKin;
+    yarp::dev::PolyDriver polyHead;
+    yarp::dev::IEncoders *posHead;
+    yarp::dev::IControlLimits *HctrlLim;
+
+    yarp::dev::PolyDriver polyTorso;
+    yarp::dev::IEncoders *posTorso;
+    yarp::dev::IControlLimits *TctrlLim;
+
     string inputLeftPortName;
     string inputRightPortName;
     string outName;
@@ -63,7 +75,8 @@ private:
     bool computeDisparity;
     bool useCalibrated;
 
-    Matrix getCameraH(int camera);
+    Matrix getCameraHGazeCtrl(int camera);
+    Matrix getCameraH(yarp::sig::Vector head_angles,yarp::sig::Vector torso_angles, iCubEye *eyeKin, int camera);
     void printMatrixYarp(Matrix &A);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
