@@ -18,24 +18,15 @@ void disparityThread::printMatrix(Mat &matrix) {
 disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
 {
 
-
-
     string moduleName = rf.check("name",Value("stereoDisparity"), "module name (string)").asString().c_str();
     this->inputLeftPortName = "/";
     this->inputLeftPortName += moduleName;
     this->inputLeftPortName += rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString().c_str();
     
     Bottle pars=rf.findGroup("STEREO_DISPARITY");
-    string headType=pars.check("HeadType",Value("v1"), "module name (string)").asString().c_str();
-
-    LeyeKin=new iCubEye(("left_"+headType).c_str());
-    ReyeKin=new iCubEye(("right_"+headType).c_str());
-    LeyeKin->releaseLink(0);
-    LeyeKin->releaseLink(1);
-    LeyeKin->releaseLink(2);
-    ReyeKin->releaseLink(0);
-    ReyeKin->releaseLink(1);
-    ReyeKin->releaseLink(2);
+    vergence_init=pars.check("Vergence",Value(0.0)).asDouble();
+    version_init=pars.check("Version",Value(0.0)).asDouble();
+    robotName = pars.check("robotName",Value("icub"), "module name (string)").asString().c_str();
 
     int cmdisp= rf.check("computeDisparity",Value(1)).asInt();
     int calib= rf.check("useCalibrated",Value(1)).asInt();
@@ -131,7 +122,7 @@ bool disparityThread::threadInit()
 
     Property optHead;
     optHead.put("device","remote_controlboard");
-    optHead.put("remote","/icubSim/head");
+    optHead.put("remote",("/"+robotName+"/head").c_str());
     optHead.put("local","/disparityClient/head/position");
     if (polyHead.open(optHead))
     {
@@ -145,7 +136,7 @@ bool disparityThread::threadInit()
 
     Property optTorso;
     optTorso.put("device","remote_controlboard");
-    optTorso.put("remote","/icubSim/torso");
+    optTorso.put("remote",("/"+robotName+"/torso").c_str());
     optTorso.put("local","/disparityClient/torso/position");
 
     if (polyTorso.open(optTorso))
@@ -158,6 +149,19 @@ bool disparityThread::threadInit()
         return false;
     }
 
+    Bottle p;
+    igaze->getInfo(p);
+    int vHead=p.check(("head_version"),Value(1)).asInt();
+    string headType="v"+vHead;
+
+    LeyeKin=new iCubEye(("left_"+headType).c_str());
+    ReyeKin=new iCubEye(("right_"+headType).c_str());
+    LeyeKin->releaseLink(0);
+    LeyeKin->releaseLink(1);
+    LeyeKin->releaseLink(2);
+    ReyeKin->releaseLink(0);
+    ReyeKin->releaseLink(1);
+    ReyeKin->releaseLink(2);
     deque<IControlLimits*> lim;
     lim.push_back(TctrlLim);
     lim.push_back(HctrlLim);
@@ -194,14 +198,10 @@ void disparityThread::convert(Mat& mat, Matrix& matrix) {
 }
 Matrix disparityThread::getCameraH(yarp::sig::Vector head_angles, yarp::sig::Vector torso_angles, iCubEye *eyeKin, int camera)
 {
-    //torso_angles=0.0;
 
     yarp::sig::Vector q(torso_angles.size()+head_angles.size());
 
     //torso angles are inverted
-    /*head_angles[0]=0.0;
-    head_angles[1]=0.0;
-    head_angles[2]=0.0;*/
     for(int i=0; i<torso_angles.size(); i++)
         q[i]=torso_angles[torso_angles.size()-i-1];
 
@@ -310,16 +310,19 @@ void disparityThread::run(){
                 //get the initial left and right positions
                 yarp::sig::Vector headAngles(6);
                 headAngles=0.0;
-                posHead->getEncoders(headAngles.data());
+                headAngles[5]=vergence_init;
+                headAngles[4]=version_init;
+
+                //posHead->getEncoders(headAngles.data());
 
                 yarp::sig::Vector torsoAngles(3);
                 torsoAngles=0.0;
-                posTorso->getEncoders(torsoAngles.data());
+                //posTorso->getEncoders(torsoAngles.data());
 
-               // yarp_initLeft=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
-               // yarp_initRight=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
-                yarp_initLeft=getCameraHGazeCtrl(LEFT);
-                yarp_initRight=getCameraHGazeCtrl(RIGHT);
+                yarp_initLeft=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
+                yarp_initRight=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
+                /*yarp_initLeft=getCameraHGazeCtrl(LEFT);
+                yarp_initRight=getCameraHGazeCtrl(RIGHT);*/
             }
 
                 //transformation matrices between prev and curr eye frames

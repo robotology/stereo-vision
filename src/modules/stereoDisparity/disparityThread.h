@@ -37,6 +37,9 @@ private:
     IplImage* output;
     IplImage* outputWorld;
 
+    double vergence_init;
+    double version_init;
+
     StereoCamera *stereo;
     Semaphore* mutexDisp;
 
@@ -55,7 +58,7 @@ private:
     string outName;
     string worldPortName;
     string boxPortName;
-
+    string robotName;
 
     BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
     BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
