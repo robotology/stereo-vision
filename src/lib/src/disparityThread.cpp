@@ -523,15 +523,11 @@ Matrix DisparityThread::getCameraH(yarp::sig::Vector head_angles, yarp::sig::Vec
         /*q=q*CTRL_RAD2DEG;
         cout << " Q Chain" << endl;
         cout << q.toString(5,5).c_str() << endl;*/
-        this->mutexDisp->wait();
         convert(H_curr,HL_root);
-        this->mutexDisp->post();
     }
     else if(camera==RIGHT)
     {
-        this->mutexDisp->wait();
         convert(H_curr,HR_root);
-        this->mutexDisp->post();
     }
 
 
@@ -557,15 +553,11 @@ Matrix DisparityThread::getCameraHGazeCtrl(int camera) {
 
     if(camera==LEFT)
     {
-        this->mutexDisp->wait();
         convert(H_curr,HL_root);
-        this->mutexDisp->post();
     }
     else if(camera==RIGHT)
     {
-        this->mutexDisp->wait();
         convert(H_curr,HR_root);
-        this->mutexDisp->post();
     }
 
 

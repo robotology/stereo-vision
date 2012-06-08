@@ -43,7 +43,6 @@ X Y Z coordinates with respect to Root reference frame. Non valid points are han
 3D/2D points computation (see below).
 
 \note Opencv 2.2 is required!
-\note When you start the module make sure that vergence, pan and tilt eyes angles are set to 0.
   
 \section lib_sec Libraries 
 YARP libraries and OpenCV 2.2
