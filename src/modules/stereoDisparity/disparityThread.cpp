@@ -292,10 +292,17 @@ void disparityThread::run(){
             this->stereo->setImages(imgL,imgR);
 
             if(init) {
+                yarp::sig::Vector headAngles(6);
+                posHead->getEncoders(headAngles.data());
+                vergence_init=headAngles[5];
+                version_init=headAngles[4];
+
                 stereo->undistortImages();
                 stereo->findMatch();
                 stereo->estimateEssential();
-                //stereo->hornRelativeOrientations();
+                stereo->hornRelativeOrientations();
+
+
                 output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
                 outputWorld=cvCreateImage(cvSize(imgL->width,imgL->height),32,3);
                 init=false;
@@ -308,12 +315,11 @@ void disparityThread::run(){
                 convert(H0,yarp_H0);
 
                 //get the initial left and right positions
-                yarp::sig::Vector headAngles(6);
                 headAngles=0.0;
                 headAngles[5]=vergence_init;
                 headAngles[4]=version_init;
 
-                //posHead->getEncoders(headAngles.data());
+                
 
                 yarp::sig::Vector torsoAngles(3);
                 torsoAngles=0.0;
@@ -418,15 +424,13 @@ void disparityThread::threadRelease()
     commandPort->close();
     delete this->stereo;
     delete this->mutexDisp;
+    
     delete gazeCtrl;
-    cout << "deleting EyeKin" << endl;
     delete LeyeKin;
     delete ReyeKin;
 
-    cout << "closing polyHead" << endl;
     if (polyHead.isValid())
         polyHead.close();
-    cout << "closing polyTorso" << endl;
 
     if (polyTorso.isValid())
         polyTorso.close();
