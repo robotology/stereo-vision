@@ -419,11 +419,17 @@ void disparityThread::threadRelease()
     delete this->stereo;
     delete this->mutexDisp;
     delete gazeCtrl;
-    //delete LeyeKin;
-    //delete ReyeKin;
-    //if (polyHead.isValid())
-    //    polyHead.close();
+    cout << "deleting EyeKin" << endl;
+    delete LeyeKin;
+    delete ReyeKin;
 
+    cout << "closing polyHead" << endl;
+    if (polyHead.isValid())
+        polyHead.close();
+    cout << "closing polyTorso" << endl;
+
+    if (polyTorso.isValid())
+        polyTorso.close();
     if(output!=NULL)
         cvReleaseImage(&output);
     if(outputWorld!=NULL)
