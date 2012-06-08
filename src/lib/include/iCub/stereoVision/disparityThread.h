@@ -37,13 +37,30 @@ private:
     Semaphore* mutexDisp;
     PolyDriver* gazeCtrl;
     IGazeControl* igaze;
+
+    iCubEye *LeyeKin;
+    iCubEye *ReyeKin;
+    yarp::dev::PolyDriver polyHead;
+    yarp::dev::IEncoders *posHead;
+    yarp::dev::IControlLimits *HctrlLim;
+
+    yarp::dev::PolyDriver polyTorso;
+    yarp::dev::IEncoders *posTorso;
+    yarp::dev::IControlLimits *TctrlLim;
+
     Matrix H;
     Mat HL_root;
     Mat HR_root;
 
+    double vergence_init;
+    double version_init;
+
+    string robotName;
+
     void buildRotTras(Mat & R, Mat & T, Mat & A);
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T);
-    Matrix getCameraH(int camera);
+    Matrix getCameraHGazeCtrl(int camera);
+    Matrix getCameraH(yarp::sig::Vector head_angles,yarp::sig::Vector torso_angles, iCubEye *eyeKin, int camera);
     void printMatrixYarp(Matrix &A);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
