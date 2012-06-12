@@ -430,7 +430,7 @@ void StereoCamera::rectifyImages()
 
 }
 
-void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleWindowSize,int speckleRange) {
+void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleWindowSize,int speckleRange, int numberOfDisparities, int SADWindowSize, int minDisparity, int preFilterCap, int disp12MaxDiff) {
     if(this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty()) {
         cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
         return;
@@ -439,7 +439,6 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
           cout << "Images are not set! set the images first!" << endl;
           return;
     }
-        int SADWindowSize = 0, numberOfDisparities = 0;
         Size img_size = this->imleft.size();
 
         Rect roi1, roi2;
@@ -463,18 +462,18 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         remap(this->imleft, img1r, this->map11, this->map12, cv::INTER_LINEAR);
         remap(this->imright, img2r, this->map21,this->map22, cv::INTER_LINEAR);
   
-        numberOfDisparities=64;        
-        sgbm.preFilterCap = 63; //63
-        sgbm.SADWindowSize = 7;         
-        int cn = this->imleft.channels();        
+      
+        sgbm.preFilterCap = preFilterCap; //63
+        sgbm.SADWindowSize = SADWindowSize;
+        int cn = this->imleft.channels();
         sgbm.P1 = 8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
         sgbm.P2 = 32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-        sgbm.minDisparity =0; //-15
+        sgbm.minDisparity =minDisparity; //-15
         sgbm.numberOfDisparities = numberOfDisparities;
         sgbm.uniquenessRatio = uniquenessRatio; //22
         sgbm.speckleWindowSize = speckleWindowSize; //100
         sgbm.speckleRange = speckleRange; //32
-        sgbm.disp12MaxDiff = 0;
+        sgbm.disp12MaxDiff = disp12MaxDiff;
         sgbm.fullDP = best; // alg == STEREO_HH
        
         
@@ -505,7 +504,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
             Mat mapperL= inverseMapL.reshape(2,map.rows);
             Mat mapperR= inverseMapR.reshape(2,map.rows);
             this->MapperL=mapperL;
-            this->MapperR=mapperR;    
+            this->MapperR=mapperR;
             this->mutex->post();
             cameraChanged=false;
         }

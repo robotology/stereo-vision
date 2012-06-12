@@ -40,6 +40,16 @@ private:
     double vergence_init;
     double version_init;
 
+    bool useBestDisp;
+    int uniquenessRatio; 
+    int speckleWindowSize;
+    int speckleRange;
+    int numberOfDisparities;
+    int SADWindowSize;
+    int minDisparity;
+    int preFilterCap;
+    int disp12MaxDiff;
+
     StereoCamera *stereo;
     Semaphore* mutexDisp;
 
@@ -79,7 +89,7 @@ private:
     bool useCalibrated;
 
     Matrix getCameraHGazeCtrl(int camera);
-    Matrix getCameraH(yarp::sig::Vector head_angles,yarp::sig::Vector torso_angles, iCubEye *eyeKin, int camera);
+    Matrix getCameraH(yarp::sig::Vector &head_angles,yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera);
     void printMatrixYarp(Matrix &A);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
@@ -97,6 +107,7 @@ public:
     void onStop();
     void compute(bool compute);
     bool isComputing();
+    void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
     Point3f get3DPoints(int u, int v,string drive="LEFT");
     Point3f get3DPointMatch(double u1, double v1, double u2, double v2, string drive="LEFT");
     Point2f projectPoint(string camera, double x, double y, double z);

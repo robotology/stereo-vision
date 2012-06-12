@@ -61,6 +61,16 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     stereo->setRotation(R,0);
     stereo->setTranslation(T,0);
 
+    this->useBestDisp=true;
+    this->uniquenessRatio=15;
+    this->speckleWindowSize=50;
+    this->speckleRange=16;
+    this->numberOfDisparities=64;
+    this->SADWindowSize=7;
+    this->minDisparity=0;
+    this->preFilterCap=63;
+    this->disp12MaxDiff=0;
+
     angle=0;
     this->mutexDisp = new Semaphore(1);
     this->HL_root= Mat::zeros(4,4,CV_64F);
@@ -196,7 +206,7 @@ void disparityThread::convert(Mat& mat, Matrix& matrix) {
         for(int j=0; j<mat.cols; j++)
             matrix(i,j)=mat.at<double>(i,j);
 }
-Matrix disparityThread::getCameraH(yarp::sig::Vector head_angles, yarp::sig::Vector torso_angles, iCubEye *eyeKin, int camera)
+Matrix disparityThread::getCameraH(yarp::sig::Vector &head_angles, yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera)
 {
 
     yarp::sig::Vector q(torso_angles.size()+head_angles.size());
@@ -368,7 +378,7 @@ void disparityThread::run(){
                 convert(newTras,translation);
                 this->stereo->setTranslation(translation,0);
                 if(this->computeDisparity)
-                    this->stereo->computeDisparity();
+                    this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
                 else
                     this->stereo->rectifyImages();
 
@@ -831,4 +841,19 @@ bool disparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
         return false;
 
     return true;
+}
+void disparityThread::setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
+{
+    this->mutexDisp->wait();
+    this->useBestDisp=_useBestDisp;
+    this->uniquenessRatio=_uniquenessRatio;
+    this->speckleWindowSize=_speckleWindowSize;
+    this->speckleRange=_speckleRange;
+    this->numberOfDisparities=_numberOfDisparities;
+    this->SADWindowSize=_SADWindowSize;
+    this->minDisparity=_minDisparity;
+    this->preFilterCap=_preFilterCap;
+    this->disp12MaxDiff=_disp12MaxDiff;
+    this->mutexDisp->post();
+
 }

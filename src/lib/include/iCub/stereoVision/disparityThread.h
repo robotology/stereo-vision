@@ -32,6 +32,16 @@ private:
     bool useCalibrated;
     bool useHorn;
 
+    bool useBestDisp;
+    int uniquenessRatio; 
+    int speckleWindowSize;
+    int speckleRange;
+    int numberOfDisparities;
+    int SADWindowSize;
+    int minDisparity;
+    int preFilterCap;
+    int disp12MaxDiff;
+
     Matrix yarp_initLeft,yarp_initRight;
     Matrix yarp_H0;
     Semaphore* mutexDisp;
@@ -60,7 +70,7 @@ private:
     void buildRotTras(Mat & R, Mat & T, Mat & A);
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T);
     Matrix getCameraHGazeCtrl(int camera);
-    Matrix getCameraH(yarp::sig::Vector head_angles,yarp::sig::Vector torso_angles, iCubEye *eyeKin, int camera);
+    Matrix getCameraH(yarp::sig::Vector &head_angles,yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera);
     void printMatrixYarp(Matrix &A);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
@@ -81,6 +91,7 @@ public:
     bool checkDone();
     void getRootTransformation(Mat & Trans,int eye=LEFT);
     bool isOpen();
+    void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
 
 
 

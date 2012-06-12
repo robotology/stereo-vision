@@ -33,6 +33,17 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn) : R
         fprintf(stdout, "Disparity Thread has started...\n");
 
     }
+
+    this->useBestDisp=true;
+    this->uniquenessRatio=15;
+    this->speckleWindowSize=50;
+    this->speckleRange=16;
+    this->numberOfDisparities=64;
+    this->SADWindowSize=7;
+    this->minDisparity=0;
+    this->preFilterCap=63;
+    this->disp12MaxDiff=0;
+
     this->init=true;
     this->work=false;
     this->done=false;
@@ -117,7 +128,7 @@ void DisparityThread::run()
         
         this->stereo->setTranslation(translation,0);
         // Compute Disparity
-        this->stereo->computeDisparity(true,15,0,16);
+        this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
         mutexDisp->post();
         work=false;
         done=true;
@@ -260,7 +271,6 @@ void DisparityThread::threadRelease()
         delete gazeCtrl;
     delete mutexDisp;
 
-    delete gazeCtrl;
     delete LeyeKin;
     delete ReyeKin;
 
@@ -494,7 +504,7 @@ void DisparityThread::getRootTransformation(Mat & Trans,int eye)
     mutexDisp->post();
 
 }
-Matrix DisparityThread::getCameraH(yarp::sig::Vector head_angles, yarp::sig::Vector torso_angles, iCubEye *eyeKin, int camera)
+Matrix DisparityThread::getCameraH(yarp::sig::Vector &head_angles, yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera)
 {
 
     yarp::sig::Vector q(torso_angles.size()+head_angles.size());
@@ -571,5 +581,20 @@ void DisparityThread::onStop()
 }
 
 
+void DisparityThread::setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
+{
+    this->mutexDisp->wait();
 
+    this->useBestDisp=_useBestDisp;
+    this->uniquenessRatio=_uniquenessRatio;
+    this->speckleWindowSize=_speckleWindowSize;
+    this->speckleRange=_speckleRange;
+    this->numberOfDisparities=_numberOfDisparities;
+    this->SADWindowSize=_SADWindowSize;
+    this->minDisparity=_minDisparity;
+    this->preFilterCap=_preFilterCap;
+    this->disp12MaxDiff=_disp12MaxDiff;
 
+    this->mutexDisp->post();
+
+}

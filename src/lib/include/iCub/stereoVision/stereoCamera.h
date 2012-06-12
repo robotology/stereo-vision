@@ -212,7 +212,7 @@ public:
     * @param speckleRange Maximum disparity variation within each connected component. If you do speckle filtering, set it to some positive value, multiple of 16. Normally, 16 or 32 is good enough.
     * @note Run the calibration or set all the parameters before using this method.
     */
-    void computeDisparity(bool best=true, int uniquenessRatio=15, int speckleWindowSize=50,int speckleRange=16); 
+    void computeDisparity(bool best=true, int uniquenessRatio=15, int speckleWindowSize=50,int speckleRange=16, int numberOfDisparities=64, int SADWindowSize=7, int minDisparity=0, int preFilterCap=63, int disp12MaxDiff=0); 
 
     /** It undistorts the images. 
     * @note Set undistortion coefficients before using this method.

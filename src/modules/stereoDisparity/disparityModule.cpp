@@ -61,6 +61,21 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
         cout << "closing..." << endl;
         return false;
     }
+
+    if(command.get(0).asString()=="set" && command.size()==10)
+    {
+        bool bestDisp=command.get(1).asInt() ? true : false;
+        int uniquenessRatio=command.get(2).asInt();
+        int speckleWindowSize=command.get(3).asInt();
+        int speckleRange=command.get(4).asInt();
+        int numberOfDisparities=command.get(5).asInt();
+        int SADWindowSize=command.get(6).asInt();
+        int minDisparity=command.get(7).asInt();
+        int preFilterCap=command.get(8).asInt();
+        int disp12MaxDiff=command.get(9).asInt();
+
+        dispThread->setDispParameters(bestDisp,uniquenessRatio,speckleWindowSize,speckleRange,numberOfDisparities,SADWindowSize,minDisparity,preFilterCap,disp12MaxDiff);
+    }
     if (command.get(0).asString()=="disparity") {
         if(command.size()==2  && command.get(1).asString()=="on" )
             dispThread->compute(true);
