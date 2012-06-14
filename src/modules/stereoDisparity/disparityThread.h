@@ -37,9 +37,9 @@ private:
     IplImage* output;
     IplImage* outputWorld;
 
-    double vergence_init;
-    double version_init;
-
+    yarp::sig::Vector QL;
+    yarp::sig::Vector QR;
+    
     bool useBestDisp;
     int uniquenessRatio; 
     int speckleWindowSize;

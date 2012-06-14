@@ -24,8 +24,21 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     this->inputLeftPortName += rf.check("InputPortLeft",Value("/cam/left:i"),"Input image port (string)").asString().c_str();
     
     Bottle pars=rf.findGroup("STEREO_DISPARITY");
-    vergence_init=pars.check("Vergence",Value(0.0)).asDouble();
-    version_init=pars.check("Version",Value(0.0)).asDouble();
+    if (Bottle *pXo=pars.find("QL").asList()) 
+    {
+        QL.resize(pXo->size());
+        for (int i=0; i<(pXo->size()); i++) 
+            QL[i]=pXo->get(i).asDouble();
+        
+    }
+    
+    if (Bottle *pXo=pars.find("QR").asList()) 
+    {
+        QR.resize(pXo->size());
+        for (int i=0; i<(pXo->size()); i++) 
+            QR[i]=pXo->get(i).asDouble();        
+    }
+
     robotName = pars.check("robotName",Value("icub"), "module name (string)").asString().c_str();
 
     int cmdisp= rf.check("computeDisparity",Value(1)).asInt();
@@ -162,10 +175,13 @@ bool disparityThread::threadInit()
     Bottle p;
     igaze->getInfo(p);
     int vHead=p.check(("head_version"),Value(1)).asInt();
-    string headType="v"+vHead;
 
-    LeyeKin=new iCubEye(("left_"+headType).c_str());
-    ReyeKin=new iCubEye(("right_"+headType).c_str());
+    stringstream headType;
+    headType << "v";
+    headType << vHead;
+    
+    LeyeKin=new iCubEye(("left_"+headType.str() ).c_str());
+    ReyeKin=new iCubEye(("right_"+headType.str() ).c_str());
     LeyeKin->releaseLink(0);
     LeyeKin->releaseLink(1);
     LeyeKin->releaseLink(2);
@@ -209,7 +225,7 @@ void disparityThread::convert(Mat& mat, Matrix& matrix) {
 Matrix disparityThread::getCameraH(yarp::sig::Vector &head_angles, yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera)
 {
 
-    yarp::sig::Vector q(torso_angles.size()+head_angles.size());
+    yarp::sig::Vector q(torso_angles.size()+head_angles.size()-1);
 
     //torso angles are inverted
     for(int i=0; i<torso_angles.size(); i++)
@@ -302,15 +318,31 @@ void disparityThread::run(){
             this->stereo->setImages(imgL,imgR);
 
             if(init) {
-                yarp::sig::Vector headAngles(6);
+                /*yarp::sig::Vector headAngles(6);
+                yarp::sig::Vector torsoAngles(3);
+                torsoAngles=0.0;                
+                headAngles=0.0;
+                
+                posTorso->getEncoders(torsoAngles.data());
                 posHead->getEncoders(headAngles.data());
-                vergence_init=headAngles[5];
-                version_init=headAngles[4];
-
+                
+                yarp_initLeft=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
+                yarp_initRight=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
+                
                 stereo->undistortImages();
                 stereo->findMatch();
                 stereo->estimateEssential();
-                stereo->hornRelativeOrientations();
+                stereo->hornRelativeOrientations();*/
+                
+                
+                yarp_initLeft=LeyeKin->getH(QL);
+                yarp_initRight=ReyeKin->getH(QR);                
+                
+                /*cout << "QL CALIB" << endl << QL.toString(5,5) << endl;
+                cout << "POS TORSO" << endl << torsoAngles.toString() << endl;
+                cout << "POS HEAD" << endl << headAngles.toString() << endl;*/
+
+
 
 
                 output=cvCreateImage(cvSize(imgL->width,imgL->height),8,3);
@@ -324,22 +356,25 @@ void disparityThread::run(){
                 Mat H0=buildRotTras(H0_R,H0_T);
                 convert(H0,yarp_H0);
 
+
                 //get the initial left and right positions
-                headAngles=0.0;
+                /*headAngles=0.0;
                 headAngles[5]=vergence_init;
-                headAngles[4]=version_init;
+                headAngles[4]=version_init;*/
 
-                
 
-                yarp::sig::Vector torsoAngles(3);
-                torsoAngles=0.0;
-                //posTorso->getEncoders(torsoAngles.data());
 
-                yarp_initLeft=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
-                yarp_initRight=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
                 /*yarp_initLeft=getCameraHGazeCtrl(LEFT);
-                yarp_initRight=getCameraHGazeCtrl(RIGHT);*/
+                yarp_initRight=getCameraHGazeCtrl(RIGHT);
+                
+                Matrix DiffL=yarp_initLeft-yarp_initLeftE;
+                Matrix DiffR=yarp_initRight-yarp_initRightE;
+                printMatrixYarp(DiffL);
+                printMatrixYarp(DiffR);*/
+  
+
             }
+           
 
                 //transformation matrices between prev and curr eye frames
                 yarp::sig::Vector headAngles(6);
@@ -349,20 +384,24 @@ void disparityThread::run(){
                 torsoAngles=0.0;
                 posTorso->getEncoders(torsoAngles.data());
 
-               // Matrix yarp_Left=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
-               // Matrix yarp_Right=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
+                Matrix yarp_Left=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
+                Matrix yarp_Right=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
+                
+                //Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
+                //Matrix yarp_Right=getCameraHGazeCtrl(RIGHT); 
 
                /* Matrix yarp_LeftG=getCameraHGazeCtrl(LEFT);
                 Matrix DiffM=yarp_Left-yarp_LeftG;
                 printMatrixYarp(DiffM);*/
 
-                Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
-                Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
+
 
                 yarp_Left=SE3inv(yarp_Left)*yarp_initLeft; // Left eye transformation between time t0 and t
                 yarp_Right=SE3inv(yarp_Right)*yarp_initRight; // Right eye transformation between time t0 and t
 
                 Matrix Hcurr=yarp_Right*yarp_H0*SE3inv(yarp_Left); // Transformation from Left to Right eye at time t
+                
+                //printMatrixYarp(Hcurr);
 
                 Matrix R=Hcurr.submatrix(0,2,0,2);
                 Matrix newTras=Hcurr.submatrix(0,2,3,3);
