@@ -42,6 +42,9 @@ private:
     int preFilterCap;
     int disp12MaxDiff;
 
+    yarp::sig::Vector QL;
+    yarp::sig::Vector QR;
+
     Matrix yarp_initLeft,yarp_initRight;
     Matrix yarp_H0;
     Semaphore* mutexDisp;
@@ -61,9 +64,6 @@ private:
     Matrix H;
     Mat HL_root;
     Mat HR_root;
-
-    double vergence_init;
-    double version_init;
 
     string robotName;
 

@@ -3,9 +3,22 @@
 DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn) : RateThread(10) 
 {
     Bottle pars=rf.findGroup("STEREO_DISPARITY");
-    vergence_init=pars.check("Vergence",Value(0.0)).asDouble();
-    version_init=pars.check("Version",Value(0.0)).asDouble();
     robotName = pars.check("robotName",Value("icub"), "module name (string)").asString().c_str();
+
+    if (Bottle *pXo=pars.find("QL").asList()) 
+    {
+        QL.resize(pXo->size());
+        for (int i=0; i<(pXo->size()); i++) 
+            QL[i]=pXo->get(i).asDouble();
+        
+    }
+    
+    if (Bottle *pXo=pars.find("QR").asList()) 
+    {
+        QR.resize(pXo->size());
+        for (int i=0; i<(pXo->size()); i++) 
+            QR[i]=pXo->get(i).asDouble();
+    }
 
     int calib= rf.check("useCalibrated",Value(1)).asInt();
     this->useCalibrated= calib ? true : false;
@@ -64,18 +77,15 @@ void DisparityThread::run()
     if(work && init && success)
     {
 
-        if (useHorn)
+        /*if (useHorn)
         {
             yarp::sig::Vector headAngles(6);
             posHead->getEncoders(headAngles.data());
-            vergence_init=headAngles[5];
-            version_init=headAngles[4];
-
             stereo->undistortImages();
             stereo->findMatch(false,20,0.25);
             stereo->estimateEssential();
             stereo->hornRelativeOrientations();
-        }
+        }*/
 
         Mat H0_R=this->stereo->getRotation();
         Mat H0_T=this->stereo->getTranslation();
@@ -85,17 +95,9 @@ void DisparityThread::run()
         buildRotTras(H0_R,H0_T,H0);
         convert(H0,yarp_H0);
 
-        //get the initial left and right positions
-        yarp::sig::Vector headAngles(6);
-        headAngles=0.0;
-        headAngles[5]=vergence_init;
-        headAngles[4]=version_init;
-
-        yarp::sig::Vector torsoAngles(3);
-        torsoAngles=0.0;
         mutexDisp->wait();
-        yarp_initLeft=getCameraH(headAngles,torsoAngles,LeyeKin,LEFT);
-        yarp_initRight=getCameraH(headAngles,torsoAngles,ReyeKin,RIGHT);
+        yarp_initLeft=LeyeKin->getH(QL);
+        yarp_initRight=ReyeKin->getH(QR);
         mutexDisp->post();
         init=false;
 
@@ -242,10 +244,12 @@ bool DisparityThread::threadInit()
     Bottle p;
     igaze->getInfo(p);
     int vHead=p.check(("head_version"),Value(1)).asInt();
-    string headType="v"+vHead;
+    stringstream headType;
+    headType << "v";
+    headType << vHead;
 
-    LeyeKin=new iCubEye(("left_"+headType).c_str());
-    ReyeKin=new iCubEye(("right_"+headType).c_str());
+    LeyeKin=new iCubEye(("left_"+headType.str()).c_str());
+    ReyeKin=new iCubEye(("right_"+headType.str()).c_str());
     LeyeKin->releaseLink(0);
     LeyeKin->releaseLink(1);
     LeyeKin->releaseLink(2);
