@@ -336,7 +336,7 @@ void disparityThread::run(){
                 
                 
                 yarp_initLeft=LeyeKin->getH(QL);
-                yarp_initRight=ReyeKin->getH(QR);                
+                yarp_initRight=ReyeKin->getH(QR);
                 
                 /*cout << "QL CALIB" << endl << QL.toString(5,5) << endl;
                 cout << "POS TORSO" << endl << torsoAngles.toString() << endl;
