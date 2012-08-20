@@ -36,8 +36,7 @@ The module exploits the stereo visual system to build a depth map
 using the H. Hirschmuller Algorithm (CVPR 2006) implemented in Opencv 2.2. The computation of the depth map
 is robust to camera movements exploiting the encoders information and updating the camera reference system. 
 The module is also able to refine the estimation of the cameras movements using the Horn Relative Orientations Algorithm.
-Before start make sure you have calibrated the stereo system (in ${ICUB_ROOT}/app/stereoVision/conf you should have the files
-intrinsics.yml and extrinsics.yml). For the stereo calibration see the module stereoCalib. The module provides two output ports: the first one
+Before start make sure you have calibrated the stereo system. For the stereo calibration see the module \ref stereoCalib "stereoCalib" . The module provides two output ports: the first one
 is the disparity map in grayscale values, the second port is the WorldImage, that is a 3-channels float image, in each pixel are stored the three
 X Y Z coordinates with respect to Root reference frame. Non valid points are handled with the value (0,0,0). In addition a RPC port supports requests for
 3D/2D points computation (see below).
