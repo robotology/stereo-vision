@@ -214,7 +214,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 imshow("corners", cimg);
                 char c = (char)cv::waitKey(500);
                 if( c == 27 || c == 'q' || c == 'Q' ) //Allow ESC to quit
-                    exit(-1);
+                    return;
             }
             else
                 putchar('.');
@@ -523,8 +523,8 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
 void StereoCamera::findMatch(bool visualize, double displacement, double radius) {
     if(this->imleftund.empty() || this->imrightund.empty()) {
-              cout << "Images are not set and undistorted! set the images first and call undistortImages()!" << endl;
-              return;
+              imleftund=imleft;
+              imrightund=imright;
         }
 
     this->PointsL.clear();
@@ -556,8 +556,11 @@ void StereoCamera::findMatch(bool visualize, double displacement, double radius)
         Point2f pointR=keypoints2[filteredMatches[i].trainIdx].pt;
 
         if(abs(pointL.y-pointR.y)<displacement) { //10 320x240 20 640x480
-            this->PointsR.push_back(pointR);
-            this->PointsL.push_back(pointL);
+            if(pointR.x>pointL.x)            
+            {
+                this->PointsR.push_back(pointR);
+                this->PointsL.push_back(pointL);
+            }
         } else
             matchMask[i]=0;
     }
@@ -568,7 +571,7 @@ void StereoCamera::findMatch(bool visualize, double displacement, double radius)
         drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
         cv::namedWindow("Match",1);
         imshow("Match",matchImg); 
-        cvWaitKey(0);
+        cvWaitKey(15);
     }
 
 
@@ -650,7 +653,9 @@ void StereoCamera::estimateEssential() {
         this->E=Mat(3,3,CV_64FC1);
         return;
     }
-
+    this->InliersL.clear();
+    this->InliersR.clear();
+    
     vector<uchar> status;
     this->E=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_RANSAC, 1, 0.999);
 
@@ -727,11 +732,11 @@ void StereoCamera::essentialDecomposition() {
     chierality(R1,R2,t1,t2,Rnew,tnew,this->InliersL,this->InliersR);
 
 
-    if(determinant(Rnew)!=0) {
-        this->R=Rnew;
-        this->T=tnew/norm(tnew);
-        this->updatePMatrix();
-    }
+    
+    this->R=Rnew;
+    this->T=(tnew/norm(tnew))*norm(this->T);
+    this->updatePMatrix();
+    
 
 }
 
@@ -804,72 +809,70 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
      }
      Mat P5=this->Kright*A;
 
-     int passed=0;
+     int err1=0; //R1 t1
+     int err2=0; //R2 t2
+     int err3=0; //R1 t2
+     int err4=0; //R2 t1
+
          for(int i=0; i<(int) InliersL.size(); i++) 
          {
              Point3f point3D=triangulation(points1[i],points2[i],P1,P2);
              if(point3D.z<0) {
-                 passed=0;
-                 break;
+                 err1++;                 
              }
-             passed++;
+             point3D=triangulation(points1[i],points2[i],P1,P3);
+             
+             if(point3D.z<0) {
+                 err2++;                 
+             }
+                          
+             point3D=triangulation(points1[i],points2[i],P1,P4);             
+             if(point3D.z<0) {
+                 err3++;                 
+             } 
+             
+             point3D=triangulation(points1[i],points2[i],P1,P5);
+             
+             if(point3D.z<0) {
+                 err4++;                 
+             } 
 
          }
 
-         if(passed==points1.size()) {
+      double minErr=10000;
+      
+      if(err1<minErr)
+        minErr=err1;
+        
+      if(err2<minErr)
+        minErr=err2;
+        
+      if(err3<minErr)
+        minErr=err3;
+        
+      if(err4<minErr)
+        minErr=err4;  
+
+      if(minErr==err1) {
             R=R1;
             t=t1;
             return;
-         }
-
-
-        for(int i=0; i<(int) InliersL.size(); i++) 
-         {
-             Point3f point3D=triangulation(points1[i],points2[i],P1,P3);
-             if(point3D.z<0) {
-                 passed=0;
-                 break;
-             }
-             passed++;
-
-         }
-         if(passed==points1.size()) {
+       }
+      if(minErr==err2) {
             R=R2;
             t=t2;
             return;
-         }
-
-        for(int i=0; i<(int) InliersL.size(); i++) 
-         {
-             Point3f point3D=triangulation(points1[i],points2[i],P1,P4);
-             if(point3D.z<0) {
-                 passed=0;
-                 break;
-             }
-             passed++;
-
-         }
-      if(passed==points1.size()) {
+       }
+      if(minErr==err3) {
             R=R1;
             t=t2;
             return;
-         }
-
-        for(int i=0; i<(int) InliersL.size(); i++) 
-         {
-             Point3f point3D=triangulation(points1[i],points2[i],P1,P5);
-             if(point3D.z<0) {
-                 passed=0;
-                 break;
-             }
-             passed++;
-
-         }
-      if(passed==points1.size()) {
+       }
+      if(minErr==err4) {
             R=R2;
             t=t1;
             return;
-         }
+       }                     
 
 }
 
