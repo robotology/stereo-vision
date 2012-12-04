@@ -556,11 +556,13 @@ void StereoCamera::findMatch(bool visualize, double displacement, double radius)
         Point2f pointR=keypoints2[filteredMatches[i].trainIdx].pt;
 
         if(abs(pointL.y-pointR.y)<displacement) { //10 320x240 20 640x480
-            if(pointR.x>pointL.x)            
+            if(abs(pointR.x-pointL.x)<50)            
             {
                 this->PointsR.push_back(pointR);
                 this->PointsL.push_back(pointL);
             }
+            else
+                matchMask[i]=0;
         } else
             matchMask[i]=0;
     }
@@ -657,7 +659,7 @@ void StereoCamera::estimateEssential() {
     this->InliersR.clear();
     
     vector<uchar> status;
-    this->E=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_RANSAC, 1, 0.999);
+    this->E=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_8POINT, 1, 0.999);
 
     for(int i=0; i<(int) PointsL.size(); i++) {
         if(status[i]==1) {
@@ -732,10 +734,16 @@ void StereoCamera::essentialDecomposition() {
     chierality(R1,R2,t1,t2,Rnew,tnew,this->InliersL,this->InliersR);
 
 
-    
+    this->mutex->wait();
     this->R=Rnew;
     this->T=(tnew/norm(tnew))*norm(this->T);
+    cout << "WINNERS: " << endl;
+    printMatrix(this->R);
+    printMatrix(this->T);
+    cout << "Det: " << determinant(R) << endl;; 
     this->updatePMatrix();
+    this->cameraChanged=true;
+    this->mutex->post();
     
 
 }
@@ -839,40 +847,56 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
 
          }
 
-      double minErr=10000;
-      
-      if(err1<minErr)
-        minErr=err1;
-        
-      if(err2<minErr)
-        minErr=err2;
-        
-      if(err3<minErr)
-        minErr=err3;
-        
-      if(err4<minErr)
-        minErr=err4;  
+    printMatrix(R1);
+    printMatrix(t1);
+    printMatrix(R2);
+    printMatrix(t2);
 
-      if(minErr==err1) {
+      double minErr=10000;
+
+      int idx=0;
+      if(err1<minErr && t1.ptr<double>(0)[0]<0)
+      {
+        idx=1;
+        minErr=err1;
+      }
+        
+      if(err2<minErr && t2.ptr<double>(0)[0]<0)
+      {
+        idx=2;
+        minErr=err2;
+      } 
+      if(err3<minErr && t2.ptr<double>(0)[0]<0)
+      {
+        idx=3;
+        minErr=err3;
+      }
+      if(err4<minErr && t1.ptr<double>(0)[0]<0)
+      {
+          idx=4;
+        minErr=err4;
+      }
+
+      if(idx==1) {
             R=R1;
             t=t1;
             return;
        }
-      if(minErr==err2) {
+      if(idx==2) {
             R=R2;
             t=t2;
             return;
        }
-      if(minErr==err3) {
+      if(idx==3) {
             R=R1;
             t=t2;
             return;
        }
-      if(minErr==err4) {
+      if(idx==4) {
             R=R2;
             t=t1;
             return;
-       }                     
+       }
 
 }
 
