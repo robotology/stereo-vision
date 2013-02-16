@@ -97,6 +97,7 @@ public:
     bool isOpen();
     void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
 
+    
 
 
     bool threadInit(void);
