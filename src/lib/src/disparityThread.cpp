@@ -1,6 +1,6 @@
 #include "iCub/stereoVision/disparityThread.h"
 
-DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn) : RateThread(10) 
+DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, bool updateCamera) : RateThread(10) 
 {
     Bottle pars=rf.findGroup("STEREO_DISPARITY");
     robotName = pars.check("robotName",Value("icub"), "module name (string)").asString().c_str();
@@ -60,6 +60,8 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn) : R
     this->init=true;
     this->work=false;
     this->done=false;
+
+    this->updateCamera=updateCamera;
 }
 
 bool DisparityThread::isOpen()
@@ -107,28 +109,30 @@ void DisparityThread::run()
     {
         
         mutexDisp->wait();
+        if(updateCamera)
+        {
+            //transformation matrices between prev and curr eye frames
+            Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
+            Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
 
-        //transformation matrices between prev and curr eye frames
-        Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
-        Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
+            yarp_Left=SE3inv(yarp_Left)*yarp_initLeft; // Left eye transformation between time t0 and t
+            yarp_Right=SE3inv(yarp_Right)*yarp_initRight; // Right eye transformation between time t0 and t
 
-        yarp_Left=SE3inv(yarp_Left)*yarp_initLeft; // Left eye transformation between time t0 and t
-        yarp_Right=SE3inv(yarp_Right)*yarp_initRight; // Right eye transformation between time t0 and t
+            Matrix Hcurr=yarp_Right*yarp_H0*SE3inv(yarp_Left); // Transformation from Left to Right eye at time t
 
-        Matrix Hcurr=yarp_Right*yarp_H0*SE3inv(yarp_Left); // Transformation from Left to Right eye at time t
+            Matrix R=Hcurr.submatrix(0,2,0,2);
+            Matrix newTras=Hcurr.submatrix(0,2,3,3);
+            // Update Rotation
+            Mat Rot(3,3,CV_64FC1);
+            convert(R,Rot);
+            this->stereo->setRotation(Rot,0);
 
-        Matrix R=Hcurr.submatrix(0,2,0,2);
-        Matrix newTras=Hcurr.submatrix(0,2,3,3);
-        // Update Rotation
-        Mat Rot(3,3,CV_64FC1);
-        convert(R,Rot);
-        this->stereo->setRotation(Rot,0);
-
-        //Update Translation
-        Mat translation(3,1,CV_64FC1);
-        convert(newTras,translation);
-        
-        this->stereo->setTranslation(translation,0);
+            //Update Translation
+            Mat translation(3,1,CV_64FC1);
+            convert(newTras,translation);
+            
+            this->stereo->setTranslation(translation,0);
+        }
         // Compute Disparity
         this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
         mutexDisp->post();
@@ -602,3 +606,124 @@ void DisparityThread::setDispParameters(bool _useBestDisp, int _uniquenessRatio,
     this->mutexDisp->post();
 
 }
+
+Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double v2, string drive)
+{
+    Point3f point;
+    if(drive!="RIGHT" && drive !="LEFT" && drive!="ROOT") {
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        return point;
+    }
+
+    this->mutexDisp->wait();
+    // Mapping from Rectified Cameras to Original Cameras
+    Mat MapperL=this->stereo->getMapperL();
+    Mat MapperR=this->stereo->getMapperR();
+
+    if(MapperL.empty() || MapperR.empty()) {
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+
+        this->mutexDisp->post();
+        return point;
+    }
+
+
+    if(cvRound(u1)<0 || cvRound(u1)>=MapperL.cols || cvRound(v1)<0 || cvRound(v1)>=MapperL.rows) {
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        this->mutexDisp->post();
+        return point;
+    }
+    
+        if(cvRound(u2)<0 || cvRound(u2)>=MapperL.cols || cvRound(v2)<0 || cvRound(v2)>=MapperL.rows) {
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        this->mutexDisp->post();
+        return point;
+    }
+
+    float urect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)];
+    float vrect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)+1]; 
+
+    float urect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)];
+    float vrect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)+1]; 
+
+
+    Mat Q=this->stereo->getQ();
+    double disparity=urect2-urect1;
+    float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
+    point.x= (float)((float) (urect1+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
+    point.y=(float)((float) (vrect1+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
+    point.z=(float) Q.at<double>(2,3);
+
+    point.x=point.x/w;
+    point.y=point.y/w;
+    point.z=point.z/w;
+
+   if(drive=="LEFT") {
+        Mat P(3,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+
+        P=this->stereo->getRLrect().t()*P;
+
+        point.x=(float) P.at<double>(0,0);
+        point.y=(float) P.at<double>(1,0);
+        point.z=(float) P.at<double>(2,0);
+    }
+    if(drive=="RIGHT") {
+        Mat Rright = this->stereo->getRotation();
+        Mat Tright = this->stereo->getTranslation();
+        Mat RRright = this->stereo->getRRrect().t();
+        Mat TRright = Mat::zeros(0,3,CV_64F);
+
+        Mat RLrect=stereo->getRLrect();
+        Mat RLrecttemp=RLrect.t();
+        Mat Tfake = Mat::zeros(0,3,CV_64F);
+        Mat Hrect = Mat::eye(4, 4, CV_64F);
+        buildRotTras(RLrecttemp,Tfake,Hrect);
+
+        Mat HRL;
+        buildRotTras(Rright,Tright, HRL);
+        buildRotTras(RRright,TRright, Hrect);
+
+        Mat P(4,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+        P.at<double>(3,0)=1;
+       
+        P=Hrect*HRL*P;
+        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+
+    }
+
+    if(drive=="ROOT") {
+        Mat RLrect=this->stereo->getRLrect().t();
+        Mat Tfake = Mat::zeros(0,3,CV_64F);
+        Mat P(4,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+        P.at<double>(3,0)=1;
+
+        Mat Hrect;
+        buildRotTras(RLrect,Tfake,Hrect);
+        P=HL_root*Hrect*P;
+        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+    }
+    this->mutexDisp->post();
+    return point;
+}
+

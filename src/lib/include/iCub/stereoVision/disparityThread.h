@@ -31,6 +31,7 @@ private:
     bool success;
     bool useCalibrated;
     bool useHorn;
+    bool updateCamera;
 
     bool useBestDisp;
     int uniquenessRatio; 
@@ -77,12 +78,15 @@ private:
 
 public:
 
+    DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false);
     DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true);
+
     ~DisparityThread(void) {};
 
 
     void setImages(Mat &left, Mat &right);
     void getDisparity(Mat &Disp);
+    Point3f get3DPointMatch(double u1, double v1, double u2, double v2, string drive);
     void getDisparityFloat(Mat &Disp);
     void getQMat(Mat &Q);
     void getMapper(Mat &Mapper);

@@ -35,7 +35,7 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
         int argc=0; char *argv[1];
         cameraFinder.configure("ICUB_ROOT",argc,argv);
 
-        disp=new DisparityThread(cameraFinder);
+        disp=new DisparityThread(cameraFinder,false,true);
         opt=new OpticalFlowThread(rf);
         
         fprintf(stdout, "Threads created...\n");
