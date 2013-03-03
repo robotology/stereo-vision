@@ -108,20 +108,20 @@ void DisparityThread::run()
     if(work && success) 
     {
         
-        mutexDisp->wait();
+        mutexDisp->wait();        
+        //transformation matrices between prev and curr eye frames
+        Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
+        Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
+
+        yarp_Left=SE3inv(yarp_Left)*yarp_initLeft; // Left eye transformation between time t0 and t
+        yarp_Right=SE3inv(yarp_Right)*yarp_initRight; // Right eye transformation between time t0 and t
+
+        Matrix Hcurr=yarp_Right*yarp_H0*SE3inv(yarp_Left); // Transformation from Left to Right eye at time t
+
+        Matrix R=Hcurr.submatrix(0,2,0,2);
+        Matrix newTras=Hcurr.submatrix(0,2,3,3);
         if(updateCamera)
         {
-            //transformation matrices between prev and curr eye frames
-            Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
-            Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
-
-            yarp_Left=SE3inv(yarp_Left)*yarp_initLeft; // Left eye transformation between time t0 and t
-            yarp_Right=SE3inv(yarp_Right)*yarp_initRight; // Right eye transformation between time t0 and t
-
-            Matrix Hcurr=yarp_Right*yarp_H0*SE3inv(yarp_Left); // Transformation from Left to Right eye at time t
-
-            Matrix R=Hcurr.submatrix(0,2,0,2);
-            Matrix newTras=Hcurr.submatrix(0,2,3,3);
             // Update Rotation
             Mat Rot(3,3,CV_64FC1);
             convert(R,Rot);
@@ -296,8 +296,6 @@ bool DisparityThread::checkDone()
 {
     return done;
 }
-
-
 void DisparityThread::triangulate(Point2f &pixel,Point3f &point) 
 {
     this->mutexDisp->wait();
