@@ -29,4 +29,4 @@ add_subdirectory(stereoDisparity)
 add_subdirectory(testWorldImage)
 add_subdirectory(sceneFlow)
 #add_subdirectory(testDisparity)
-
+#add_subdirectory(testDepthCoherence)
