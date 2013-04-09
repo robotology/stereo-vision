@@ -410,12 +410,12 @@ void disparityThread::run(){
                 // Update Rotation
                 Mat Rot(3,3,CV_64FC1);
                 convert(R,Rot);
-                this->stereo->setRotation(Rot,0);
+                //this->stereo->setRotation(Rot,0);
 
                 //Update Translation
                 Mat translation(3,1,CV_64FC1);
                 convert(newTras,translation);
-                this->stereo->setTranslation(translation,0);
+                //this->stereo->setTranslation(translation,0);
                 if(this->computeDisparity)
                     this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
                 else
