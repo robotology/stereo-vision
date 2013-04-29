@@ -33,49 +33,16 @@ const vector<Point2f>  StereoCamera::getMatchRight() {
     return this->InliersR;
 }
 
-StereoCamera::StereoCamera(std::string intrinsicPath, std::string exstrinsicPath) {
-
-     FileStorage fs(intrinsicPath.c_str(), CV_STORAGE_READ);
-        if(!fs.isOpened())
-        {
-            printf("Failed to open file %s\n", intrinsicPath.c_str());
-            return;
-        }
-        fs["M1"] >> Kleft;
-        fs["D1"] >> DistL;
-        fs["M2"] >> Kright;
-        fs["D2"] >> DistR;
-
-        fs.open(exstrinsicPath.c_str(), CV_STORAGE_READ);
-        if(!fs.isOpened())
-        {
-            printf("Failed to open file %s\n", exstrinsicPath.c_str());
-            return ;
-        }
-        fs["R"] >> R;
-        fs["R"] >> Rinit;
-        fs["T"] >> T;
-        fs["T"] >> Tinit;
-        fs["Q"] >> Q;
-        Mat A = Mat::eye(3, 4, CV_64F);
-        Pleft=Kleft*A;
-
-        for(int i = 0; i < R.rows; i++)
-         {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = R.ptr<double>(i);
-            for(int j = 0; j < R.cols; j++)
-                 Mi[j]=MRi[j];
-         }
-        for(int i = 0; i < T.rows; i++)
-         {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = T.ptr<double>(i);
-                 Mi[3]=MRi[0];
-         }
-        Pright=Kright*A;
+StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf) {
+        Mat KL, KR, DistL, DistR, R, T;
+        loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
         this->mutex= new Semaphore(1);
+        this->setIntrinsics(KL,KR,DistL,DistR);
+        this->setRotation(R,0);
+        this->setTranslation(T,0);
+
         this->cameraChanged=true;
+
         buildUndistortRemap();
 }
 
@@ -1792,4 +1759,82 @@ Point2f StereoCamera::getDistortedPixel(int u, int v, int cam)
     distortedPixel.y=MapperY.ptr<float>(v)[u];
 
     return distortedPixel;
+}
+bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T)
+{
+
+    Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
+    if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
+        return false;
+
+    double fx=left.find("fx").asDouble();
+    double fy=left.find("fy").asDouble();
+
+    double cx=left.find("cx").asDouble();
+    double cy=left.find("cy").asDouble();
+
+    double k1=left.check("k1",Value(0)).asDouble();
+    double k2=left.check("k2",Value(0)).asDouble();
+
+    double p1=left.check("p1",Value(0)).asDouble();
+    double p2=left.check("p2",Value(0)).asDouble();
+
+    DistL=Mat::zeros(1,8,CV_64FC1);
+    DistL.at<double>(0,0)=k1;
+    DistL.at<double>(0,1)=k2;
+    DistL.at<double>(0,2)=p1;
+    DistL.at<double>(0,3)=p2;
+    
+
+    KL=Mat::eye(3,3,CV_64FC1);
+    KL.at<double>(0,0)=fx;
+    KL.at<double>(0,2)=cx;
+    KL.at<double>(1,1)=fy;
+    KL.at<double>(1,2)=cy;
+
+    Bottle right=rf.findGroup("CAMERA_CALIBRATION_RIGHT");
+    if(!right.check("fx") || !right.check("fy") || !right.check("cx") || !right.check("cy"))
+        return false;
+
+    fx=right.find("fx").asDouble();
+    fy=right.find("fy").asDouble();
+
+    cx=right.find("cx").asDouble();
+    cy=right.find("cy").asDouble();
+
+    k1=right.check("k1",Value(0)).asDouble();
+    k2=right.check("k2",Value(0)).asDouble();
+
+    p1=right.check("p1",Value(0)).asDouble();
+    p2=right.check("p2",Value(0)).asDouble();
+
+    DistR=Mat::zeros(1,8,CV_64FC1);
+    DistR.at<double>(0,0)=k1;
+    DistR.at<double>(0,1)=k2;
+    DistR.at<double>(0,2)=p1;
+    DistR.at<double>(0,3)=p2;
+    
+
+    KR=Mat::eye(3,3,CV_64FC1);
+    KR.at<double>(0,0)=fx;
+    KR.at<double>(0,2)=cx;
+    KR.at<double>(1,1)=fy;
+    KR.at<double>(1,2)=cy;
+
+    Ro=Mat::zeros(3,3,CV_64FC1);
+    T=Mat::zeros(3,1,CV_64FC1);
+
+    Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
+    if (Bottle *pXo=extrinsics.find("HN").asList()) {
+        for (int i=0; i<(pXo->size()-4); i+=4) {
+            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
+            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
+            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
+            T.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+        }
+    }
+    else
+        return false;
+
+    return true;
 }
