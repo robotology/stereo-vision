@@ -12,7 +12,7 @@ find_package(YARP)
 find_package(ICUB)
 find_package(OpenCV)
 
-include_directories(${OPENCV_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
 
@@ -34,7 +34,7 @@ source_group("Source Files" FILES ${folder_source})
 source_group("Header Files" FILES ${folder_header})
 
 add_library(${PROJECTNAME} ${folder_source} ${folder_header})
-target_link_libraries(${PROJECTNAME} ${OPENCV_LIBRARIES} ${ICUB_LIBRARIES} ${YARP_LIBRARIES})
+target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} ${ICUB_LIBRARIES} ${YARP_LIBRARIES})
 
 # export library
 export(TARGETS ${PROJECTNAME} FILE ${CMAKE_BINARY_DIR}/stereoVision-export-build.cmake)
