@@ -13,7 +13,7 @@ source_group("Header Files" FILES ${header})
 
 add_executable(sceneFlowModule ${source} ${header} )
 
-target_link_libraries(sceneFlowModule stereoVision ${ICUB_LIBRARIES} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(sceneFlowModule stereoVision ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
 
 install(TARGETS sceneFlowModule DESTINATION ${ICUB_DIR}/bin)
 

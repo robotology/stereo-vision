@@ -13,7 +13,7 @@ source_group("Header Files" FILES ${header})
 
 add_executable(stereoDisparity ${source} ${header})
 
-target_link_libraries(stereoDisparity stereoVision ${ICUB_LIBRARIES} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(stereoDisparity stereoVision iKin icubmod ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
 
 install(TARGETS stereoDisparity DESTINATION ${ICUB_DIR}/bin)
 
