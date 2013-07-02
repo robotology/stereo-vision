@@ -78,7 +78,7 @@ private:
 
 public:
 
-    DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false);
+    DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false,bool rectify=true);
     DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true);
 
     ~DisparityThread(void) {};

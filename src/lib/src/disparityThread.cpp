@@ -1,6 +1,6 @@
 #include "iCub/stereoVision/disparityThread.h"
 
-DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, bool updateCamera) : RateThread(10) 
+DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, bool updateCamera, bool rectify) : RateThread(10) 
 {
     Bottle pars=rf.findGroup("STEREO_DISPARITY");
     robotName = pars.check("robotName",Value("icub"), "module name (string)").asString().c_str();
@@ -26,7 +26,7 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
     Mat KL, KR, DistL, DistR, R, T;
     success=loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
     this->mutexDisp = new Semaphore(1);
-    this->stereo=new StereoCamera();
+    this->stereo=new StereoCamera(rectify);
 
     if(success)
     {
