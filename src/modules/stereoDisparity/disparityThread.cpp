@@ -65,7 +65,7 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
 
     this->commandPort=commPort;
 
-    this->stereo=new StereoCamera(false);
+    this->stereo=new StereoCamera();
 
     Mat KL, KR, DistL, DistR, R, T;
     loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
