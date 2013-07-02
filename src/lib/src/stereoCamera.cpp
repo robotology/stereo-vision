@@ -33,7 +33,7 @@ const vector<Point2f>  StereoCamera::getMatchRight() {
     return this->InliersR;
 }
 
-StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf) {
+StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
         Mat KL, KR, DistL, DistR, R, T;
         loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
         this->mutex= new Semaphore(1);
@@ -42,11 +42,11 @@ StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf) {
         this->setTranslation(T,0);
 
         this->cameraChanged=true;
-
+        this->rectify=rectify;
         buildUndistortRemap();
 }
 
-StereoCamera::StereoCamera(Camera Left, Camera Right) {
+StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
     this->Kleft=Left.getCameraMatrix();
     this->DistL=Left.getDistVector();
 
@@ -54,7 +54,7 @@ StereoCamera::StereoCamera(Camera Left, Camera Right) {
     this->DistR=Right.getDistVector();
     this->mutex=new Semaphore(1);
     this->cameraChanged=true;
-
+    this->rectify=rectify;
     buildUndistortRemap();
 }
 
@@ -88,7 +88,7 @@ void StereoCamera::stereoCalibration(string imagesFilePath, int boardWidth, int 
     Size boardSize;
     boardSize.width=boardWidth;
     boardSize.height=boardHeight;
-
+    
     vector<string> imagelist;
     bool ok = readStringList(imagesFilePath, imagelist);
     if(!ok || imagelist.empty())
@@ -415,7 +415,16 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         if(cameraChanged)
         {
             mutex->wait();
-            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1, img_size, &roi1, &roi2 );
+            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1,img_size, &roi1, &roi2);
+
+            if(!rectify)
+            {
+                this->RLrect=Mat::eye(3,3,CV_32FC1);
+                this->RRrect=Mat::eye(3,3,CV_32FC1);
+                this->PLrect=this->Kleft;
+                this->PRrect=this->Kright;
+            }
+            
             mutex->post();
         }
 
@@ -423,6 +432,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         {
             initUndistortRectifyMap(this->Kleft, this->DistL, this->RLrect, this->PLrect, img_size, CV_32FC1, this->map11, this->map12);
             initUndistortRectifyMap(this->Kright,  this->DistR, this->RRrect, this->PRrect, img_size, CV_32FC1, this->map21, this->map22);
+
         }
         
         Mat img1r, img2r;
