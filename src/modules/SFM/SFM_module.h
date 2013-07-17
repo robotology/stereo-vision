@@ -18,6 +18,11 @@
 #include <iCub/ctrl/math.h>
 #include <iCub/stereoVision/stereoCamera.h>
 
+#ifdef USING_GPU
+    #include "utils.h"
+#endif
+
+
 YARP_DECLARE_DEVICES(icubmod)
 
 using namespace std;
@@ -36,6 +41,12 @@ class SFM: public yarp::os::RFModule
     IplImage* outputD;
     IplImage* output_match;
 
+    cv::Mat leftMat, rightMat, matMatches;
+
+    #ifdef USING_GPU
+        /* pointer to the utilities class */
+        Utilities                 *utils;
+    #endif
 
     yarp::os::Port rpc;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > leftImgPort;
@@ -43,7 +54,6 @@ class SFM: public yarp::os::RFModule
 
     BufferedPort<ImageOf<PixelBgr> > outDisp;
     BufferedPort<ImageOf<PixelBgr> > outMatch;
-
 
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &R, Mat &T);
 

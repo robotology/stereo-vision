@@ -43,6 +43,11 @@ bool SFM::configure(ResourceFinder &rf)
     output_match=NULL;
     outputD=NULL;
     init=true;
+
+    #ifdef USING_GPU
+        utils = new Utilities();
+        utils->initSIFT_GPU();
+    #endif
     return true;
 }
 
@@ -66,6 +71,11 @@ bool SFM::close()
 
     if(outputD!=NULL)
         cvReleaseImage(&outputD);
+
+    #ifdef USING_GPU
+        delete utils;
+    #endif
+
     return true;
 }
 
@@ -102,59 +112,79 @@ bool SFM::updateModule()
     {
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
-    // find matches
+        // find matches
         init=false;
     }
-    // setting undistorted images
-    this->stereo->setImages(left,right);
 
-    // find matches
-    this->stereo->findMatch(false,15,10.0);
+    #ifdef USING_GPU
+        Mat leftMat(left); 
+        Mat rightMat(right);
+        matMatches = Mat(rightMat.rows, 2*rightMat.cols, CV_8UC3);
+        matMatches.adjustROI(0, 0, 0, -leftMat.cols);
+        leftMat.copyTo(matMatches);
+        matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
+        rightMat.copyTo(matMatches);
+        matMatches.adjustROI(0, 0, leftMat.cols, 0);
 
+        utils->extractMatch_GPU( leftMat, rightMat, matMatches );
 
-    //Estimating fundamentalMatrix
-    this->stereo->estimateEssential();
-    Mat F= this->stereo->getFundamental();
-
-    Mat matches=this->stereo->drawMatches();
-    vector<Point2f> rightM=this->stereo->getMatchRight();
-
-    this->stereo->essentialDecomposition();
-    this->stereo->hornRelativeOrientations();
-
-    this->stereo->computeDisparity(true,15,50,16,64,7,-32,32,0);
-
-    if(outMatch.getOutputCount()>0 && rightM.size()>0)
-    {
-        Mat m(rightM);
-        vector<Vec3f> lines;
-        cv::computeCorrespondEpilines(m,2,F,lines);
-        for (cv::vector<cv::Vec3f>::const_iterator it = lines.begin(); it!=lines.end(); ++it)
-        {
-            cv::line(matches,
-            cv::Point(0,-(*it)[2]/(*it)[1]),
-            cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),
-            cv::Scalar(255,255,255));
-        }
-
-
-        IplImage ipl_matches=matches;
-        cvCvtColor(&ipl_matches,output_match,CV_BGR2RGB);
-
-
-        ImageOf<PixelBgr>& outim=outMatch.prepare();
-        outim.wrapIplImage(output_match);
+        cvtColor( matMatches, matMatches, CV_BGR2RGB);
+        ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
+        imgMatch.resize(matMatches.cols, matMatches.rows);
+        IplImage tmpR = matMatches;
+        cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());
         outMatch.write();
-    }
+    #else
+        // setting undistorted images
+        this->stereo->setImages(left,right);
 
-    if(outDisp.getOutputCount()>0 && rightM.size()>0)
-    {
-        IplImage disp=stereo->getDisparity();
-        cvCvtColor(&disp,outputD,CV_GRAY2RGB);
-        ImageOf<PixelBgr>& outim=outDisp.prepare();
-        outim.wrapIplImage(outputD);
-        outDisp.write();
-    }
+        // find matches
+        this->stereo->findMatch(false,15,10.0);
+
+        //Estimating fundamentalMatrix
+        this->stereo->estimateEssential();
+        Mat F= this->stereo->getFundamental();
+
+        Mat matches=this->stereo->drawMatches();
+        vector<Point2f> rightM=this->stereo->getMatchRight();
+
+        this->stereo->essentialDecomposition();
+        this->stereo->hornRelativeOrientations();
+
+        this->stereo->computeDisparity(true,15,50,16,64,7,-32,32,0);
+
+        if(outMatch.getOutputCount()>0 && rightM.size()>0)
+        {
+            Mat m(rightM);
+            vector<Vec3f> lines;
+            cv::computeCorrespondEpilines(m,2,F,lines);
+            for (cv::vector<cv::Vec3f>::const_iterator it = lines.begin(); it!=lines.end(); ++it)
+            {
+                cv::line(matches,
+                cv::Point(0,-(*it)[2]/(*it)[1]),
+                cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),
+                cv::Scalar(255,255,255));
+            }
+
+
+            IplImage ipl_matches=matches;
+            cvCvtColor(&ipl_matches,output_match,CV_BGR2RGB);
+
+            ImageOf<PixelBgr>& outim=outMatch.prepare();
+            outim.wrapIplImage(output_match);
+            outMatch.write();
+        }
+        
+
+        if(outDisp.getOutputCount()>0 && rightM.size()>0)
+        {
+            IplImage disp=stereo->getDisparity();
+            cvCvtColor(&disp,outputD,CV_GRAY2RGB);
+            ImageOf<PixelBgr>& outim=outDisp.prepare();
+            outim.wrapIplImage(outputD);
+            outDisp.write();
+        }
+    #endif
 
     return true;
 }
