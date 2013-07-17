@@ -1,0 +1,48 @@
+
+<application>
+<name>SFM</name>
+
+		<module>
+			<name>SFM_module</name>
+			<node>icub15</node>
+			<tag>SFM</tag>
+        </module>
+		
+		<module>
+			<name>yarpview --name /matchViewer</name>
+			<node>icub16</node>
+			<tag>yarpviewTag</tag>
+        </module>
+		
+		<module>
+			<name>yarpview --name /dispViewer</name>
+			<node>icub16</node>
+			<tag>yarpviewTag</tag>
+        </module>
+		
+		
+		<connection>
+            <from>/icub/camcalib/right/out</from>
+            <to>/SFM/right:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+		
+		<connection>
+            <from>/icub/camcalib/left/out</from>
+            <to>/SFM/left:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+		
+		<connection>
+            <from>/SFM/match:o</from>
+            <to>/matchViewer</to>
+            <protocol>tcp</protocol>
+        </connection>
+		
+		<connection>
+            <from>/SFM/disp:o</from>
+            <to>/dispViewer</to>
+            <protocol>tcp</protocol>
+        </connection>
+				
+</application>

@@ -62,6 +62,7 @@ using cv::FeatureDetector;
 using cv::DescriptorMatcher;
 using cv::KeyPoint;
 using cv::StereoSGBM;
+using cv::StereoBM;
 using cv::Rect;
 using cv::SVD;
 using cv::Vec3f;
@@ -103,6 +104,7 @@ private:
     Mat R; // Rotation from Left to Right 3x3
     Mat T; // Translation from Left to Right 3x1
     Mat Q; // Depth Matrix 4x4
+    Mat F; // Fundamental Matrix 3x3
     Mat E; // Essential Matrix 3x3
     Mat RLrect; // Rotation from Left Camera to Rectified Left Camera 3x3
     Mat RRrect; // Rotation from Right Camera to Rectified Right Camera 3x3
@@ -206,7 +208,7 @@ public:
     * @param displacement maximum pixel displacement between first and second camera
     * @param radius maximum radius between the first candidate match and the second one
     */
-    void findMatch(bool visualize=false,double displacement=15, double radius=0.25); 
+    cv::Mat findMatch(bool visualize=false,double displacement=15, double radius=0.25); 
 
     /** It computes the Disparity Map using H. Hirschmuller Algorithm (CVPR 2006) (see \ref stereoDisparity).
     * @param best set equal true for better accuracy, equal false for save computation.
@@ -369,14 +371,20 @@ public:
     const Mat getKright();
 
     /**
+    * It returns the 3x3 fundamental matrix.
+    * @return 3x3 fundamental matrix.
+    */
+    const Mat getFundamental();
+
+    /**
     * It returns the pixel coordinates of the matches in the left image.
-    * @return 3x3 pixel coordinates of the matches in the left image.
+    * @return pixel coordinates of the matches in the left image.
     */
     const vector<Point2f> getMatchLeft();
 
     /**
     * It returns the pixel coordinates of the matches in the right image.
-    * @return 3x3 pixel coordinates of the matches in the right image.
+    * @return pixel coordinates of the matches in the right image.
     */
     const vector<Point2f> getMatchRight();
 
@@ -500,4 +508,8 @@ public:
     * @return the pixel position in the distorted image.
     */
     Point2f getDistortedPixel(int u, int v, int cam=1);
+
+
+    Mat drawMatches();
+
 };

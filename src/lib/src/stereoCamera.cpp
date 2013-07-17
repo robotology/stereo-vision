@@ -456,8 +456,11 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         
         Mat disp, disp8, map, dispTemp;
         sgbm(img1r, img2r, disp);
+        
 
-        disp.convertTo(map, CV_32FC1, 255/(numberOfDisparities*16.));
+        disp.convertTo(map, CV_32FC1, 1.0,-minDisparity*16);
+        map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
+        
 
         if(cameraChanged)
         {
@@ -491,14 +494,14 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         dispTemp.convertTo(disp8, CV_8U); 
 
         this->mutex->wait();
-        this->Disparity=disp8;        
+        this->Disparity=disp8;
         this->Disparity16=disp;
         this->mutex->post();
 }
 
 
 
-void StereoCamera::findMatch(bool visualize, double displacement, double radius) {
+Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) {
     if(this->imleftund.empty() || this->imrightund.empty()) {
               imleftund=imleft;
               imrightund=imright;
@@ -533,26 +536,23 @@ void StereoCamera::findMatch(bool visualize, double displacement, double radius)
         Point2f pointR=keypoints2[filteredMatches[i].trainIdx].pt;
 
         if(abs(pointL.y-pointR.y)<displacement) { //10 320x240 20 640x480
-            if(abs(pointR.x-pointL.x)<50)            
-            {
+            //if((pointL.x-pointR.x)>0) // disparity always positive
+            //{
                 this->PointsR.push_back(pointR);
                 this->PointsL.push_back(pointL);
-            }
-            else
-                matchMask[i]=0;
+            //}
+            //else
+            //    matchMask[i]=0;
         } else
             matchMask[i]=0;
     }
 
-   // Visualize Matches
+   // draw Matches
+    Mat matchImg;
     if(visualize) {
-        Mat matchImg;      
-        drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
-        cv::namedWindow("Match",1);
-        imshow("Match",matchImg); 
-        cvWaitKey(15);
+        cv::drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
     }
-
+    return matchImg;
 
 }
 
@@ -636,7 +636,7 @@ void StereoCamera::estimateEssential() {
     this->InliersR.clear();
     
     vector<uchar> status;
-    this->E=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_8POINT, 1, 0.999);
+    this->F=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_LMEDS, 1, 0.999);
 
     for(int i=0; i<(int) PointsL.size(); i++) {
         if(status[i]==1) {
@@ -648,7 +648,7 @@ void StereoCamera::estimateEssential() {
    
 
 //    cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
-    this->E=this->Kright.t()*this->E*this->Kleft;
+    this->E=this->Kright.t()*this->F*this->Kleft;
 
 }
 
@@ -658,7 +658,7 @@ void StereoCamera::essentialDecomposition() {
         cout << "Essential Matrix is Empy! Run the estimateEssential first!" << endl;
         return;
     }
-    if(this->PointsL.empty()) {
+    if(this->InliersL.empty()) {
         cout << "No matches in memory! Run findMatch first!" << endl;
         return;
     }
@@ -828,6 +828,7 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
     printMatrix(t1);
     printMatrix(R2);
     printMatrix(t2);
+    fprintf(stdout, "errors: %d, %d, %d, %d, \n",err1,err2,err3,err4);
 
       double minErr=10000;
 
@@ -993,6 +994,11 @@ void StereoCamera::undistortImages() {
 const Mat StereoCamera::getImLeftUnd() {
     return this->imleftund;
 }
+
+const Mat StereoCamera::getFundamental() {
+    return this->F;
+}
+
 const Mat StereoCamera::getImRightUnd() {
     return this->imrightund;
 }
@@ -1128,6 +1134,28 @@ void StereoCamera::hornRelativeOrientations() {
     this->updatePMatrix();
 }
 
+
+Mat StereoCamera::drawMatches()
+{
+    Mat matchImg;
+    vector<KeyPoint> keypoints1(InliersL.size());
+    vector<KeyPoint> keypoints2(InliersL.size());
+    vector<DMatch> filteredMatches(InliersL.size());
+
+
+    for (int i=0; i<InliersL.size(); i++)
+    {
+        filteredMatches[i].queryIdx=i;
+        filteredMatches[i].trainIdx=i;
+
+        keypoints1[i]=cv::KeyPoint(InliersL[i],2);
+        keypoints2[i]=cv::KeyPoint(InliersR[i],2);
+
+    }
+
+    cv::drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0));
+    return matchImg;
+}
 
 void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Point2f> & PointsR,Mat & Rot,Mat & Tras) {
     double prevres = 1E40;
