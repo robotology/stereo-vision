@@ -57,9 +57,10 @@ public:
     SiftGPU                                 *sift;
     std::vector<float >                     descriptors1, descriptors2;
     std::vector<SiftGPU::SiftKeypoint>      keys1, keys2;
+    std::vector<cv::Point2f>                pointsL, pointsR;
     int num1, num2;
     void                                    *hsiftgpu;
-
+    
     Utilities();
     ~Utilities();
 
@@ -71,6 +72,7 @@ public:
      *   function to extract sifts using GPU
      */
     void extractMatch_GPU( cv::Mat leftMat, cv::Mat rightMat, cv::Mat &matMatches);
+    void getMatches(std::vector<cv::Point2f> & points1, std::vector<cv::Point2f>  & points2);
 };
 
 #endif

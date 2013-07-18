@@ -95,6 +95,8 @@ void Utilities::extractMatch_GPU(Mat leftMat, Mat rightMat, Mat &matMatches)
 
     double temp = 0.0;
     int cnt = 0;
+    pointsL.clear();
+    pointsR.clear();
     //enumerate all the feature matches
     for(int i  = 0; i < num_match; ++i)
     {
@@ -103,10 +105,10 @@ void Utilities::extractMatch_GPU(Mat leftMat, Mat rightMat, Mat &matMatches)
         //key1 in the first image matches with key2 in the second image
         if( abs(key1.y-key2.y) < 10 )//displacement 10 320x240 
         {
-            if( abs(key1.x-key2.x)<50 )
-            {
+            //if( abs(key1.x-key2.x)<50 )
+            //{
                 temp = key1.y - key2.y;
-                if ( (temp < 8.0) && (temp > -8.0) )
+                if ( (temp < 15.0) && (temp > -15.0) )
                 {
                     int x = cvRound(key1.x);
                     int y = cvRound(key1.y);
@@ -117,11 +119,22 @@ void Utilities::extractMatch_GPU(Mat leftMat, Mat rightMat, Mat &matMatches)
                     circle(matMatches,cvPoint(x2,y2),2,cvScalar(255,0,0),2);
                     line(matMatches, cvPoint(x,y), cvPoint(x2,y2), cvScalar(255,255,255) );
                     cnt++;
+                    
+                    Point2f p1(x,y);
+                    Point2f p2(x2,y2);
+                    
+                    pointsL.push_back(p1);
+                    pointsR.push_back(p2);
                 }
-            }
+            //}
         }
     }
     fprintf(stdout, "using only %d \n", cnt);  
     
 }
 
+void Utilities::getMatches(std::vector<cv::Point2f> & points1, std::vector<cv::Point2f>  & points2)
+{
+    points1=pointsL;
+    points2=pointsR;
+}

@@ -458,8 +458,9 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         sgbm(img1r, img2r, disp);
         
 
-        disp.convertTo(map, CV_32FC1, 1.0,-minDisparity*16);
-        map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
+        disp.convertTo(map, CV_32FC1, 1.0,0.0);
+        //map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
+        normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
         
 
         if(cameraChanged)
@@ -714,10 +715,10 @@ void StereoCamera::essentialDecomposition() {
     this->mutex->wait();
     this->R=Rnew;
     this->T=(tnew/norm(tnew))*norm(this->T);
-    cout << "WINNERS: " << endl;
-    printMatrix(this->R);
-    printMatrix(this->T);
-    cout << "Det: " << determinant(R) << endl;; 
+    //cout << "WINNERS: " << endl;
+    //printMatrix(this->R);
+    //printMatrix(this->T);
+    //cout << "Det: " << determinant(R) << endl;; 
     this->updatePMatrix();
     this->cameraChanged=true;
     this->mutex->post();
@@ -824,10 +825,11 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
 
          }
 
-    printMatrix(R1);
+    /*printMatrix(R1);
     printMatrix(t1);
     printMatrix(R2);
-    printMatrix(t2);
+    printMatrix(t2);*/
+    fprintf(stdout, "Inliers: %d, %d, \n",points1.size(),points2.size());
     fprintf(stdout, "errors: %d, %d, %d, %d, \n",err1,err2,err3,err4);
 
       double minErr=10000;
@@ -1875,4 +1877,11 @@ bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, M
         return false;
 
     return true;
+}
+
+void StereoCamera::setMatches(std::vector<cv::Point2f> & pointsL, std::vector<cv::Point2f> & pointsR)
+{
+    PointsL=pointsL;
+    PointsR=pointsR;
+
 }

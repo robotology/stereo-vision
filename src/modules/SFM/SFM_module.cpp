@@ -119,6 +119,7 @@ bool SFM::updateModule()
     #ifdef USING_GPU
         Mat leftMat(left); 
         Mat rightMat(right);
+        this->stereo->setImages(left,right);
         matMatches = Mat(rightMat.rows, 2*rightMat.cols, CV_8UC3);
         matMatches.adjustROI(0, 0, 0, -leftMat.cols);
         leftMat.copyTo(matMatches);
@@ -134,6 +135,31 @@ bool SFM::updateModule()
         IplImage tmpR = matMatches;
         cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());
         outMatch.write();
+        
+        vector<Point2f> leftM;
+        vector<Point2f> rightM;
+        
+        utils->getMatches(leftM,rightM);
+        this->stereo->setMatches(leftM,rightM);
+        this->stereo->estimateEssential();
+        Mat F= this->stereo->getFundamental();
+
+        Mat matches=this->stereo->drawMatches();
+        vector<Point2f> matchtmp=this->stereo->getMatchRight();
+
+        this->stereo->essentialDecomposition();
+
+        this->stereo->computeDisparity(true,15,50,16,64,7,0,63,0);        
+        
+        if(outDisp.getOutputCount()>0 && matchtmp.size()>0)
+        {
+            IplImage disp=stereo->getDisparity();
+            cvCvtColor(&disp,outputD,CV_GRAY2RGB);
+            ImageOf<PixelBgr>& outim=outDisp.prepare();
+            outim.wrapIplImage(outputD);
+            outDisp.write();
+        }        
+        
     #else
         // setting undistorted images
         this->stereo->setImages(left,right);

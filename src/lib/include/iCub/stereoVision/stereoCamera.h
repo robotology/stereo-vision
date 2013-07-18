@@ -511,5 +511,7 @@ public:
 
 
     Mat drawMatches();
+    
+    void setMatches(std::vector<cv::Point2f> & pointsL, std::vector<cv::Point2f> & pointsR); 
 
 };
