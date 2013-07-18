@@ -148,8 +148,8 @@ bool SFM::updateModule()
         vector<Point2f> matchtmp=this->stereo->getMatchRight();
 
         this->stereo->essentialDecomposition();
-
-        this->stereo->computeDisparity(true,15,50,16,64,7,0,63,0);        
+        
+        this->stereo->computeDisparity(true,15,50,128,16,7,0,63,0);        
         
         if(outDisp.getOutputCount()>0 && matchtmp.size()>0)
         {
