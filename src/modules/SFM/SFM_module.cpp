@@ -24,7 +24,7 @@ bool SFM::configure(ResourceFinder &rf)
     outMatch.open(outMatchName.c_str());
     outDisp.open(outDispName.c_str());
 
-    this->stereo=new StereoCamera(false);
+    this->stereo=new StereoCamera(true);
     Mat KL, KR, DistL, DistR, R, T;
     loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
 
@@ -128,28 +128,44 @@ bool SFM::updateModule()
         matMatches.adjustROI(0, 0, leftMat.cols, 0);
 
         utils->extractMatch_GPU( leftMat, rightMat, matMatches );
-
-        cvtColor( matMatches, matMatches, CV_BGR2RGB);
-        ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
-        imgMatch.resize(matMatches.cols, matMatches.rows);
-        IplImage tmpR = matMatches;
-        cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());
-        outMatch.write();
-        
         vector<Point2f> leftM;
         vector<Point2f> rightM;
         
         utils->getMatches(leftM,rightM);
         this->stereo->setMatches(leftM,rightM);
         this->stereo->estimateEssential();
+        
+        
+
+
         Mat F= this->stereo->getFundamental();
+        vector<Point2f> matchtmp=this->stereo->getMatchRight();
+        if(matchtmp.size()>0)
+        {
+            Mat m(matchtmp);
+            vector<Vec3f> lines;
+            cv::computeCorrespondEpilines(m,2,F,lines);
+            for (cv::vector<cv::Vec3f>::const_iterator it = lines.begin(); it!=lines.end(); ++it)
+            {
+                cv::line(matMatches, cv::Point(0,-(*it)[2]/(*it)[1]), cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),cv::Scalar(0,0,255));
+            }        
+        }
+        cvtColor( matMatches, matMatches, CV_BGR2RGB);
+        ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
+        imgMatch.resize(matMatches.cols, matMatches.rows);
+        IplImage tmpR = matMatches;
+        cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());        
+        outMatch.write();
+        
+
+        
 
         Mat matches=this->stereo->drawMatches();
-        vector<Point2f> matchtmp=this->stereo->getMatchRight();
 
         this->stereo->essentialDecomposition();
+        //this->stereo->hornRelativeOrientations();
         
-        this->stereo->computeDisparity(true,15,50,128,16,7,0,63,0);        
+        this->stereo->computeDisparity(true,15,50,64,16,7,0,63,0);        
         
         if(outDisp.getOutputCount()>0 && matchtmp.size()>0)
         {

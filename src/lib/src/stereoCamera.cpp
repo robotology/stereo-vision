@@ -415,7 +415,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         if(cameraChanged)
         {
             mutex->wait();
-            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1,img_size, &roi1, &roi2,CV_CALIB_ZERO_DISPARITY);
+            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, 0,img_size, &roi1, &roi2,CV_CALIB_ZERO_DISPARITY);
 
             if(!rectify)
             {
@@ -432,7 +432,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         {
             initUndistortRectifyMap(this->Kleft, this->DistL, this->RLrect, this->PLrect, img_size, CV_32FC1, this->map11, this->map12);
             initUndistortRectifyMap(this->Kright,  this->DistR, this->RRrect, this->PRrect, img_size, CV_32FC1, this->map21, this->map22);
-
+            
         }
         
         Mat img1r, img2r;
@@ -493,6 +493,8 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         Mat x;
         remap(map,dispTemp,this->MapperL,x,cv::INTER_LINEAR);
         dispTemp.convertTo(disp8, CV_8U); 
+        
+
 
         this->mutex->wait();
         this->Disparity=disp8;
@@ -604,6 +606,7 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
       
       Point3f point3D;
       Mat J=Mat(4,4,CV_64FC1);
+      J.setTo(cvScalar(0,0,0,0));
       for(int j=0; j<4; j++) {
 
             int rowA=0;
@@ -628,16 +631,18 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
 }
 
 void StereoCamera::estimateEssential() {
+    this->InliersL.clear();
+    this->InliersR.clear();
+    
     if(this->PointsL.size()<10 || this->PointsL.size()<10 ) {
         cout << "Not enough matches in memory! Run findMatch first!" << endl;
         this->E=Mat(3,3,CV_64FC1);
         return;
     }
-    this->InliersL.clear();
-    this->InliersR.clear();
+
     
     vector<uchar> status;
-    this->F=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_LMEDS, 1, 0.999);
+    this->F=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_8POINT, 1, 0.999);
 
     for(int i=0; i<(int) PointsL.size(); i++) {
         if(status[i]==1) {
@@ -665,7 +670,7 @@ void StereoCamera::essentialDecomposition() {
     }
 
     Mat W=Mat(3,3,CV_64FC1);
-
+    W.setTo(cvScalar(0,0,0,0));
     W.at<double>(0,0)=0;
     W.at<double>(0,1)=-1;
     W.at<double>(0,2)=0;
@@ -680,6 +685,12 @@ void StereoCamera::essentialDecomposition() {
     W.at<double>(2,2)=1;
 
     SVD dec(E);
+    
+    Mat Y=Mat::eye(3,3,CV_64FC1);
+    Y.at<double>(2,2)=0.0;
+    E=dec.u*Y*dec.vt;
+    
+    dec(E);
 
     Mat V=dec.vt;
     Mat U=dec.u;
@@ -687,23 +698,23 @@ void StereoCamera::essentialDecomposition() {
 
     Mat R1=U*W*V;
     Mat R2=U*W.t()*V;
-
-
+    
 
     if(determinant(R1)<0 || determinant(R2)<0) {
         E=-E;
         SVD dec2(E);
 
-         V=dec2.vt;
-         U=dec2.u;
+        V=dec2.vt;
+        U=dec2.u;
         
-         R1=U*W*V;
-         R2=U*W.t()*V;
+        R1=U*W*V;
+        R2=U*W.t()*V;
     }
 
 
     Mat t1=U(Range(0,3),Range(2,3));
     Mat t2=-t1;
+
 
     Mat Rnew=Mat(3,3,CV_64FC1);
     Rnew.setTo(cvScalar(0,0,0,0));
@@ -716,9 +727,28 @@ void StereoCamera::essentialDecomposition() {
     this->R=Rnew;
     this->T=(tnew/norm(tnew))*norm(this->T);
     //cout << "WINNERS: " << endl;
-    //printMatrix(this->R);
-    //printMatrix(this->T);
-    //cout << "Det: " << determinant(R) << endl;; 
+    
+    //printMatrix(R2);
+
+    /*Mat Tx=Mat(3,3,CV_64FC1);
+    Tx.setTo(cvScalar(0,0,0,0));
+    Tx.at<double>(0,1)=-tnew.at<double>(2,0);
+    Tx.at<double>(0,2)=tnew.at<double>(1,0);
+    Tx.at<double>(1,0)=tnew.at<double>(2,0);
+    Tx.at<double>(1,2)=-tnew.at<double>(0,0);
+    Tx.at<double>(2,0)=-tnew.at<double>(1,0);
+    Tx.at<double>(2,1)=tnew.at<double>(0,0);
+
+    Mat Erec=Tx*Rnew;
+    fprintf(stdout,"estimated \n");
+    printMatrix(Erec);
+           
+    fprintf(stdout,"true \n");
+    printMatrix(E); */
+    
+    printMatrix(R);
+    printMatrix(T);
+    cout << "Det: " << determinant(R) << endl;; 
     this->updatePMatrix();
     this->cameraChanged=true;
     this->mutex->post();
