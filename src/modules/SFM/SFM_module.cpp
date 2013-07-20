@@ -105,8 +105,10 @@ bool SFM::updateModule()
     if(yarp_imgL==NULL || yarp_imgR==NULL)
         return true;
 
-    left=(IplImage*) yarp_imgL->getIplImage(); // cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/L.ppm");
-    right=(IplImage*) yarp_imgR->getIplImage(); // cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/R.ppm");
+    //left=(IplImage*) yarp_imgL->getIplImage(); 
+    left= cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/L.ppm");
+    //right=(IplImage*) yarp_imgR->getIplImage(); 
+    right=cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/R.ppm");
 
     if(init)
     {
@@ -137,25 +139,28 @@ bool SFM::updateModule()
         
         
 
-
-        Mat F= this->stereo->getFundamental();
         vector<Point2f> matchtmp=this->stereo->getMatchRight();
-        if(matchtmp.size()>0)
+        if(outMatch.getOutputCount()>0)
         {
-            Mat m(matchtmp);
-            vector<Vec3f> lines;
-            cv::computeCorrespondEpilines(m,2,F,lines);
-            for (cv::vector<cv::Vec3f>::const_iterator it = lines.begin(); it!=lines.end(); ++it)
+            Mat F= this->stereo->getFundamental();
+            
+            if(matchtmp.size()>0)
             {
-                cv::line(matMatches, cv::Point(0,-(*it)[2]/(*it)[1]), cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),cv::Scalar(0,0,255));
-            }        
+                Mat m(matchtmp);
+                vector<Vec3f> lines;
+                cv::computeCorrespondEpilines(m,2,F,lines);
+                for (cv::vector<cv::Vec3f>::const_iterator it = lines.begin(); it!=lines.end(); ++it)
+                {
+                    cv::line(matMatches, cv::Point(0,-(*it)[2]/(*it)[1]), cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),cv::Scalar(0,0,255));
+                }        
+            }
+            cvtColor( matMatches, matMatches, CV_BGR2RGB);
+            ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
+            imgMatch.resize(matMatches.cols, matMatches.rows);
+            IplImage tmpR = matMatches;
+            cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());        
+            outMatch.write();
         }
-        cvtColor( matMatches, matMatches, CV_BGR2RGB);
-        ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
-        imgMatch.resize(matMatches.cols, matMatches.rows);
-        IplImage tmpR = matMatches;
-        cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());        
-        outMatch.write();
         
 
         

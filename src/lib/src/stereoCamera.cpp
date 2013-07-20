@@ -749,11 +749,11 @@ void StereoCamera::essentialDecomposition() {
     fprintf(stdout,"true \n");
     printMatrix(E); */
     
-    printMatrix(R);
-    printMatrix(T);
+    printMatrix(Rnew);
+    printMatrix(tnew);
     //printMatrix(t1);
     //printMatrix(t2);    
-    cout << "Det: " << determinant(R) << endl;; 
+    //cout << "Det: " << determinant(R) << endl;; 
     this->updatePMatrix();
     this->cameraChanged=true;
     this->mutex->post();
@@ -774,6 +774,7 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
                 for(int j = 0; j < R1.cols; j++)
                      Mi[j]=MRi[j];
          }
+         
         for(int i = 0; i < t1.rows; i++)
          {
              double* Mi = A.ptr<double>(i);
@@ -782,7 +783,8 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
          }
 
         Mat P2=this->Kright*A;
-
+        A= Mat::eye(3,4,CV_64FC1);
+        
         for(int i = 0; i < R2.rows; i++)
          {
              double* Mi = A.ptr<double>(i);
@@ -796,8 +798,8 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              double* MRi = t2.ptr<double>(i);
              Mi[3]=MRi[0];
          }
-         Mat P3=this->Kright*A;
-
+        Mat P3=this->Kright*A;
+        A= Mat::eye(3,4,CV_64FC1);
 
         for(int i = 0; i < R1.rows; i++)
          {
@@ -813,6 +815,7 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              Mi[3]=MRi[0];
          }
         Mat P4=this->Kright*A;
+        A= Mat::eye(3,4,CV_64FC1);
 
 
             for(int i = 0; i < R2.rows; i++)
@@ -864,34 +867,45 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
     printMatrix(t1);
     printMatrix(R2);
     printMatrix(t2);*/
-    fprintf(stdout, "Inliers: %d, %d, \n",points1.size(),points2.size());
+    //fprintf(stdout, "Inliers: %d, %d, \n",points1.size(),points2.size());
     fprintf(stdout, "errors: %d, %d, %d, %d, \n",err1,err2,err3,err4);
 
       double minErr=10000;
+      double secondErr=minErr;
 
       int idx=0;
       if(err1<minErr && t1.ptr<double>(0)[0]<0)
       {
         idx=1;
+        secondErr=minErr;
         minErr=err1;
       }
         
       if(err2<minErr && t2.ptr<double>(0)[0]<0)
       {
         idx=2;
+        secondErr=minErr;
         minErr=err2;
       } 
       if(err3<minErr && t2.ptr<double>(0)[0]<0)
       {
         idx=3;
+        secondErr=minErr;
         minErr=err3;
       }
       if(err4<minErr && t1.ptr<double>(0)[0]<0)
       {
-          idx=4;
+        idx=4;
+        secondErr=minErr;
         minErr=err4;
       }
 
+      if(secondErr==minErr)
+      {
+        R=this->R;
+        t=this->T;
+        return;      
+      }
       if(idx==1) {
             R=R1;
             t=t1;
@@ -920,6 +934,7 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
 
       Point3f point3D;
       Mat J=Mat(4,4,CV_64FC1);
+      J.setTo(cvScalar(0,0,0,0));
       for(int j=0; j<4; j++) {
 
             int rowA=0;
@@ -936,6 +951,17 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
         SVD decom(J);
         Mat V= decom.vt;
 
+       // printMatrix(V);
+        
+        /*Mat sol=Mat(4,1,CV_64FC1);
+        sol.at<double>(0,0)=V.at<double>(0,0);
+        sol.at<double>(1,0)=V.at<double>(1,1);
+        sol.at<double>(2,0)=V.at<double>(2,2);
+        sol.at<double>(3,0)=V.at<double>(3,3);
+        
+        Mat test=J*sol;
+        
+        printMatrix(test);*/
         point3D.x=(float) ((float) V.at<double>(3,0))/((float) V.at<double>(3,3));
         point3D.y=(float) ((float) V.at<double>(3,1))/((float) V.at<double>(3,3));     
         point3D.z=(float) ((float) V.at<double>(3,2))/((float) V.at<double>(3,3));
