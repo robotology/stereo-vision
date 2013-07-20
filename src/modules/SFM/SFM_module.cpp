@@ -105,8 +105,8 @@ bool SFM::updateModule()
     if(yarp_imgL==NULL || yarp_imgR==NULL)
         return true;
 
-    left=(IplImage*) yarp_imgL->getIplImage();
-    right=(IplImage*) yarp_imgR->getIplImage();
+    left=(IplImage*) yarp_imgL->getIplImage(); // cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/L.ppm");
+    right=(IplImage*) yarp_imgR->getIplImage(); // cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/R.ppm");
 
     if(init)
     {

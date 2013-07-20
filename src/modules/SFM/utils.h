@@ -21,7 +21,7 @@
 
 #include <iostream>
 #include <string>
-
+#include <fstream>
 #include <yarp/sig/Image.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RFModule.h>
@@ -54,11 +54,13 @@ class Utilities
 {
 public:
     SiftMatchGPU                            *matcher;
+    SiftMatchGPU                            *matcherCheck;
     SiftGPU                                 *sift;
     std::vector<float >                     descriptors1, descriptors2;
     std::vector<SiftGPU::SiftKeypoint>      keys1, keys2;
     std::vector<cv::Point2f>                pointsL, pointsR;
     int num1, num2;
+    bool writeS;
     void                                    *hsiftgpu;
     
     Utilities();
@@ -73,6 +75,8 @@ public:
      */
     void extractMatch_GPU( cv::Mat leftMat, cv::Mat rightMat, cv::Mat &matMatches);
     void getMatches(std::vector<cv::Point2f> & points1, std::vector<cv::Point2f>  & points2);
+    void writeSIFTs(std::string filePath, std::vector<float> &des, std::vector<SiftGPU::SiftKeypoint>&points); 
+    void writeMatch(std::string filePath,std::vector<cv::Point2f>  &pointsL, std::vector<cv::Point2f>  &pointsR);
 };
 
 #endif

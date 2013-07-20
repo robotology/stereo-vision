@@ -415,7 +415,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         if(cameraChanged)
         {
             mutex->wait();
-            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, 0,img_size, &roi1, &roi2,CV_CALIB_ZERO_DISPARITY);
+            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1,img_size, &roi1, &roi2);
 
             if(!rectify)
             {
@@ -555,6 +555,8 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
     if(visualize) {
         cv::drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
     }
+    
+    fprintf(stdout,"%d match found \n",PointsR.size());
     return matchImg;
 
 }
@@ -643,6 +645,7 @@ void StereoCamera::estimateEssential() {
     
     vector<uchar> status;
     this->F=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_8POINT, 1, 0.999);
+    
 
     for(int i=0; i<(int) PointsL.size(); i++) {
         if(status[i]==1) {
@@ -748,6 +751,8 @@ void StereoCamera::essentialDecomposition() {
     
     printMatrix(R);
     printMatrix(T);
+    //printMatrix(t1);
+    //printMatrix(t2);    
     cout << "Det: " << determinant(R) << endl;; 
     this->updatePMatrix();
     this->cameraChanged=true;
