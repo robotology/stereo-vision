@@ -713,7 +713,7 @@ void StereoCamera::essentialDecomposition() {
     
     Mat Y=Mat::eye(3,3,CV_64FC1);
     Y.at<double>(2,2)=0.0;
-    E=dec.u*Y*dec.vt;
+    E=dec.u*Y*dec.vt; // projection to the Essential Matrix space
     
     dec(E);
 
@@ -755,20 +755,15 @@ void StereoCamera::essentialDecomposition() {
     Mat rvec_new=Mat::zeros(3,1,CV_64FC1);
     Mat rvec_old=Mat::zeros(3,1,CV_64FC1);
     Rodrigues(Rnew,rvec_new);
-    Rodrigues(R,rvec_old);
     
-    Mat rvec=rvec_new-rvec_old;
-    
-    fprintf(stdout, "angles diff %f %f %f \n" , rvec.at<double>(0,0),rvec.at<double>(1,0),rvec.at<double>(2,0));
-    fprintf(stdout, "angles new %f %f %f \n" , rvec_new.at<double>(0,0),rvec_new.at<double>(1,0),rvec_new.at<double>(2,0));
-    fprintf(stdout, "translation diff: %f rotation difference %f \n", t_norm, r_norm);
-
     Mat t_est=(tnew/norm(tnew))*norm(this->T);
     /*fprintf(stdout, "Estimated Translation \n ");
     printMatrix(t_est);
     fprintf(stdout, "\n ");*/
     
-    if(norm(tnew) >0 && norm(Rnew)>0 && abs(rvec_new.at<double>(0,0))<0.1 && abs(rvec_new.at<double>(2,0))<0.1 && abs(rvec_new.at<double>(1,0))<0.5 && abs(t_est.at<double>(0,0)) <0.068 && abs(t_est.at<double>(0,0))>0.06 && abs(t_est.at<double>(1,0))<0.01 && abs(t_est.at<double>(2,0))< 0.015)
+    // Magic numbers: rvec_new are the rotation angles, only vergence (rvec_new(1,0)) is allowed to be large
+    // t_est is the translation estimated, it can change a little bit when joint 4 of the head is moving
+    if(norm(tnew) >0 && norm(Rnew)>0 && abs(rvec_new.at<double>(0,0))<0.05 && abs(rvec_new.at<double>(2,0))<0.05 && abs(rvec_new.at<double>(1,0))<0.5 && abs(t_est.at<double>(0,0)) <0.069 && abs(t_est.at<double>(0,0))>0.066 && abs(t_est.at<double>(1,0))<0.01 && abs(t_est.at<double>(2,0))< 0.02)
     {
         this->mutex->wait();
         this->R=Rnew;
@@ -776,8 +771,8 @@ void StereoCamera::essentialDecomposition() {
         this->updatePMatrix();
         this->cameraChanged=true;
         this->mutex->post();
-        printMatrix(R);
-        printMatrix(T);        
+        //printMatrix(R);
+        //printMatrix(T);        
     }
  
     //cout << "determinant is " << determinant(Rnew) << endl;; 
@@ -920,7 +915,7 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
     printMatrix(R2);
     printMatrix(t2);*/
     //fprintf(stdout, "Inliers: %d, %d, \n",points1.size(),points2.size());
-    fprintf(stdout, "errors: %d, %d, %d, %d, \n",err1,err2,err3,err4);
+    //fprintf(stdout, "errors: %d, %d, %d, %d, \n",err1,err2,err3,err4);
 
       double minErr=10000;
       double secondErr=minErr;
@@ -987,33 +982,19 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
       Point3f point3D;
       Mat J=Mat(4,4,CV_64FC1);
       J.setTo(cvScalar(0,0,0,0));
-      
-      cv::Point3d ul(pointleft.x,pointleft.y,1.0);
-      Mat um = Kleft.inv() * Mat(ul);
-      ul = um.at<cv::Point3d>(0);
-
-      cv::Point3d ur(pointRight.x,pointRight.y,1.0);
-      Mat um1 = Kright.inv() * Mat(ur);
-      ur = um1.at<cv::Point3d>(0);
-      
-      ul.x=ul.x/ul.z;
-      ul.y=ul.y/ul.z;
-      
-      ur.x=ur.x/ur.z;
-      ur.y=ur.y/ur.z;
-          
+                
       for(int j=0; j<4; j++) {
 
             int rowA=0;
             int rowB=2;
 
-            J.at<double>(0,j)=(ul.x*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
-            J.at<double>(2,j)=(ur.x*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
+            J.at<double>(0,j)=(pointleft.x*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
+            J.at<double>(2,j)=(pointRight.x*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
 
             rowA=1;
             
-            J.at<double>(1,j)=(ul.y*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
-            J.at<double>(3,j)=(ur.y*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
+            J.at<double>(1,j)=(pointleft.y*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
+            J.at<double>(3,j)=(pointRight.y*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
         }
         SVD decom(J);
         Mat V= decom.vt;

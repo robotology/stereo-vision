@@ -94,7 +94,7 @@ void Utilities::extractMatch_GPU(Mat leftMat, Mat rightMat, Mat &matMatches)
 
     int (*match_buf)[2] = new int[num1][2];
     int num_match = matcher->GetSiftMatch(num1, match_buf);
-    fprintf(stdout, "%d SIFT matches were found ", num_match); 
+    //fprintf(stdout, "%d SIFT matches were found ", num_match); 
     
 
 
@@ -136,7 +136,7 @@ void Utilities::extractMatch_GPU(Mat leftMat, Mat rightMat, Mat &matMatches)
             //}
         }
     }
-    fprintf(stdout, "using only %d \n", cnt);  
+    //fprintf(stdout, "using only %d \n", cnt);  
     
     /*if(writeS)
     {

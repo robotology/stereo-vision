@@ -59,6 +59,8 @@ class SFM: public yarp::os::RFModule
     yarp::os::Port rpc;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > leftImgPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > rightImgPort;
+    BufferedPort<ImageOf<PixelRgbFloat> > worldPort;
+    Port handlerPort;
 
     BufferedPort<ImageOf<PixelBgr> > outDisp;
     BufferedPort<ImageOf<PixelBgr> > outMatch;
@@ -84,7 +86,10 @@ class SFM: public yarp::os::RFModule
     Matrix getCameraHGazeCtrl(int camera);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);    
+    void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
 
+    void printMatrix(Mat &matrix);
+    void updateViaKinematics();
     bool init;
 
 public:
@@ -94,6 +99,7 @@ public:
     bool updateModule();
     double getPeriod();
     bool interruptModule();
+    bool respond(const Bottle& command, Bottle& reply);
 
     void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
     Point3f get3DPoints(int u, int v,string drive="LEFT");
