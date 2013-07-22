@@ -16,7 +16,11 @@
 #include <yarp/dev/CartesianControl.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
 #include <iCub/ctrl/math.h>
+#include <iCub/iKin/iKinFwd.h>
+#include <yarp/dev/GazeControl.h>
 #include <iCub/stereoVision/stereoCamera.h>
+#include <iCub/iKin/iKinFwd.h>
+
 
 #ifdef USING_GPU
     #include "utils.h"
@@ -25,12 +29,16 @@
 
 YARP_DECLARE_DEVICES(icubmod)
 
+#define LEFT    0
+#define RIGHT   1
+
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
 using namespace yarp::dev;
-
+using namespace iCub::ctrl;
+using namespace iCub::iKin;
 
 class SFM: public yarp::os::RFModule
 {
@@ -55,7 +63,27 @@ class SFM: public yarp::os::RFModule
     BufferedPort<ImageOf<PixelBgr> > outDisp;
     BufferedPort<ImageOf<PixelBgr> > outMatch;
 
+    bool useBestDisp;
+    int uniquenessRatio; 
+    int speckleWindowSize;
+    int speckleRange;
+    int numberOfDisparities;
+    int SADWindowSize;
+    int minDisparity;
+    int preFilterCap;
+    int disp12MaxDiff;
+    Semaphore* mutexDisp;
+    
+    PolyDriver* gazeCtrl;
+    IGazeControl* igaze;
+    Mat HL_root;
+    Mat HR_root;    
+
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &R, Mat &T);
+    Mat buildRotTras(Mat & R, Mat & T);
+    Matrix getCameraHGazeCtrl(int camera);
+    void convert(Matrix& matrix, Mat& mat);
+    void convert(Mat& mat, Matrix& matrix);    
 
     bool init;
 
@@ -66,4 +94,9 @@ public:
     bool updateModule();
     double getPeriod();
     bool interruptModule();
+
+    void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
+    Point3f get3DPoints(int u, int v,string drive="LEFT");
+    Point3f get3DPointMatch(double u1, double v1, double u2, double v2, string drive="LEFT");
+    Point2f projectPoint(string camera, double x, double y, double z);    
 };

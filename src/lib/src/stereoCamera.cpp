@@ -42,6 +42,7 @@ StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
         this->setTranslation(T,0);
 
         this->cameraChanged=true;
+        this->epipolarTh=0.01;
         this->rectify=rectify;
         buildUndistortRemap();
 }
@@ -55,6 +56,7 @@ StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
     this->mutex=new Semaphore(1);
     this->cameraChanged=true;
     this->rectify=rectify;
+    this->epipolarTh=0.01;
     buildUndistortRemap();
 }
 
@@ -642,20 +644,40 @@ void StereoCamera::estimateEssential() {
         return;
     }
 
+
     
     vector<uchar> status;
     this->F=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_8POINT, 1, 0.999);
     
-
+    
     for(int i=0; i<(int) PointsL.size(); i++) {
-        if(status[i]==1) {
+        Mat pl=Mat(3,1,CV_64FC1);
+        pl.at<double>(0,0)=PointsL[i].x;
+        pl.at<double>(1,0)=PointsL[i].y;
+        pl.at<double>(2,0)=1;
+        
+        Mat pr=Mat(3,1,CV_64FC1);
+        pr.at<double>(0,0)=PointsR[i].x;
+        pr.at<double>(1,0)=PointsR[i].y;
+        pr.at<double>(2,0)=1;
+             
+        Mat s=pr.t()*F*pl;
+        if(status[i]==1 && s.at<double>(0,0)<0.01) {
             InliersL.push_back(PointsL[i]);
             InliersR.push_back(PointsR[i]);
         }
 
     }
-   
 
+    if(this->InliersL.size()<10 || this->InliersR.size()<10 ) {
+        InliersL.clear();
+        InliersR.clear();
+        cout << "Not enough matches in memory! Run findMatch first!" << endl;
+        this->E=Mat(3,3,CV_64FC1);
+        return;
+    }    
+   
+    this->F=findFundamentalMat(Mat(InliersL), Mat(InliersR),status, CV_FM_8POINT, 1, 0.999);
 //    cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
     this->E=this->Kright.t()*this->F*this->Kleft;
 
@@ -726,9 +748,42 @@ void StereoCamera::essentialDecomposition() {
     chierality(R1,R2,t1,t2,Rnew,tnew,this->InliersL,this->InliersR);
 
 
-    this->mutex->wait();
-    this->R=Rnew;
-    this->T=(tnew/norm(tnew))*norm(this->T);
+    
+    double t_norm=norm(T/norm(T),tnew/norm(tnew));
+    double r_norm=norm(R,Rnew);
+    
+    Mat rvec_new=Mat::zeros(3,1,CV_64FC1);
+    Mat rvec_old=Mat::zeros(3,1,CV_64FC1);
+    Rodrigues(Rnew,rvec_new);
+    Rodrigues(R,rvec_old);
+    
+    Mat rvec=rvec_new-rvec_old;
+    
+    fprintf(stdout, "angles diff %f %f %f \n" , rvec.at<double>(0,0),rvec.at<double>(1,0),rvec.at<double>(2,0));
+    fprintf(stdout, "angles new %f %f %f \n" , rvec_new.at<double>(0,0),rvec_new.at<double>(1,0),rvec_new.at<double>(2,0));
+    fprintf(stdout, "translation diff: %f rotation difference %f \n", t_norm, r_norm);
+
+    Mat t_est=(tnew/norm(tnew))*norm(this->T);
+    /*fprintf(stdout, "Estimated Translation \n ");
+    printMatrix(t_est);
+    fprintf(stdout, "\n ");*/
+    
+    if(norm(tnew) >0 && norm(Rnew)>0 && abs(rvec_new.at<double>(0,0))<0.1 && abs(rvec_new.at<double>(2,0))<0.1 && abs(rvec_new.at<double>(1,0))<0.5 && abs(t_est.at<double>(0,0)) <0.068 && abs(t_est.at<double>(0,0))>0.06 && abs(t_est.at<double>(1,0))<0.01 && abs(t_est.at<double>(2,0))< 0.015)
+    {
+        this->mutex->wait();
+        this->R=Rnew;
+        this->T=(tnew/norm(tnew))*norm(this->T);
+        this->updatePMatrix();
+        this->cameraChanged=true;
+        this->mutex->post();
+        printMatrix(R);
+        printMatrix(T);        
+    }
+ 
+    //cout << "determinant is " << determinant(Rnew) << endl;; 
+
+        
+        
     //cout << "WINNERS: " << endl;
     
     //printMatrix(R2);
@@ -749,14 +804,11 @@ void StereoCamera::essentialDecomposition() {
     fprintf(stdout,"true \n");
     printMatrix(E); */
     
-    printMatrix(Rnew);
-    printMatrix(tnew);
+
     //printMatrix(t1);
     //printMatrix(t2);    
     //cout << "Det: " << determinant(R) << endl;; 
-    this->updatePMatrix();
-    this->cameraChanged=true;
-    this->mutex->post();
+
     
 
 }
@@ -900,12 +952,12 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
         minErr=err4;
       }
 
-      if(secondErr==minErr)
+      /*if(secondErr==minErr)
       {
         R=this->R;
         t=this->T;
         return;      
-      }
+      }*/
       if(idx==1) {
             R=R1;
             t=t1;
@@ -935,18 +987,33 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
       Point3f point3D;
       Mat J=Mat(4,4,CV_64FC1);
       J.setTo(cvScalar(0,0,0,0));
+      
+      cv::Point3d ul(pointleft.x,pointleft.y,1.0);
+      Mat um = Kleft.inv() * Mat(ul);
+      ul = um.at<cv::Point3d>(0);
+
+      cv::Point3d ur(pointRight.x,pointRight.y,1.0);
+      Mat um1 = Kright.inv() * Mat(ur);
+      ur = um1.at<cv::Point3d>(0);
+      
+      ul.x=ul.x/ul.z;
+      ul.y=ul.y/ul.z;
+      
+      ur.x=ur.x/ur.z;
+      ur.y=ur.y/ur.z;
+          
       for(int j=0; j<4; j++) {
 
             int rowA=0;
             int rowB=2;
 
-            J.at<double>(0,j)=(pointleft.x*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
-            J.at<double>(2,j)=(pointRight.x*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
+            J.at<double>(0,j)=(ul.x*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
+            J.at<double>(2,j)=(ur.x*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
 
             rowA=1;
             
-            J.at<double>(1,j)=(pointleft.y*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
-            J.at<double>(3,j)=(pointRight.y*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
+            J.at<double>(1,j)=(ul.y*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
+            J.at<double>(3,j)=(ur.y*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
         }
         SVD decom(J);
         Mat V= decom.vt;
@@ -971,7 +1038,30 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
 
 
 
+/*Point3f StereoCamera::triangulationLS(Point2f& point1, Point2f& point2, Mat P, Mat P1)
+{
 
+    Point3f u(point1.x,point1.y,1.0);
+    Mat um = Kleft.inv() * Mat(u);
+    ul = um.at<Point3f>(0);
+
+    Point3f u1(point2.x,point2.y,1.0);
+    Mat um1 = Kright.inv() * Mat(u1);
+    ur = um1.at<Point3f>(0);
+    
+    Mat A(u.x*P(2,0)-P(0,0),u.x*P(2,1)-P(0,1),u.x*P(2,2)-P(0,2),
+u.y*P(2,0)-P(1,0),u.y*P(2,1)-P(1,1),u.y*P(2,2)-P(1,2),
+u1.x*P1(2,0)-P1(0,0), u1.x*P1(2,1)-P1(0,1),u1.x*P1(2,2)-P1(0,2),
+u1.y*P1(2,0)-P1(1,0), u1.y*P1(2,1)-P1(1,1),u1.y*P1(2,2)-P1(1,2));
+
+   Mat A=Mat(4,3,CV_64FC1);
+   
+    A.at<double>(0,0)=u.x*P.at<double>(2,0)-P.at<double(0.0);
+    
+    return u;
+
+
+}*/
 
 
 

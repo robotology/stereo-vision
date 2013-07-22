@@ -60,7 +60,7 @@ void Utilities::initSIFT_GPU()
     pCreateNewSiftMatchGPU = (SiftMatchGPU* (*)(int)) GET_MYPROC(hsiftgpu, "CreateNewSiftMatchGPU");
     sift = pCreateNewSiftGPU(1);
     matcher = pCreateNewSiftMatchGPU(4096);
-    //matcherCheck = pCreateNewSiftMatchGPU(4096);
+
 
     char * argv[] = {(char*)"-fo", (char*)"-1", (char*) "-v",(char*) "1", (char*)"-winpos",(char*)"-maxd", (char*)"1024", (char*)"-cuda"};
     int argc = sizeof(argv)/sizeof(char*);
@@ -73,8 +73,8 @@ void Utilities::initSIFT_GPU()
         fprintf(stdout,"boh, some error\n");
 
     matcher->VerifyContextGL();
-    writeS=true;
-    //matcherCheck->VerifyContextGL();
+    writeS=false;
+
 }
 /************************************************************************/
 void Utilities::extractMatch_GPU(Mat leftMat, Mat rightMat, Mat &matMatches)
@@ -96,13 +96,7 @@ void Utilities::extractMatch_GPU(Mat leftMat, Mat rightMat, Mat &matMatches)
     int num_match = matcher->GetSiftMatch(num1, match_buf);
     fprintf(stdout, "%d SIFT matches were found ", num_match); 
     
-    
-   /* matcherCheck->SetDescriptors(0, num2, &descriptors2[0]);
-    matcherCheck->SetDescriptors(1, num1, &descriptors1[0]);
 
-    int (*match_buf2)[2] = new int[num2][2];
-    int num_match2 = matcherCheck->GetSiftMatch(num2, match_buf2);
-    fprintf(stdout, "%d SIFT matches were found ", num_match); */
 
     double temp = 0.0;
     int cnt = 0;
@@ -111,24 +105,8 @@ void Utilities::extractMatch_GPU(Mat leftMat, Mat rightMat, Mat &matMatches)
     //enumerate all the feature matches
     for(int i  = 0; i < num_match; ++i)
     {
-        /*int idx1=match_buf[i][0];
-        int candidate=match_buf[i][1];
-        
-        int idxCan;
-        for (int k=0; k<num2; k++)
-        {
-            if(match_buf2[k][0]==candidate)
-            {
-               idxCan=k;
-               break;               
-            }
-        }
-        int check=match_buf2[idxCan][1];
-        
-     
-        if(check!=idx1)
-            continue;*/
-            
+
+
         SiftGPU::SiftKeypoint & key1 = keys1[match_buf[i][0]];
         SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
         //key1 in the first image matches with key2 in the second image

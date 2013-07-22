@@ -127,6 +127,8 @@ private:
   
     vector<Point2f> InliersL; // Inliers Left
     vector<Point2f> InliersR; // Inliers Right
+    
+    double epipolarTh; //threshold for the constraint x'Fx=0 -> x'Fx<epipolarTh
 
 
 
@@ -157,7 +159,7 @@ public:
     * Default Constructor. You should initialize all the intrinsic and extrinsic parameters
     * using the provided methods.
     */
-    StereoCamera(bool rectify=true) {this->mutex=new Semaphore(1); this->rectify=rectify; }; 
+    StereoCamera(bool rectify=true) {this->mutex=new Semaphore(1); this->rectify=rectify;  this->epipolarTh=0.01; }; 
 
     ~StereoCamera() { delete mutex; };
 
@@ -252,7 +254,7 @@ public:
     Point3f triangulation(Point2f& point1, Point2f& point2);
 
    /**
-    * It performs the triangulation. The triangulation obtained is not metric! Use the method metricTriangulation if you want a metric triangulation.
+    * It performs the triangulation (HZ Chap 12.2 homogenous solution). The triangulation obtained is not metric! Use the method metricTriangulation if you want a metric triangulation.
     * @param point1 the 2D point coordinates in the first image.
     * @param point2 the 2D point coordinates in the second image.
     * @param Camera1 the 3x4 camera matrix of the first image. 
@@ -261,6 +263,18 @@ public:
     *
     */
     Point3f triangulation(Point2f& point1, Point2f& point2, Mat Camera1, Mat Camera2); 
+    
+    
+    /**
+    * It performs the least square triangulation (HZ Chap 12.2 Inhomogenous solution). The triangulation obtained is not metric! Use the method metricTriangulation if you want a metric triangulation.
+    * @param point1 the 2D point coordinates in the first image.
+    * @param point2 the 2D point coordinates in the second image.
+    * @param Camera1 the 3x4 camera matrix of the first image. 
+    * @param Camera2 the 3x4 camera matrix of the second image. 
+    * @return a 3D point wrt the first camera reference system.
+    *
+    */
+    Point3f triangulationLS(Point2f& point1, Point2f& point2, Mat Camera1, Mat Camera2); 
 
   /**
     * It performs the metric triangulation given the pixel coordinates on the first image. Run compute disparity before using this method.
