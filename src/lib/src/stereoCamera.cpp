@@ -775,7 +775,7 @@ void StereoCamera::essentialDecomposition() {
     // Magic numbers: rvec_new are the rotation angles, only vergence (rvec_new(1,0)) is allowed to be large
     // t_est is the translation estimated, it can change a little bit when joint 4 of the head is moving
     //if(norm(tnew) >0 && norm(Rnew)>0 && abs(rvec_new.at<double>(0,0))<0.05 && abs(rvec_new.at<double>(2,0))<0.05 && abs(rvec_new.at<double>(1,0))<0.5 && abs(t_est.at<double>(0,0)) <0.069 && abs(t_est.at<double>(0,0))>0.066 && abs(t_est.at<double>(1,0))<0.01 && abs(t_est.at<double>(2,0))< 0.02)
-    if(abs(diff_angles.at<double>(0,0))<0.08 && abs(diff_angles.at<double>(1,0))<0.1 && abs(diff_angles.at<double>(2,0))<0.08 && abs(diff_tran.at<double>(0,0))<0.005&& abs(diff_tran.at<double>(1,0))<0.005 && abs(diff_tran.at<double>(2,0))<0.005)    
+    if(abs(diff_angles.at<double>(0,0))<0.1 && abs(diff_angles.at<double>(1,0))<0.1 && abs(diff_angles.at<double>(2,0))<0.1 && abs(diff_tran.at<double>(0,0))<0.005&& abs(diff_tran.at<double>(1,0))<0.005 && abs(diff_tran.at<double>(2,0))<0.005)    
     {
         this->mutex->wait();
         this->R=Rnew;
