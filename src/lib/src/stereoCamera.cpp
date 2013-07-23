@@ -518,8 +518,8 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
     this->InliersL.clear();
     this->InliersR.clear();
 
-    Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
-    Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
+    Ptr<FeatureDetector> detector = FeatureDetector::create( "SURF" );
+    Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SURF");
     Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce" );
 
     vector<KeyPoint> keypoints1;
