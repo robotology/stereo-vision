@@ -204,6 +204,7 @@ bool SFM::updateModule()
     ImageOf<PixelRgb> *yarp_imgR=NULL;
 
     updateViaKinematics(true);
+    
     yarp_imgL=leftImgPort.read(true);
     yarp_imgR=rightImgPort.read(true);
 
@@ -513,8 +514,8 @@ Point3f SFM::get3DPoints(int u, int v, string drive) {
     point.y=point.y/w;
     point.z=point.z/w;
 
-    // discard points far more than 2.5 meters or with not valid disparity (<0)
-    if(point.z>2.5 || point.z<0) {
+    // discard points far more than 10 meters or with not valid disparity (<0)
+    if(point.z>10 || point.z<0) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
