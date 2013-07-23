@@ -62,12 +62,64 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
     this->done=false;
 
     this->updateCamera=updateCamera;
+
+    #ifdef USING_GPU
+        utils = new Utilities();
+        utils->initSIFT_GPU();
+    #endif
+    
+    if(updateCamera)
+    {
+       updateViaKinematics();
+       updateViaKinematics(true);    
+    }
 }
 
 bool DisparityThread::isOpen()
 {
     return success;
 }
+
+
+void DisparityThread::updateViaKinematics(bool exp)
+{
+        
+    Matrix L1=getCameraHGazeCtrl(LEFT);
+    Matrix R1=getCameraHGazeCtrl(RIGHT);
+    
+    Matrix RT=SE3inv(R1)*L1; 
+    
+    Mat R= Mat::zeros(3,3,CV_64F);
+    Mat T= Mat::zeros(3,1,CV_64F);
+    
+    for (int i=0; i<R.rows; i++)
+    {
+        for(int j=0; j<R.cols; j++)
+        {
+            R.at<double>(i,j)=RT(i,j);
+        }
+    }
+    
+    
+    for (int i=0; i<T.rows; i++)
+    {
+        T.at<double>(i,0)=RT(i,3);
+    }
+    
+
+    if(!exp)
+    {
+        stereo->setRotation(R,0);
+        stereo->setTranslation(T,0);
+    }
+    else
+    {
+    
+        stereo->setExpectedPosition(R,T);
+    }
+
+}
+
 
 void DisparityThread::run() 
 {
@@ -76,62 +128,38 @@ void DisparityThread::run()
         fprintf(stdout, "Error. Cannot load camera parameters... Check your config file \n");
     }
 
-    if(work && init && success)
-    {
 
-        /*if (useHorn)
-        {
-            yarp::sig::Vector headAngles(6);
-            posHead->getEncoders(headAngles.data());
-            stereo->undistortImages();
-            stereo->findMatch(false,20,0.25);
-            stereo->estimateEssential();
-            stereo->hornRelativeOrientations();
-        }*/
-
-        Mat H0_R=this->stereo->getRotation();
-        Mat H0_T=this->stereo->getTranslation();
-
-        // get the initial camera relative position
-        Mat H0;
-        buildRotTras(H0_R,H0_T,H0);
-        convert(H0,yarp_H0);
-
-        mutexDisp->wait();
-        yarp_initLeft=LeyeKin->getH(QL);
-        yarp_initRight=ReyeKin->getH(QR);
-        mutexDisp->post();
-        init=false;
-
-    }
 
     if(work && success) 
     {
+        updateViaKinematics(true);
         
         mutexDisp->wait();        
-        //transformation matrices between prev and curr eye frames
-        Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
-        Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
-
-        yarp_Left=SE3inv(yarp_Left)*yarp_initLeft; // Left eye transformation between time t0 and t
-        yarp_Right=SE3inv(yarp_Right)*yarp_initRight; // Right eye transformation between time t0 and t
-
-        Matrix Hcurr=yarp_Right*yarp_H0*SE3inv(yarp_Left); // Transformation from Left to Right eye at time t
-
-        Matrix R=Hcurr.submatrix(0,2,0,2);
-        Matrix newTras=Hcurr.submatrix(0,2,3,3);
         if(updateCamera)
         {
-            // Update Rotation
-            Mat Rot(3,3,CV_64FC1);
-            convert(R,Rot);
-            this->stereo->setRotation(Rot,0);
 
-            //Update Translation
-            Mat translation(3,1,CV_64FC1);
-            convert(newTras,translation);
-            
-            this->stereo->setTranslation(translation,0);
+            #ifdef USING_GPU
+                Mat leftMat=this->stereo->getImLeft();
+                Mat rightMat=this->stereo->getImRight();
+                IplImage left=leftMat;
+                IplImage right=rightMat;
+                this->stereo->setImages(&left,&right);
+                utils->extractMatch_GPU( leftMat, rightMat);
+                vector<Point2f> leftM;
+                vector<Point2f> rightM;
+        
+                utils->getMatches(leftM,rightM);
+ 
+                this->stereo->setMatches(leftM,rightM);
+                this->stereo->estimateEssential();       
+                this->stereo->essentialDecomposition();
+                
+             #else
+                this->stereo->findMatch(false,15,10.0);
+                this->stereo->estimateEssential();       
+                this->stereo->essentialDecomposition();               
+             #endif
+        
         }
         // Compute Disparity
         this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
@@ -288,6 +316,10 @@ void DisparityThread::threadRelease()
     if (polyTorso.isValid())
         polyTorso.close();
 
+    #ifdef USING_GPU
+        delete utils;
+    #endif
+    
     fprintf(stdout,"Disparity Thread Closed... \n");
 
 }
@@ -346,8 +378,8 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
         point.y=point.y/w;
         point.z=point.z/w;
     }
-    // discard points far more than 2.5 meters or with not valid disparity (<0)
-    if(point.z>2.5 || point.z<0) 
+    // discard points far more than 10 meters or with not valid disparity (<0)
+    if(point.z>10 || point.z<0) 
     {
         point.x=0.0;
         point.y=0.0;

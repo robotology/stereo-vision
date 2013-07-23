@@ -6,6 +6,11 @@
 #define LEFT    0
 #define RIGHT   1
 
+#ifdef USING_GPU
+    #include <iCub/stereoVision/utils.h>
+#endif
+
+
 using namespace std; 
 using namespace yarp::os; 
 using namespace yarp::sig;
@@ -42,6 +47,11 @@ private:
     int minDisparity;
     int preFilterCap;
     int disp12MaxDiff;
+    
+    #ifdef USING_GPU
+        /* pointer to the utilities class */
+        Utilities                 *utils;
+    #endif    
 
     yarp::sig::Vector QL;
     yarp::sig::Vector QR;
@@ -75,7 +85,7 @@ private:
     void printMatrixYarp(Matrix &A);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
-
+    void updateViaKinematics(bool exp=false);
 public:
 
     DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false,bool rectify=true);

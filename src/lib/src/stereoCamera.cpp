@@ -1157,6 +1157,9 @@ void StereoCamera::setRotation(Mat& Rot, int mul) {
         this->R=Rot*R;
     if(mul==2)
         this->R=Rot*Rinit;
+        
+    if(R_exp.empty())
+       R_exp=R;
     this->updatePMatrix();
     this->cameraChanged=true;
     this->mutex->post();
@@ -1170,6 +1173,9 @@ void StereoCamera::setTranslation(Mat& Tras, int mul) {
     if(mul==2)
         this->T=Tras+Tinit;
 
+    if(T_exp.empty())
+        T_exp=T;
+        
     if(!this->Kleft.empty() && !this->Kright.empty())
         this->updatePMatrix();
     this->cameraChanged=true;
