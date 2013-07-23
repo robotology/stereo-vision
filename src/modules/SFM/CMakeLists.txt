@@ -18,8 +18,13 @@ if (USE_SIFT_GPU)
     ADD_DEFINITIONS(-DUSING_GPU)
 ENDIF()
 
-file(GLOB source *.cpp)
-file(GLOB header *.h)
+file(GLOB source SFM_module.cpp)
+file(GLOB header SFM_module.h)
+
+if (USE_SIFT_GPU)
+    file(GLOB source SFM_module.cpp utils.cpp)
+    file(GLOB header SFM_module.h utils.h)
+ENDIF()
 
 source_group("Source Files" FILES ${source})
 source_group("Header Files" FILES ${header})

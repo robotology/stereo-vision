@@ -294,7 +294,7 @@ bool SFM::updateModule()
         this->stereo->setImages(left,right);
 
         // find matches
-        this->stereo->findMatch(false,15,10.0);
+        this->stereo->findMatch(false,15,0.8);
 
         //Estimating fundamentalMatrix
         this->stereo->estimateEssential();
