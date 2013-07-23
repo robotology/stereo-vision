@@ -84,6 +84,7 @@ bool SFM::configure(ResourceFinder &rf)
         
         
     updateViaKinematics();
+    updateViaKinematics(true);
     
     //fprintf(stdout, "%s \n",RT.toString().c_str());   
     return true;
@@ -91,7 +92,7 @@ bool SFM::configure(ResourceFinder &rf)
     
 }
 
-void SFM::updateViaKinematics()
+void SFM::updateViaKinematics(bool exp)
 {
         
     Matrix L1=getCameraHGazeCtrl(LEFT);
@@ -117,9 +118,16 @@ void SFM::updateViaKinematics()
     }
     
 
-    stereo->setRotation(R,0);
-    stereo->setTranslation(T,0);
-
+    if(!exp)
+    {
+        stereo->setRotation(R,0);
+        stereo->setTranslation(T,0);
+    }
+    else
+    {
+    
+        stereo->setExpectedPosition(R,T);
+    }
 
 }
 
@@ -195,7 +203,7 @@ bool SFM::updateModule()
     ImageOf<PixelRgb> *yarp_imgL=NULL;
     ImageOf<PixelRgb> *yarp_imgR=NULL;
 
-    
+    updateViaKinematics(true);
     yarp_imgL=leftImgPort.read(true);
     yarp_imgR=rightImgPort.read(true);
 

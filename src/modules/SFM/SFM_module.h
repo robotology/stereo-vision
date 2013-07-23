@@ -89,7 +89,7 @@ class SFM: public yarp::os::RFModule
     void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
 
     void printMatrix(Mat &matrix);
-    void updateViaKinematics();
+    void updateViaKinematics(bool exp=false);
     bool init;
 
 public:

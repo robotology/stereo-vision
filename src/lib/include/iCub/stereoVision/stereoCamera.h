@@ -103,6 +103,8 @@ private:
     Mat Tinit; // Initial Translation 3x3
     Mat R; // Rotation from Left to Right 3x3
     Mat T; // Translation from Left to Right 3x1
+    Mat R_exp; // Expected Rotation
+    Mat T_exp; // Expected Trans
     Mat Q; // Depth Matrix 4x4
     Mat F; // Fundamental Matrix 3x3
     Mat E; // Essential Matrix 3x3
@@ -527,5 +529,7 @@ public:
     Mat drawMatches();
     
     void setMatches(std::vector<cv::Point2f> & pointsL, std::vector<cv::Point2f> & pointsR); 
+    
+    void setExpectedPosition(Mat &Rot, Mat &Tran);
 
 };
