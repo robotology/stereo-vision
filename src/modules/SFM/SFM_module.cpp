@@ -220,7 +220,7 @@ bool SFM::updateModule()
     {
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
-        // find matches
+        matMatches = Mat(left->height, 2*left->width, CV_8UC3);
         init=false;
     }
     Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
@@ -230,7 +230,7 @@ bool SFM::updateModule()
         Mat leftMat(left); 
         Mat rightMat(right);
         this->stereo->setImages(left,right);
-        matMatches = Mat(rightMat.rows, 2*rightMat.cols, CV_8UC3);
+        
         matMatches.adjustROI(0, 0, 0, -leftMat.cols);
         leftMat.copyTo(matMatches);
         matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
