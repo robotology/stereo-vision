@@ -29,4 +29,7 @@ add_subdirectory(stereoDisparity)
 add_subdirectory(testWorldImage)
 add_subdirectory(sceneFlow)
 #add_subdirectory(testDisparity)
-add_subdirectory(SFM)
+
+if (USE_SIFT_GPU)
+    add_subdirectory(SFM)
+endif()

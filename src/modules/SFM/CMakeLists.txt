@@ -5,7 +5,7 @@
 project(SFM)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
-SET(USE_SIFT_GPU ${IS_SIFT_GPU} CACHE BOOL "Select false to run without GPU, or true for GPU acceleration")
+
 
 if (USE_SIFT_GPU)
     FIND_PACKAGE(SIFTGPU)

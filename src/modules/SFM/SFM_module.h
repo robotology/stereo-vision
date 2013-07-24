@@ -22,9 +22,9 @@
 #include <iCub/iKin/iKinFwd.h>
 
 
-#ifdef USING_GPU
-    #include "utils.h"
-#endif
+
+#include <iCub/stereoVision/utils.h>
+
 
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -49,12 +49,13 @@ class SFM: public yarp::os::RFModule
     IplImage* outputD;
     IplImage* output_match;
 
+
     cv::Mat leftMat, rightMat, matMatches;
 
-    #ifdef USING_GPU
+
         /* pointer to the utilities class */
-        Utilities                 *utils;
-    #endif
+    Utilities                 *utils;
+
 
     yarp::os::Port rpc;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > leftImgPort;
