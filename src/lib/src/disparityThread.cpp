@@ -586,11 +586,17 @@ Matrix DisparityThread::getCameraHGazeCtrl(int camera) {
 
     yarp::sig::Vector x_curr;
     yarp::sig::Vector o_curr;
-
+    bool check=false;
     if(camera==LEFT)
-        igaze->getLeftEyePose(x_curr, o_curr);
+        check=igaze->getLeftEyePose(x_curr, o_curr);
     else
-        igaze->getRightEyePose(x_curr, o_curr);
+        check=igaze->getRightEyePose(x_curr, o_curr);
+
+    if(!check)
+    {
+        Matrix H_curr(4, 4);
+        return H_curr;    
+    }
 
     Matrix R_curr=axis2dcm(o_curr);
 
