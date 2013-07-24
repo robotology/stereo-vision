@@ -67,12 +67,6 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
         utils = new Utilities();
         utils->initSIFT_GPU();
     #endif
-    
-    if(updateCamera)
-    {
-       updateViaKinematics();
-       updateViaKinematics(true);    
-    }
 }
 
 bool DisparityThread::isOpen()
@@ -295,6 +289,13 @@ bool DisparityThread::threadInit()
     ReyeKin->alignJointsBounds(lim);
 
     success=success&true;
+
+    if(updateCamera)
+    {
+       updateViaKinematics();
+       updateViaKinematics(true);    
+    }
+
     return true;
 
 }
