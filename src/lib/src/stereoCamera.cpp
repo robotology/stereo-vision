@@ -280,7 +280,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
     }
     Mat R1,R2,P1,P2;
     Rect roi1, roi2;
-    stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, imageSize, this->R, this->T, R1, R2, P1, P2, this->Q, -1, imageSize, &roi1, &roi2 );
+    // stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, imageSize, this->R, this->T, R1, R2, P1, P2, this->Q, -1, imageSize, &roi1, &roi2 );
     fprintf(stdout,"average reprojection err = %f\n",err/npoints);
 
 }
@@ -381,7 +381,7 @@ void StereoCamera::rectifyImages()
     if(cameraChanged)
     {
         mutex->wait();
-        stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1, img_size, &roi1, &roi2 );
+        // stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1, img_size, &roi1, &roi2 );
         mutex->post();
     }
 
@@ -417,7 +417,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         if(cameraChanged)
         {
             mutex->wait();
-            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1,img_size, &roi1, &roi2);
+            // stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1,img_size, &roi1, &roi2);
 
             if(!rectify)
             {
@@ -558,7 +558,7 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
         cv::drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
     }
     
-    fprintf(stdout,"%d match found \n",PointsR.size());
+    fprintf(stdout,"%lu match found \n",PointsR.size());
     return matchImg;
 
 }
@@ -610,7 +610,7 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
       
       Point3f point3D;
       Mat J=Mat(4,4,CV_64FC1);
-      J.setTo(cvScalar(0,0,0,0));
+      J.setTo(0);
       for(int j=0; j<4; j++) {
 
             int rowA=0;
@@ -697,7 +697,7 @@ void StereoCamera::essentialDecomposition() {
     }
 
     Mat W=Mat(3,3,CV_64FC1);
-    W.setTo(cvScalar(0,0,0,0));
+    W.setTo(0);
     W.at<double>(0,0)=0;
     W.at<double>(0,1)=-1;
     W.at<double>(0,2)=0;
@@ -744,7 +744,7 @@ void StereoCamera::essentialDecomposition() {
 
 
     Mat Rnew=Mat(3,3,CV_64FC1);
-    Rnew.setTo(cvScalar(0,0,0,0));
+    Rnew.setTo(0);
     Mat tnew=Mat(3,1,CV_64FC1);
 
     chierality(R1,R2,t1,t2,Rnew,tnew,this->InliersL,this->InliersR);
@@ -796,7 +796,7 @@ void StereoCamera::essentialDecomposition() {
     //printMatrix(R2);
 
     /*Mat Tx=Mat(3,3,CV_64FC1);
-    Tx.setTo(cvScalar(0,0,0,0));
+    Tx.setTo(0);
     Tx.at<double>(0,1)=-tnew.at<double>(2,0);
     Tx.at<double>(0,2)=tnew.at<double>(1,0);
     Tx.at<double>(1,0)=tnew.at<double>(2,0);
@@ -993,7 +993,7 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
 
       Point3f point3D;
       Mat J=Mat(4,4,CV_64FC1);
-      J.setTo(cvScalar(0,0,0,0));
+      J.setTo(0);
                 
       for(int j=0; j<4; j++) {
 
@@ -1328,11 +1328,11 @@ void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
     while ( (prevres  - res  >  vanishing) ) {
         iters = iters+1;
         
-        B.setTo(cvScalar(0));
-        C.setTo(cvScalar(0));
-        D.setTo(cvScalar(0));
-        cs.setTo(cvScalar(0));
-        ds.setTo(cvScalar(0));
+        B.setTo(0);
+        C.setTo(0);
+        D.setTo(0);
+        cs.setTo(0);
+        ds.setTo(0);
        
         prevres=res;
         res=0;
