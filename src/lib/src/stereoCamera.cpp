@@ -280,7 +280,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
     }
     Mat R1,R2,P1,P2;
     Rect roi1, roi2;
-    // stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, imageSize, this->R, this->T, R1, R2, P1, P2, this->Q, -1, imageSize, &roi1, &roi2 );
+    stereoRectify( this->Kleft, this->DistL, this->Kright, this->DistR, imageSize, this->R, this->T, R1, R2, P1, P2, this->Q, -1, imageSize, &roi1, &roi2 );
     fprintf(stdout,"average reprojection err = %f\n",err/npoints);
 
 }
@@ -381,7 +381,7 @@ void StereoCamera::rectifyImages()
     if(cameraChanged)
     {
         mutex->wait();
-        // stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1, img_size, &roi1, &roi2 );
+        stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1, img_size, &roi1, &roi2 );
         mutex->post();
     }
 
@@ -417,7 +417,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         if(cameraChanged)
         {
             mutex->wait();
-            // stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1,img_size, &roi1, &roi2);
+            stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1,img_size, &roi1, &roi2);
 
             if(!rectify)
             {
