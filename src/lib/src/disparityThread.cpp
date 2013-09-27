@@ -269,7 +269,7 @@ bool DisparityThread::threadInit()
 
     Bottle p;
     igaze->getInfo(p);
-    int vHead=p.check(("head_version"),Value(1)).asInt();
+    int vHead=(int)p.check(("head_version"),Value(1.0)).asDouble();
     stringstream headType;
     headType << "v";
     headType << vHead;
