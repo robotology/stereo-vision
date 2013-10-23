@@ -52,7 +52,6 @@ bool sceneFlowModule::updateModule()
 		
 	    fprintf(stdout,"3D Motion of Pixel (%i,%i): (%f, %f, %f) \n",u,v,Pflow3D.x,Pflow3D.y,Pflow3D.z);
 
-
 		// Compute and show motion field and flow module
 
 		IplImage* module=cvCreateImage(cvSize(sceneFlow->getImgWidth(),sceneFlow->getImgHeight()),8,3);
