@@ -46,11 +46,6 @@
 #include <fstream>
 #include <yarp/os/all.h>
 
-#include "opencv2/core/core.hpp"
-#include "opencv2/features2d/features2d.hpp"
-#include "opencv2/nonfree/features2d.hpp"
-#include "opencv2/nonfree/nonfree.hpp"
-
 
 using namespace std;
 using namespace yarp::os;
@@ -148,7 +143,7 @@ private:
     bool readStringList( const string& filename, vector<string>& l );
     void runStereoCalib(const vector<string>& imagelist, Size boardSize,float sqsize);
     double* reprojectionError(Mat& Rot, Mat& Tras);
-    void crossCheckMatching( cv::BFMatcher& descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius, int knn=1);
+    void crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius, int knn=1);
     void updatePMatrix();
     void stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize);
     void normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR);
