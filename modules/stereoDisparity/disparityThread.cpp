@@ -51,6 +51,20 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     this->inputRightPortName +=moduleName;
     this->inputRightPortName += rf.check("InputPortRight", Value("/cam/right:i"), "Input image port (string)").asString().c_str();
 
+    this->inputLeftPortName ="/";
+    this->inputLeftPortName +=moduleName;
+    this->inputLeftPortName += rf.check("InputPortLeft", Value("/cam/left:i"), "Input image port (string)").asString().c_str();
+
+
+    this->outputLeftRectName ="/";
+    this->outputLeftRectName +=moduleName;
+    this->outputLeftRectName += rf.check("OutputLeftRectified", Value("/leftRect:o"), "Input image port (string)").asString().c_str();
+
+    this->outputRightRectName ="/";
+    this->outputRightRectName +=moduleName;
+    this->outputRightRectName += rf.check("OutputRightRectified", Value("/rightRect:o"), "Input image port (string)").asString().c_str();
+
+
     this->outName= "/";
     this->outName += moduleName;
     this->outName += rf.check("OutPort", Value("/disparity:o"), "Output image port (string)").asString().c_str();
@@ -110,6 +124,16 @@ bool disparityThread::threadInit()
 
     if (!imagePortInRight.open(inputRightPortName.c_str())) {
         cout << ": unable to open port " << inputRightPortName << endl;
+        return false;
+    }
+
+    if (!outLeftRectPort.open(outputLeftRectName.c_str())) {
+        cout << ": unable to open port " << outputLeftRectName << endl;
+        return false;
+    }
+
+    if (!outRightRectPort.open(outputRightRectName.c_str())) {
+        cout << ": unable to open port " << outputRightRectName << endl;
         return false;
     }
 
@@ -431,6 +455,20 @@ void disparityThread::run(){
                     outPort.write();
                 }
 
+                if(outLeftRectPort.getOutputCount() && outRightRectPort.getOutputCount())
+                {
+                    IplImage Lrect=stereo->getLRectified();
+                    ImageOf<PixelBgr>& outimL=outLeftRectPort.prepare();
+                    outimL.wrapIplImage(&Lrect);
+                    outLeftRectPort.write();
+
+                    IplImage Rrect=stereo->getRRectified();
+                    ImageOf<PixelBgr>& outimR=outRightRectPort.prepare();
+                    outimR.wrapIplImage(&Lrect);
+                    outRightRectPort.write();
+
+                }
+
                 if(worldPort.getOutputCount()>0 && this->computeDisparity)
                 {
                     ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
@@ -470,7 +508,10 @@ void disparityThread::threadRelease()
     outPort.close();
     worldPort.close();
     boxPort.close();
+    outRightRectPort.close();
     commandPort->close();
+    outRightRectPort.close();
+
     delete this->stereo;
     delete this->mutexDisp;
     
@@ -488,6 +529,9 @@ void disparityThread::threadRelease()
     if(outputWorld!=NULL)
         cvReleaseImage(&outputWorld);
 
+ 
+
+
 }
 void disparityThread::onStop() {
     imagePortInRight.interrupt();
@@ -495,6 +539,8 @@ void disparityThread::onStop() {
     commandPort->interrupt();
     worldPort.interrupt();
     boxPort.interrupt();
+    outRightRectPort.interrupt();
+    outLeftRectPort.interrupt();
 }
 
 Mat disparityThread::buildRotTras(Mat & R, Mat & T) {

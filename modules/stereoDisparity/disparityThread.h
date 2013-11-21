@@ -65,6 +65,8 @@ private:
 
     string inputLeftPortName;
     string inputRightPortName;
+    string outputLeftRectName;
+    string outputRightRectName;
     string outName;
     string worldPortName;
     string boxPortName;
@@ -73,6 +75,10 @@ private:
     BufferedPort<ImageOf<PixelRgb> > imagePortInLeft;
     BufferedPort<ImageOf<PixelRgb> > imagePortInRight;
     BufferedPort<ImageOf<PixelBgr> > outPort;
+    BufferedPort<ImageOf<PixelBgr> > outLeftRectPort;
+    BufferedPort<ImageOf<PixelBgr> > outRightRectPort;
+
+
     BufferedPort<ImageOf<PixelRgbFloat> > worldPort;
     BufferedPort<Bottle> boxPort;
 

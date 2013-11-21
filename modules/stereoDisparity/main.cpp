@@ -60,6 +60,12 @@ YARP libraries and OpenCV 2.2
 --InputPortRight  \e inputRight
 - The parameter \e inputRight specifies the right image input port.
 
+--OutputLeftRectified  \e outLRect
+- The parameter \e inputLeft specifies the left image input port.
+
+--OutputRightRectified  \e outRRect
+- The parameter \e inputRight specifies the right image input port.
+
 --BoxPort  \e inputBox
 - The parameter \e inputBox specifies the port for the bounding box.
 
@@ -76,6 +82,8 @@ YARP libraries and OpenCV 2.2
 \section portsc_sec Ports Created
 - <i> /<stemName>/<inputLeft> </i> accepts the incoming images from the left eye. 
 - <i> /<stemName>/<inputRight> </i> accepts the incoming images from the right eye. 
+- <i> /<stemName>/<outLRect> </i> outputs the rectified left image. 
+- <i> /<stemName>/<outRRect> </i> outputs the rectified right image. 
 - <i> /<stemName>/<box:i> </i> accepts the quadruple (u0,v0,width,height) of the region of interest (ROI). The output port <i> /<stemName>/<world:o> </i> (see below) will compute the three world coordinates only for points belonging to the ROI.
 
 - <i> /<stemName>/<disparity:o> </i> outputs the disparity map in grayscale values.
