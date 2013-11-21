@@ -517,21 +517,21 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
     this->InliersL.clear();
     this->InliersR.clear();
 
-    Ptr<FeatureDetector> detector = FeatureDetector::create( "SURF" );
-    Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SURF");
-    Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce" );
+    cv::SurfFeatureDetector detector( 400 );
+    cv::SurfDescriptorExtractor extractor;
 
     vector<KeyPoint> keypoints1;
-    detector->detect( this->imleftund, keypoints1 );
+    detector.detect( imleftund, keypoints1 );
     Mat descriptors1;
-    descriptorExtractor->compute(this->imleftund, keypoints1, descriptors1 );
+    extractor.compute(this->imleftund, keypoints1, descriptors1 );
 
     vector<KeyPoint> keypoints2;
-    detector->detect( this->imrightund, keypoints2 );
+    detector.detect( this->imrightund, keypoints2 );
     Mat descriptors2;
-    descriptorExtractor->compute( this->imrightund, keypoints2, descriptors2 );
+    extractor.compute( this->imrightund, keypoints2, descriptors2 );
 
     vector<DMatch> filteredMatches;
+    cv::BFMatcher descriptorMatcher;
     crossCheckMatching( descriptorMatcher, descriptors1, descriptors2, filteredMatches,radius, 1 );
 
     vector<char> matchMask(filteredMatches.size(),1);
@@ -633,22 +633,107 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
 
 }
 
+Mat StereoCamera::FfromP(Mat& P1, Mat& P2)
+{
+    Mat F_true(3,3,CV_64FC1);
+
+    Mat X1(2,4,CV_64FC1);
+    Mat X2(2,4,CV_64FC1);
+    Mat X3(2,4,CV_64FC1);
+
+    Mat Y1(2,4,CV_64FC1);
+    Mat Y2(2,4,CV_64FC1);
+    Mat Y3(2,4,CV_64FC1);
+    
+
+    for(int i=0; i<P1.rows; i++)
+    {
+        for(int j=0; j<P1.cols; j++)
+        {
+            if(i==0)
+            {
+                X2.at<double>(1,j)= P1.at<double>(i,j);
+                X3.at<double>(0,j)= P1.at<double>(i,j);
+                Y2.at<double>(1,j)= P2.at<double>(i,j);
+                Y3.at<double>(0,j)= P2.at<double>(i,j);                    
+            }
+            if(i==1)
+            {
+                X1.at<double>(0,j)= P1.at<double>(i,j);
+                X3.at<double>(1,j)= P1.at<double>(i,j);
+                Y1.at<double>(0,j)= P2.at<double>(i,j);
+                Y3.at<double>(1,j)= P2.at<double>(i,j);                   
+            }
+
+            if(i==2)
+            {
+                X1.at<double>(1,j)= P1.at<double>(i,j);
+                X2.at<double>(0,j)= P1.at<double>(i,j);
+                Y1.at<double>(1,j)= P2.at<double>(i,j);
+                Y2.at<double>(0,j)= P2.at<double>(i,j);
+
+            }
+
+        }
+    }
+
+
+
+    std::vector<Mat> MatX;
+    std::vector<Mat> MatY;
+
+    MatX.push_back(X1);
+    MatX.push_back(X2);
+    MatX.push_back(X3);
+
+    MatY.push_back(Y1);
+    MatY.push_back(Y2);
+    MatY.push_back(Y3);
+
+
+
+    for(int i=0; i<F_true.rows; i++)
+    {
+        for(int j=0; j<F_true.cols; j++)
+        {
+            Mat X=MatX[i];
+            Mat Y=MatY[j];
+
+            Mat concatenated;
+
+            cv::vconcat(X,Y,concatenated);
+
+            F_true.at<double>(j,i)=cv::determinant(concatenated);
+
+
+        }
+
+    }
+
+
+    return F_true;
+
+}
+
 void StereoCamera::estimateEssential() {
     this->InliersL.clear();
     this->InliersR.clear();
-    
+ 
+
+
+
     if(this->PointsL.size()<10 || this->PointsL.size()<10 ) {
         cout << "Not enough matches in memory! Run findMatch first!" << endl;
         this->E=Mat(3,3,CV_64FC1);
         return;
     }
 
+    updateExpectedCameraMatrices();
+    Mat F_exp=FfromP(Pleft_exp,Pright_exp);
 
-    
-    vector<uchar> status;
-    this->F=findFundamentalMat(Mat(PointsL), Mat(PointsR),status, CV_FM_8POINT, 1, 0.999);
-    
-    
+    vector<Point2f> filteredL;
+    vector<Point2f> filteredR;
+
     for(int i=0; i<(int) PointsL.size(); i++) {
         Mat pl=Mat(3,1,CV_64FC1);
         pl.at<double>(0,0)=PointsL[i].x;
@@ -660,10 +745,32 @@ void StereoCamera::estimateEssential() {
         pr.at<double>(1,0)=PointsR[i].y;
         pr.at<double>(2,0)=1;
              
+        Mat s=pr.t()*F_exp*pl;
+        if(s.at<double>(0,0)<0.01) {
+            filteredL.push_back(PointsL[i]);
+            filteredR.push_back(PointsR[i]);
+        }
+    }
+
+    vector<uchar> status;
+    this->F=findFundamentalMat(Mat(filteredL), Mat(filteredR),status, CV_FM_8POINT, 1, 0.999);
+    
+    
+    for(int i=0; i<(int) filteredL.size(); i++) {
+        Mat pl=Mat(3,1,CV_64FC1);
+        pl.at<double>(0,0)=filteredL[i].x;
+        pl.at<double>(1,0)=filteredL[i].y;
+        pl.at<double>(2,0)=1;
+        
+        Mat pr=Mat(3,1,CV_64FC1);
+        pr.at<double>(0,0)=filteredR[i].x;
+        pr.at<double>(1,0)=filteredR[i].y;
+        pr.at<double>(2,0)=1;
+             
         Mat s=pr.t()*F*pl;
         if(status[i]==1 && s.at<double>(0,0)<0.01) {
-            InliersL.push_back(PointsL[i]);
-            InliersR.push_back(PointsR[i]);
+            InliersL.push_back(filteredL[i]);
+            InliersR.push_back(filteredR[i]);
         }
 
     }
@@ -1186,10 +1293,32 @@ void StereoCamera::printExtrinsic() {
     printMatrix(this->T);
 }
 
+void StereoCamera::updateExpectedCameraMatrices()
+{
+        Mat A = Mat::eye(3, 4, CV_64F);
+        Pleft_exp=Kleft*A;
+
+        for(int i = 0; i < this->R_exp.rows; i++)
+        {
+         double* Mi = A.ptr<double>(i);
+         double* MRi = this->R_exp.ptr<double>(i);
+            for(int j = 0; j < this->R_exp.cols; j++)
+                 Mi[j]=MRi[j];
+        }
+        for(int i = 0; i < this->T_exp.rows; i++)
+        {
+         double* Mi = A.ptr<double>(i);
+         double* MRi = this->T_exp.ptr<double>(i);
+         Mi[3]=MRi[0];
+        }
+
+        Pright_exp=Kright*A;
+}
 void StereoCamera::updatePMatrix() {
 
 
         Mat A = Mat::eye(3, 4, CV_64F);
+        Pleft=Kleft*A;
    
         for(int i = 0; i < this->R.rows; i++)
          {
@@ -1217,14 +1346,14 @@ const Mat StereoCamera::getRotation() {
 }
 
 
-void StereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher,
+void StereoCamera::crossCheckMatching( cv::BFMatcher& descriptorMatcher,
                          const Mat& descriptors1, const Mat& descriptors2,
                          vector<DMatch>& filteredMatches12, double radius, int knn )
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
-    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) radius );
-    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) radius );
+    descriptorMatcher.radiusMatch( descriptors1, descriptors2, matches12, (float) radius );
+    descriptorMatcher.radiusMatch( descriptors2, descriptors1, matches21, (float) radius );
     for( size_t m = 0; m < matches12.size(); m++ )
     {
         bool findCrossCheck = false;

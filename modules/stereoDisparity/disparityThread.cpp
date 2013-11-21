@@ -440,6 +440,12 @@ void disparityThread::run(){
                 Mat translation(3,1,CV_64FC1);
                 convert(newTras,translation);
                 //this->stereo->setTranslation(translation,0);
+                
+                /*this->stereo->setExpectedPosition(Rot,translation);
+                this->stereo->undistortImages();
+                this->stereo->findMatch();
+                this->stereo->estimateEssential();*/
+
                 if(this->computeDisparity)
                     this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
                 else

@@ -46,6 +46,12 @@
 #include <fstream>
 #include <yarp/os/all.h>
 
+#include "opencv2/core/core.hpp"
+#include "opencv2/features2d/features2d.hpp"
+#include "opencv2/nonfree/features2d.hpp"
+#include "opencv2/nonfree/nonfree.hpp"
+
+
 using namespace std;
 using namespace yarp::os;
 
@@ -105,6 +111,8 @@ private:
     Mat T; // Translation from Left to Right 3x1
     Mat R_exp; // Expected Rotation
     Mat T_exp; // Expected Trans
+    Mat Pleft_exp; // Expected Camera Matrix left
+    Mat Pright_exp; // Expected Camera Matrix right
     Mat Q; // Depth Matrix 4x4
     Mat F; // Fundamental Matrix 3x3
     Mat E; // Essential Matrix 3x3
@@ -140,7 +148,7 @@ private:
     bool readStringList( const string& filename, vector<string>& l );
     void runStereoCalib(const vector<string>& imagelist, Size boardSize,float sqsize);
     double* reprojectionError(Mat& Rot, Mat& Tras);
-    void crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius, int knn=1);
+    void crossCheckMatching( cv::BFMatcher& descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius, int knn=1);
     void updatePMatrix();
     void stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize);
     void normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR);
@@ -154,6 +162,7 @@ private:
     void printStereoIntrinsic();
     void printExtrinsic();
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T);
+    void updateExpectedCameraMatrices();
 
 public:
 
@@ -531,5 +540,7 @@ public:
     void setMatches(std::vector<cv::Point2f> & pointsL, std::vector<cv::Point2f> & pointsR); 
     
     void setExpectedPosition(Mat &Rot, Mat &Tran);
+
+    Mat FfromP(Mat& P1, Mat& P2);
 
 };
