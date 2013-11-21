@@ -70,14 +70,14 @@ source_group("Header Files" FILES ${folder_header})
 
 add_library(${PROJECTNAME} ${folder_source} ${folder_header})
 if (USE_SIFT_GPU)
-    target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin icubmod ${YARP_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS} )
+    target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin icubmod ${YARP_LIBRARIES} ${SIFTGPU_LIBRARIES}  )
 else()
     target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin icubmod ${YARP_LIBRARIES})
 endif()
 
 if (USE_SIFT_GPU)
 icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
-                                          EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_LIBRARIES}
+                                          EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS})
                                           DESTINATION include/iCub/stereoVision
                                           FILES ${folder_header})
 else()
