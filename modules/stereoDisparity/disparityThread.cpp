@@ -455,16 +455,19 @@ void disparityThread::run(){
                     outPort.write();
                 }
 
-                if(outLeftRectPort.getOutputCount() && outRightRectPort.getOutputCount())
+                if(outLeftRectPort.getOutputCount() && outRightRectPort.getOutputCount() && !isStopping())
                 {
+                    stereo->rectifyImages();
                     IplImage Lrect=stereo->getLRectified();
                     ImageOf<PixelBgr>& outimL=outLeftRectPort.prepare();
+                    cvCvtColor(&Lrect,&Lrect,CV_RGB2BGR);
                     outimL.wrapIplImage(&Lrect);
                     outLeftRectPort.write();
 
                     IplImage Rrect=stereo->getRRectified();
                     ImageOf<PixelBgr>& outimR=outRightRectPort.prepare();
-                    outimR.wrapIplImage(&Lrect);
+                    cvCvtColor(&Rrect,&Rrect,CV_RGB2BGR);
+                    outimR.wrapIplImage(&Rrect);
                     outRightRectPort.write();
 
                 }
@@ -508,9 +511,10 @@ void disparityThread::threadRelease()
     outPort.close();
     worldPort.close();
     boxPort.close();
+
     outRightRectPort.close();
     commandPort->close();
-    outRightRectPort.close();
+    outLeftRectPort.close();
 
     delete this->stereo;
     delete this->mutexDisp;
