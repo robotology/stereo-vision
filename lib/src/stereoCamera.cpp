@@ -793,15 +793,15 @@ void StereoCamera::estimateEssential() {
 
 
 
-void StereoCamera::essentialDecomposition() {
+bool StereoCamera::essentialDecomposition() {
 
     if(E.empty() ) {
         cout << "Essential Matrix is Empy! Run the estimateEssential first!" << endl;
-        return;
+        return false;
     }
     if(this->InliersL.empty()) {
         cout << "No matches in memory! Run findMatch first!" << endl;
-        return;
+        return false;
     }
 
     Mat W=Mat(3,3,CV_64FC1);
@@ -891,10 +891,11 @@ void StereoCamera::essentialDecomposition() {
         this->updatePMatrix();
         this->cameraChanged=true;
         this->mutex->post();
+        return true;
         //printMatrix(R);
         //printMatrix(T);        
     }
- 
+    return false;
     //cout << "determinant is " << determinant(Rnew) << endl;; 
 
         

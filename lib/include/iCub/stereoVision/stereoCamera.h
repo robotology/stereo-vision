@@ -317,7 +317,7 @@ public:
     /**
     * It decomposes the essential matrix in Rotation and Translation between the two views. The output is stored in the private members R and T.
     */
-    void essentialDecomposition();
+    bool essentialDecomposition();
 
     /**
     * It performs the chierality test: given a couple of rotation matrices, translation vectors and matches it finds the correct rotation and translation s.t.

@@ -75,6 +75,8 @@ class SFM: public yarp::os::RFModule
     int minDisparity;
     int preFilterCap;
     int disp12MaxDiff;
+    bool doSFM;
+    bool doSFMOnce;
     Semaphore* mutexDisp;
     
     PolyDriver* gazeCtrl;

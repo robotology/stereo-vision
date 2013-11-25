@@ -44,7 +44,7 @@ bool SFM::configure(ResourceFinder &rf)
     this->uniquenessRatio=15;
     this->speckleWindowSize=50;
     this->speckleRange=16;
-    this->numberOfDisparities=48;
+    this->numberOfDisparities=64;
     this->SADWindowSize=7;
     this->minDisparity=0;
     this->preFilterCap=63;
@@ -82,7 +82,8 @@ bool SFM::configure(ResourceFinder &rf)
         return false;
     }
         
-        
+    doSFM=true;
+    doSFMOnce=false;
     updateViaKinematics();
     updateViaKinematics(true);
     
@@ -231,27 +232,29 @@ bool SFM::updateModule()
         Mat rightMat(right);
         this->stereo->setImages(left,right);
         
-        matMatches.adjustROI(0, 0, 0, -leftMat.cols);
-        leftMat.copyTo(matMatches);
-        matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
-        rightMat.copyTo(matMatches);
-        matMatches.adjustROI(0, 0, leftMat.cols, 0);
+        if(doSFM || doSFMOnce)
+        {
+            matMatches.adjustROI(0, 0, 0, -leftMat.cols);
+            leftMat.copyTo(matMatches);
+            matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
+            rightMat.copyTo(matMatches);
+            matMatches.adjustROI(0, 0, leftMat.cols, 0);
 
-        utils->extractMatch_GPU( leftMat, rightMat, matMatches );
-        vector<Point2f> leftM;
-        vector<Point2f> rightM;
-        
-        utils->getMatches(leftM,rightM);
+            utils->extractMatch_GPU( leftMat, rightMat, matMatches );
+            vector<Point2f> leftM;
+            vector<Point2f> rightM;
+            
+            utils->getMatches(leftM,rightM);
+            mutexDisp->wait();
+            this->stereo->setMatches(leftM,rightM);
+            this->stereo->estimateEssential();        
+
+            this->stereo->essentialDecomposition();
+            mutexDisp->post();
+            if(doSFMOnce)
+                doSFMOnce=false;
+        }
         mutexDisp->wait();
-        this->stereo->setMatches(leftM,rightM);
-        this->stereo->estimateEssential();           
-
-        
-
-        
-
-        this->stereo->essentialDecomposition();
-      
         this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
         mutexDisp->post();
         
@@ -724,6 +727,27 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     if (command.get(0).asString()=="quit") {
         cout << "closing..." << endl;
         return false;
+    }
+
+    if(command.get(0).asString()=="stopSFM")
+    {
+        doSFM=false;
+        reply.addString("ACK");
+        return true;
+    }
+
+    if(command.get(0).asString()=="startSFM")
+    {
+        doSFM=true;
+        reply.addString("ACK");
+        return true;
+    }
+
+    if(command.get(0).asString()=="recalibrate")
+    {
+        doSFMOnce=true;
+        reply.addString("ACK");
+        return true;
     }
 
     if(command.get(0).asString()=="set" && command.size()==10)

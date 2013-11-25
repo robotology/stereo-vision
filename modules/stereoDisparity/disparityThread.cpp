@@ -92,7 +92,7 @@ disparityThread::disparityThread(yarp::os::ResourceFinder &rf, Port* commPort)
     this->uniquenessRatio=15;
     this->speckleWindowSize=50;
     this->speckleRange=16;
-    this->numberOfDisparities=64;
+    this->numberOfDisparities=128;
     this->SADWindowSize=7;
     this->minDisparity=0;
     this->preFilterCap=63;
