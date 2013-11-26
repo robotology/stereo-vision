@@ -410,15 +410,19 @@ void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckl
 
 
 Point3f SFM::get3DPointsAndDisp(int u, int v,  int& currDisp, string drive ) {
-    u=u; // matrix starts from (0,0), pixels from (0,0)
+   u=u; // matrix starts from (0,0), pixels from (0,0)
     v=v;
     Point3f point;
 
+    if(drive!="RIGHT" && drive !="LEFT" && drive!="ROOT") {
+        point.x=0.0;
+        point.y=0.0;
+        point.z=0.0;
+        return point;
+    }
 
     this->mutexDisp->wait();
 
-    if(!computeDisparity)
-        this->stereo->computeDisparity();
 
     // Mapping from Rectified Cameras to Original Cameras
     Mat Mapper=this->stereo->getMapperL();
@@ -442,7 +446,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v,  int& currDisp, string drive ) {
     IplImage disp16=this->stereo->getDisparity16();
 
 
-    if(u<0 || u>=disp.width || v<0 || v>=disp.height) {
+    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -463,8 +467,8 @@ Point3f SFM::get3DPointsAndDisp(int u, int v,  int& currDisp, string drive ) {
     point.y=point.y/w;
     point.z=point.z/w;
 
-    // discard points far more than 2.5 meters or with not valid disparity (<0)
-    if(point.z>2.5 || point.z<0) {
+    // discard points far more than 10 meters or with not valid disparity (<0)
+    if(point.z>10 || point.z<0) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -524,6 +528,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v,  int& currDisp, string drive ) {
 
     this->mutexDisp->post();
     return point;
+
 
 }
 
@@ -895,7 +900,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         int u = command.get(0).asInt();
         int v = command.get(1).asInt(); 
         int currD;
-        Point3f point = dispThread->get3DPointsAndDisp(u,v,currD,"ROOT");
+        Point3f point = this->get3DPointsAndDisp(u,v,currD,"ROOT");
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
