@@ -99,10 +99,13 @@ bool stereoModule::respond(const Bottle& command, Bottle& reply)
     else if (command.size()==2) {
         int u = command.get(0).asInt();
         int v = command.get(1).asInt(); 
-        Point3f point = dispThread->get3DPoints(u,v,"ROOT");
+        int currD;
+        Point3f point = dispThread->get3DPointsAndDisp(u,v,currD,"ROOT");
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
+        reply.addInt(currD);
+
     }
     else if (command.get(0).asString()=="Right") {
         int u = command.get(1).asInt();

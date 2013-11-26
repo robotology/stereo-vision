@@ -114,6 +114,8 @@ public:
     void compute(bool compute);
     bool isComputing();
     void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
+    Point3f get3DPointsAndDisp(int u, int v, int &disp, string drive);
+    
     Point3f get3DPoints(int u, int v,string drive="LEFT");
     Point3f get3DPointMatch(double u1, double v1, double u2, double v2, string drive="LEFT");
     Point2f projectPoint(string camera, double x, double y, double z);
