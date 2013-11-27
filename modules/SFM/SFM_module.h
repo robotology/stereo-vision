@@ -66,6 +66,7 @@ class SFM: public yarp::os::RFModule
     BufferedPort<ImageOf<PixelBgr> > outDisp;
     BufferedPort<ImageOf<PixelBgr> > outMatch;
 
+    string camCalibFile;
     bool useBestDisp;
     int uniquenessRatio; 
     int speckleWindowSize;
@@ -77,6 +78,7 @@ class SFM: public yarp::os::RFModule
     int disp12MaxDiff;
     bool doSFM;
     bool doSFMOnce;
+    bool calibUpdated;
     Semaphore* mutexDisp;
     
     PolyDriver* gazeCtrl;
@@ -84,17 +86,18 @@ class SFM: public yarp::os::RFModule
     Mat HL_root;
     Mat HR_root;    
 
-    bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &R, Mat &T);
+    bool loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR);
     Mat buildRotTras(Mat & R, Mat & T);
     Matrix getCameraHGazeCtrl(int camera);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);    
     void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
-
+    bool loadExtrinsics(yarp::os::ResourceFinder &rf,Mat &R, Mat &T);
     void printMatrix(Mat &matrix);
     void updateViaKinematics(bool exp=false);
     bool init;
-
+    bool updateExtrinsics(Mat &Rot, Mat &Tr, const string& groupname);
+    
 public:
 
     bool configure(ResourceFinder &rf);

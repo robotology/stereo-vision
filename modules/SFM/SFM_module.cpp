@@ -11,7 +11,12 @@ bool SFM::configure(ResourceFinder &rf)
 
     string outDispName=rf.check("outDispPort",Value("/disp:o")).asString().c_str();
     string outMatchName=rf.check("outMatchPort",Value("/match:o")).asString().c_str();
-
+    this->camCalibFile=rf.getHomeContextPath().c_str();
+    this->camCalibFile=this->camCalibFile+"/SFM_currCalib.ini";
+    ResourceFinder localCalibration;
+    localCalibration.setDefaultContext("cameraCalibration");
+    localCalibration.setDefaultConfigFile("SFM_currCalib.ini");
+    
     right=name+right;
     outMatchName=name+outMatchName;
     outDispName=name+outDispName;
@@ -32,12 +37,24 @@ bool SFM::configure(ResourceFinder &rf)
 
     this->stereo=new StereoCamera(true);
     Mat KL, KR, DistL, DistR, R, T;
-    loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
+    
+
+    loadIntrinsics(rf,KL,KR,DistL,DistR);
+    loadExtrinsics(localCalibration,R,T);
     
     this->mutexDisp = new Semaphore(1);
 
     stereo->setIntrinsics(KL,KR,DistL,DistR);
-    
+    if(!R.empty() && !T.empty())
+    {
+        stereo->setRotation(R,0);
+        stereo->setTranslation(T,0);
+    }
+    else
+    {
+       cout << "No local calibration file found... Using Kinematics and Running SFM once." << endl;
+       updateViaKinematics();
+     }
 
 
     this->useBestDisp=true;
@@ -82,12 +99,10 @@ bool SFM::configure(ResourceFinder &rf)
         return false;
     }
         
-    doSFM=true;
-    doSFMOnce=false;
-    updateViaKinematics();
+    doSFM=false;
+
     updateViaKinematics(true);
     
-    //fprintf(stdout, "%s \n",RT.toString().c_str());   
     return true;
     
     
@@ -228,70 +243,73 @@ bool SFM::updateModule()
     Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);     
 
 
-        Mat leftMat(left); 
-        Mat rightMat(right);
-        this->stereo->setImages(left,right);
+    Mat leftMat(left); 
+    Mat rightMat(right);
+    this->stereo->setImages(left,right);
+    
+    if(doSFM || doSFMOnce)
+    {
+        matMatches.adjustROI(0, 0, 0, -leftMat.cols);
+        leftMat.copyTo(matMatches);
+        matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
+        rightMat.copyTo(matMatches);
+        matMatches.adjustROI(0, 0, leftMat.cols, 0);
+
+        utils->extractMatch_GPU( leftMat, rightMat, matMatches );
+        vector<Point2f> leftM;
+        vector<Point2f> rightM;
         
-        if(doSFM || doSFMOnce)
-        {
-            matMatches.adjustROI(0, 0, 0, -leftMat.cols);
-            leftMat.copyTo(matMatches);
-            matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
-            rightMat.copyTo(matMatches);
-            matMatches.adjustROI(0, 0, leftMat.cols, 0);
-
-            utils->extractMatch_GPU( leftMat, rightMat, matMatches );
-            vector<Point2f> leftM;
-            vector<Point2f> rightM;
-            
-            utils->getMatches(leftM,rightM);
-            mutexDisp->wait();
-            this->stereo->setMatches(leftM,rightM);
-            this->stereo->estimateEssential();        
-
-            this->stereo->essentialDecomposition();
-            mutexDisp->post();
-            if(doSFMOnce)
-                doSFMOnce=false;
-        }
+        utils->getMatches(leftM,rightM);
         mutexDisp->wait();
-        this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
+        this->stereo->setMatches(leftM,rightM);
+        this->stereo->estimateEssential();        
+
+        bool success=this->stereo->essentialDecomposition();
         mutexDisp->post();
         
+        calibUpdated=success;
+       
+        if(success && doSFMOnce)
+            doSFMOnce=false;
+    }
+    mutexDisp->wait();
+    this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
+    mutexDisp->post();
+    
+    
+    Mat matches=this->stereo->drawMatches();
+    vector<Point2f> matchtmp=this->stereo->getMatchRight();
+    if(outMatch.getOutputCount()>0)
+    {
+        /*Mat F= this->stereo->getFundamental();
         
-        Mat matches=this->stereo->drawMatches();
-        vector<Point2f> matchtmp=this->stereo->getMatchRight();
-        if(outMatch.getOutputCount()>0)
+        if(matchtmp.size()>0)
         {
-            /*Mat F= this->stereo->getFundamental();
-            
-            if(matchtmp.size()>0)
+            Mat m(matchtmp);
+            vector<Vec3f> lines;
+            cv::computeCorrespondEpilines(m,2,F,lines);
+            for (cv::vector<cv::Vec3f>::const_iterator it = lines.begin(); it!=lines.end(); ++it)
             {
-                Mat m(matchtmp);
-                vector<Vec3f> lines;
-                cv::computeCorrespondEpilines(m,2,F,lines);
-                for (cv::vector<cv::Vec3f>::const_iterator it = lines.begin(); it!=lines.end(); ++it)
-                {
-                    cv::line(matMatches, cv::Point(0,-(*it)[2]/(*it)[1]), cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),cv::Scalar(0,0,255));
-                }        
-            }*/
-            cvtColor( matMatches, matMatches, CV_BGR2RGB);
-            ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
-            imgMatch.resize(matMatches.cols, matMatches.rows);
-            IplImage tmpR = matMatches;
-            cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());        
-            outMatch.write();
-        }
-                
-        if(outDisp.getOutputCount()>0)
-        {
-            IplImage disp=stereo->getDisparity();
-            cvCvtColor(&disp,outputD,CV_GRAY2RGB);
-            ImageOf<PixelBgr>& outim=outDisp.prepare();
-            outim.wrapIplImage(outputD);
-            outDisp.write();
-        }        
-        
+                cv::line(matMatches, cv::Point(0,-(*it)[2]/(*it)[1]), cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),cv::Scalar(0,0,255));
+            }        
+        }*/
+        cvtColor( matMatches, matMatches, CV_BGR2RGB);
+        ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
+        imgMatch.resize(matMatches.cols, matMatches.rows);
+        IplImage tmpR = matMatches;
+        cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());        
+        outMatch.write();
+    }
+            
+    if(outDisp.getOutputCount()>0)
+    {
+        IplImage disp=stereo->getDisparity();
+        cvCvtColor(&disp,outputD,CV_GRAY2RGB);
+        ImageOf<PixelBgr>& outim=outDisp.prepare();
+        outim.wrapIplImage(outputD);
+        outDisp.write();
+    }        
+    
 
     if(worldPort.getOutputCount()>0)
     {
@@ -308,12 +326,33 @@ bool SFM::updateModule()
 
 double SFM::getPeriod()
 {
-    return 0.1;
+    return 0.01;
 }
 
 
+bool SFM::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
+{
 
-bool SFM::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T)
+ 
+    Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
+    if (Bottle *pXo=extrinsics.find("HN").asList()) {
+        for (int i=0; i<(pXo->size()-4); i+=4) {
+            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
+            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
+            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
+            T.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+        }
+    }
+    else
+    {
+        doSFMOnce=true;
+        return false;
+    }
+    doSFMOnce=false;
+    return true;
+}
+
+bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR)
 {
 
     Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
@@ -374,20 +413,95 @@ bool SFM::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, M
     KR.at<double>(1,1)=fy;
     KR.at<double>(1,2)=cy;
 
-    Ro=Mat::zeros(3,3,CV_64FC1);
-    T=Mat::zeros(3,1,CV_64FC1);
 
-    Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
-    if (Bottle *pXo=extrinsics.find("HN").asList()) {
-        for (int i=0; i<(pXo->size()-4); i+=4) {
-            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
-            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
-            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
-            T.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+    return true;
+}
+
+bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, const string& groupname)
+{
+
+    std::vector<string> lines;
+
+    bool append = false;
+
+    ifstream in;
+    in.open(camCalibFile.c_str()); //camCalibFile.c_str());
+    
+    if(in.is_open()){
+        // file exists
+        string line;
+        bool sectionFound = false;
+        bool sectionClosed = false;
+
+        // process lines
+        while(std::getline(in, line)){
+            // check if we left calibration section
+            if (sectionFound == true && line.find("[", 0) != string::npos)
+                sectionClosed = true;   // also valid if no groupname specified
+            // check if we enter calibration section
+            if (line.find(string("[") + groupname + string("]"), 0) != string::npos)
+                sectionFound = true;
+            // if no groupname specified
+            if (groupname == "")
+                sectionFound = true;
+            // if we are in calibration section (or no section/group specified)
+            if (sectionFound == true && sectionClosed == false){
+                // replace w line
+                if (line.find("HN",0) != string::npos){
+                    stringstream ss;
+                    ss << " (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
+                               << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
+                               << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
+                               << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")";
+                    line = "HN" + string(ss.str());
+                }
+
+            }
+            // buffer line
+            lines.push_back(line);
         }
+        
+        in.close();
+
+        // rewrite file
+        if (!sectionFound){
+            append = true;
+            cout << "Camera calibration parameter section " + string("[") + groupname + string("]") + " not found in file " << camCalibFile << ". Adding group..." << endl;
+        }
+        else{
+            // rewrite file
+            ofstream out;
+            out.open(camCalibFile.c_str(), ios::trunc);
+            if (out.is_open()){
+                for (int i = 0; i < (int)lines.size(); i++)
+                    out << lines[i] << endl;
+                out.close();
+            }
+            else
+                return false;
+        }
+        
     }
-    else
-        return false;
+    else{
+        append = true;
+    }
+
+    if (append){
+        // file doesn't exist or section is appended 
+        ofstream out;
+        out.open(camCalibFile.c_str(), ios::app);
+        if (out.is_open()){
+            out << endl;
+            out << string("[") + groupname + string("]") << endl;
+            out << "HN (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
+                          << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
+                          << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
+                          << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")";
+            out.close();
+        }
+        else
+            return false;
+    }
 
     return true;
 }
@@ -869,11 +983,24 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if(command.get(0).asString()=="recalibrate")
     {
+        calibUpdated=false;
         doSFMOnce=true;
+        
+        while(calibUpdated==false)
+        {}       
+        
         reply.addString("ACK");
         return true;
     }
 
+    if(command.get(0).asString()=="saveCurrentCalib")
+    {
+        Mat newR=this->stereo->getRotation();
+        Mat newT= this->stereo->getTranslation();
+        updateExtrinsics(newR, newT, "STEREO_DISPARITY"); 
+        reply.addString("ACK");
+        return true;               
+    }
     if(command.get(0).asString()=="set" && command.size()==10)
     {
         bool bestDisp=command.get(1).asInt() ? true : false;
@@ -1012,7 +1139,7 @@ int main(int argc, char *argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("icubEyes.ini"); 
-    rf.setDefaultContext("cameraCalibration/conf");   
+    rf.setDefaultContext("cameraCalibration");   
     rf.configure("ICUB_ROOT",argc,argv);
 
     SFM mod;
