@@ -1010,6 +1010,22 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addString("ACK");
         return true;               
     }
+    if(command.get(0).asString()=="setNumDisp")
+    {
+        int dispNum=command.get(1).asInt();
+        if(dispNum%32==0)
+        {
+            this->numberOfDisparities=dispNum;
+            this->setDispParameters(useBestDisp,uniquenessRatio,speckleWindowSize,speckleRange,numberOfDisparities,SADWindowSize,minDisparity,preFilterCap,disp12MaxDiff);
+            reply.addString("ACK");
+            return true;  
+        }
+        else
+        {
+            reply.addString("Num Disparity must be divisible by 32");
+            return true;          
+        }
+    }
     if(command.get(0).asString()=="set" && command.size()==10)
     {
         bool bestDisp=command.get(1).asInt() ? true : false;
