@@ -987,7 +987,9 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         doSFMOnce=true;
         
         while(calibUpdated==false)
-        {}       
+        {
+			Time::delay(1.0);
+		}       
         
         reply.addString("ACK");
         return true;
