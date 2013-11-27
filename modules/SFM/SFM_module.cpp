@@ -11,12 +11,15 @@ bool SFM::configure(ResourceFinder &rf)
 
     string outDispName=rf.check("outDispPort",Value("/disp:o")).asString().c_str();
     string outMatchName=rf.check("outMatchPort",Value("/match:o")).asString().c_str();
-    this->camCalibFile=rf.getHomeContextPath().c_str();
-    this->camCalibFile=this->camCalibFile+"/SFM_currCalib.ini";
+
     ResourceFinder localCalibration;
-    localCalibration.setDefaultContext("cameraCalibration");
+    localCalibration.setContext("cameraCalibration");
     localCalibration.setDefaultConfigFile("SFM_currCalib.ini");
-    
+    localCalibration.configure(NULL,0);
+
+    this->camCalibFile=localCalibration.getHomeContextPath().c_str();
+    this->camCalibFile=this->camCalibFile+"/SFM_currCalib.ini";
+
     right=name+right;
     outMatchName=name+outMatchName;
     outDispName=name+outDispName;
@@ -45,16 +48,7 @@ bool SFM::configure(ResourceFinder &rf)
     this->mutexDisp = new Semaphore(1);
 
     stereo->setIntrinsics(KL,KR,DistL,DistR);
-    if(!R.empty() && !T.empty())
-    {
-        stereo->setRotation(R,0);
-        stereo->setTranslation(T,0);
-    }
-    else
-    {
-       cout << "No local calibration file found... Using Kinematics and Running SFM once." << endl;
-       updateViaKinematics();
-     }
+
 
 
     this->useBestDisp=true;
@@ -99,6 +93,17 @@ bool SFM::configure(ResourceFinder &rf)
         return false;
     }
         
+    if(!R.empty() && !T.empty())
+    {
+        stereo->setRotation(R,0);
+        stereo->setTranslation(T,0);
+    }
+    else
+    {
+       cout << "No local calibration file found in " <<  camCalibFile <<" ... Using Kinematics and Running SFM once." << endl;
+       updateViaKinematics();
+    }
+
     doSFM=false;
 
     updateViaKinematics(true);
@@ -333,9 +338,11 @@ double SFM::getPeriod()
 bool SFM::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
 {
 
- 
+    
     Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
     if (Bottle *pXo=extrinsics.find("HN").asList()) {
+        Ro=Mat::zeros(3,3,CV_64FC1);
+        T=Mat::zeros(3,1,CV_64FC1);
         for (int i=0; i<(pXo->size()-4); i+=4) {
             Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
             Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
