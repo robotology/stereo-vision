@@ -243,6 +243,7 @@ bool SFM::updateModule()
       
     if(init)
     {
+
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
         if(left->width==320)
@@ -268,7 +269,6 @@ bool SFM::updateModule()
             vector<Point2f> leftM;
             vector<Point2f> rightM;
             utils->getMatches(leftM,rightM);
-
             mutexDisp->wait();
             this->stereo->setMatches(leftM,rightM);
         #else
@@ -289,6 +289,13 @@ bool SFM::updateModule()
     this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
     mutexDisp->post();
     
+   // DEBUG
+ 
+   /*int uR,vR;
+   Point3f point = this->get3DPointsAndDisp(160,120,uR,vR,"ROOT");
+   circle(leftMat,cvPoint(160,120),2,cvScalar(255,0,0),2);
+   circle(rightMat,cvPoint(uR,vR),2,cvScalar(0,255,0),2);
+   */
 
     if(outMatch.getOutputCount()>0)
     {
@@ -540,7 +547,7 @@ void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckl
 }
 
 
-Point3f SFM::get3DPointsAndDisp(int u, int v,  int& currDisp, string drive ) {
+Point3f SFM::get3DPointsAndDisp(int u, int v,  int& uR, int& vR, string drive ) {
    u=u; // matrix starts from (0,0), pixels from (0,0)
     v=v;
     Point3f point;
@@ -588,7 +595,16 @@ Point3f SFM::get3DPointsAndDisp(int u, int v,  int& currDisp, string drive ) {
     Mat Q=this->stereo->getQ();
     CvScalar scal= cvGet2D(&disp16,v,u);
     double disparity=-scal.val[0]/16.0;
-    currDisp=(int) disparity;
+        
+    uR=u+(int)disparity;
+    vR=(int)v;
+
+
+    Point2f orig= this->stereo->fromRectifiedToOriginal(uR,vR, RIGHT);
+    uR= orig.x;
+    vR= orig.y;
+
+
     float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
     point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
     point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
@@ -1061,12 +1077,13 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     else if (command.size()==2) {
         int u = command.get(0).asInt();
         int v = command.get(1).asInt(); 
-        int currD;
-        Point3f point = this->get3DPointsAndDisp(u,v,currD,"ROOT");
+        int uR,vR;
+        Point3f point = this->get3DPointsAndDisp(u,v,uR,vR,"ROOT");
         reply.addDouble(point.x);
         reply.addDouble(point.y);
         reply.addDouble(point.z);
-        reply.addInt(currD);
+        reply.addInt(uR);
+        reply.addInt(vR);
     }
     else if (command.get(0).asString()=="Right") {
         int u = command.get(1).asInt();

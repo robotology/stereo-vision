@@ -46,6 +46,8 @@
 #include <fstream>
 #include <yarp/os/all.h>
 
+#define LEFT    0
+#define RIGHT   1
 
 using namespace std;
 using namespace yarp::os;
@@ -537,5 +539,7 @@ public:
     void setExpectedPosition(Mat &Rot, Mat &Tran);
 
     Mat FfromP(Mat& P1, Mat& P2);
+
+    Point2f fromRectifiedToOriginal(int u, int v, int camera);
 
 };

@@ -504,7 +504,26 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 }
 
 
+Point2f StereoCamera::fromRectifiedToOriginal(int u, int v, int camera)
+{
+    cv::Point2f originalPoint;
 
+    
+    if(camera==LEFT)
+    {
+            originalPoint.x=map11.ptr<float>(v)[u];
+            originalPoint.y=map12.ptr<float>(v)[u];
+    }
+    else
+    {
+            originalPoint.x=map21.ptr<float>(v)[u];
+            originalPoint.y=map22.ptr<float>(v)[u];
+    }
+
+
+    return originalPoint;
+
+}
 Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) {
     if(this->imleftund.empty() || this->imrightund.empty()) {
               imleftund=imleft;
@@ -2071,7 +2090,7 @@ Point2f StereoCamera::getDistortedPixel(int u, int v, int cam)
     Point2f distortedPixel;
     Mat MapperX,MapperY;
 
-    if(cam==1)
+    if(cam==LEFT)
     {
         MapperX=mapxL;
         MapperY=mapyL;

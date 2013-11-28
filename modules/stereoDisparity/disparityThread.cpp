@@ -578,7 +578,7 @@ Mat disparityThread::buildRotTras(Mat & R, Mat & T) {
 }
 
 
-Point3f disparityThread::get3DPointsAndDisp(int u, int v,  int& currDisp, string drive ) {
+Point3f disparityThread::get3DPointsAndDisp(int u, int v,  int& uR, int & vR, string drive ) {
     u=u; // matrix starts from (0,0), pixels from (0,0)
     v=v;
     Point3f point;
@@ -622,7 +622,14 @@ Point3f disparityThread::get3DPointsAndDisp(int u, int v,  int& currDisp, string
     Mat Q=this->stereo->getQ();
     CvScalar scal= cvGet2D(&disp16,v,u);
     double disparity=-scal.val[0]/16.0;
-    currDisp=(int) disparity;
+
+    uR=u+(int)disparity;
+    vR=(int)v;
+
+    Point2f orig= this->stereo->fromRectifiedToOriginal(uR,vR, RIGHT);
+    uR= orig.x;
+    vR= orig.y;
+
     float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
     point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
     point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
