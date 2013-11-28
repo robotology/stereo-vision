@@ -508,7 +508,12 @@ Point2f StereoCamera::fromRectifiedToOriginal(int u, int v, int camera)
 {
     cv::Point2f originalPoint;
 
-    
+    if(u>=map11.rows || u<0 || v>=map12.cols || u< map12.cols)
+    {
+        originalPoint.x=0;
+        originalPoint.y=0;
+        return originalPoint;
+    }
     if(camera==LEFT)
     {
             originalPoint.x=map11.ptr<float>(v)[u];
