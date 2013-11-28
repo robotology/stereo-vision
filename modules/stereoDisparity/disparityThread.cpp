@@ -380,6 +380,11 @@ void disparityThread::run(){
                 Mat H0=buildRotTras(H0_R,H0_T);
                 convert(H0,yarp_H0);
 
+                if(imgL->width==320)
+                    this->numberOfDisparities=64;
+
+                if(imgL->width==640)
+                    this->numberOfDisparities=128;
 
                 //get the initial left and right positions
                 /*headAngles=0.0;

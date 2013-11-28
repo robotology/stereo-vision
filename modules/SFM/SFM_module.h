@@ -22,9 +22,9 @@
 #include <iCub/iKin/iKinFwd.h>
 
 
-
-#include <iCub/stereoVision/utils.h>
-
+#ifdef DUSING_GPU
+    #include <iCub/stereoVision/utils.h>
+#endif
 
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -52,10 +52,10 @@ class SFM: public yarp::os::RFModule
 
     cv::Mat leftMat, rightMat, matMatches;
 
-
-        /* pointer to the utilities class */
+#ifdef DUSING_GPU
+    /* pointer to the utilities class */
     Utilities                 *utils;
-
+#endif
 
     yarp::os::Port rpc;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > leftImgPort;

@@ -76,8 +76,10 @@ bool SFM::configure(ResourceFinder &rf)
     outputD=NULL;
     init=true;
 
+#ifdef DUSING_GPU
     utils = new Utilities();
     utils->initSIFT_GPU();
+#endif
     
     
     Property option;
@@ -181,8 +183,10 @@ bool SFM::close()
         cvReleaseImage(&outputD);
    
     delete gazeCtrl;
-    
+
+#ifdef DUSING_GPU
     delete utils;
+#endif
     
 
     delete mutexDisp;
@@ -242,6 +246,11 @@ bool SFM::updateModule()
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
         matMatches = Mat(left->height, 2*left->width, CV_8UC3);
+        if(left->width==320)
+            this->numberOfDisparities=64;
+        if(left->width==640)
+            this->numberOfDisparities=128;
+
         init=false;
     }
     Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
@@ -254,19 +263,24 @@ bool SFM::updateModule()
     
     if(doSFM || doSFMOnce)
     {
-        matMatches.adjustROI(0, 0, 0, -leftMat.cols);
-        leftMat.copyTo(matMatches);
-        matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
-        rightMat.copyTo(matMatches);
-        matMatches.adjustROI(0, 0, leftMat.cols, 0);
+        #ifdef DUSING_GPU
+            matMatches.adjustROI(0, 0, 0, -leftMat.cols);
+            leftMat.copyTo(matMatches);
+            matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
+            rightMat.copyTo(matMatches);
+            matMatches.adjustROI(0, 0, leftMat.cols, 0);
 
-        utils->extractMatch_GPU( leftMat, rightMat, matMatches );
-        vector<Point2f> leftM;
-        vector<Point2f> rightM;
+            utils->extractMatch_GPU( leftMat, rightMat, matMatches );
+            vector<Point2f> leftM;
+            vector<Point2f> rightM;
         
-        utils->getMatches(leftM,rightM);
-        mutexDisp->wait();
-        this->stereo->setMatches(leftM,rightM);
+            utils->getMatches(leftM,rightM);
+            mutexDisp->wait();
+            this->stereo->setMatches(leftM,rightM);
+        #else
+            this->stereo->findMatch(false,15);
+        #endif
+
         this->stereo->estimateEssential();        
 
         bool success=this->stereo->essentialDecomposition();
