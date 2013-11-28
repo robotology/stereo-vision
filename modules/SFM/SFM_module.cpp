@@ -76,7 +76,7 @@ bool SFM::configure(ResourceFinder &rf)
     outputD=NULL;
     init=true;
 
-#ifdef DUSING_GPU
+#ifdef USING_GPU
     utils = new Utilities();
     utils->initSIFT_GPU();
 #endif
@@ -184,7 +184,7 @@ bool SFM::close()
    
     delete gazeCtrl;
 
-#ifdef DUSING_GPU
+#ifdef USING_GPU
     delete utils;
 #endif
     
@@ -245,13 +245,13 @@ bool SFM::updateModule()
     {
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
-        matMatches = Mat(left->height, 2*left->width, CV_8UC3);
         if(left->width==320)
             this->numberOfDisparities=64;
         if(left->width==640)
             this->numberOfDisparities=128;
 
         init=false;
+
     }
     Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
     Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);     
@@ -263,18 +263,12 @@ bool SFM::updateModule()
     
     if(doSFM || doSFMOnce)
     {
-        #ifdef DUSING_GPU
-            matMatches.adjustROI(0, 0, 0, -leftMat.cols);
-            leftMat.copyTo(matMatches);
-            matMatches.adjustROI(0, 0, -leftMat.cols, leftMat.cols);
-            rightMat.copyTo(matMatches);
-            matMatches.adjustROI(0, 0, leftMat.cols, 0);
-
-            utils->extractMatch_GPU( leftMat, rightMat, matMatches );
+        #ifdef USING_GPU
+            utils->extractMatch_GPU( leftMat, rightMat);
             vector<Point2f> leftM;
             vector<Point2f> rightM;
-        
             utils->getMatches(leftM,rightM);
+
             mutexDisp->wait();
             this->stereo->setMatches(leftM,rightM);
         #else
@@ -295,9 +289,7 @@ bool SFM::updateModule()
     this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
     mutexDisp->post();
     
-    
-    Mat matches=this->stereo->drawMatches();
-    vector<Point2f> matchtmp=this->stereo->getMatchRight();
+
     if(outMatch.getOutputCount()>0)
     {
         /*Mat F= this->stereo->getFundamental();
@@ -312,11 +304,15 @@ bool SFM::updateModule()
                 cv::line(matMatches, cv::Point(0,-(*it)[2]/(*it)[1]), cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),cv::Scalar(0,0,255));
             }        
         }*/
-        cvtColor( matMatches, matMatches, CV_BGR2RGB);
+
+        Mat matches =this->stereo->drawMatches();
+        cvtColor( matches, matches, CV_BGR2RGB);
         ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
-        imgMatch.resize(matMatches.cols, matMatches.rows);
-        IplImage tmpR = matMatches;
-        cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());        
+        imgMatch.resize(matches.cols, matches.rows);
+        IplImage tmpR = matches;
+
+        cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());       
+
         outMatch.write();
     }
             

@@ -1420,6 +1420,11 @@ void StereoCamera::hornRelativeOrientations() {
 
 Mat StereoCamera::drawMatches()
 {
+    if(this->imleftund.empty() || this->imrightund.empty()) {
+              imleftund=imleft;
+              imrightund=imright;
+    }
+
     Mat matchImg;
     vector<KeyPoint> keypoints1(InliersL.size());
     vector<KeyPoint> keypoints2(InliersL.size());
@@ -1435,8 +1440,8 @@ Mat StereoCamera::drawMatches()
         keypoints2[i]=cv::KeyPoint(InliersR[i],2);
 
     }
-
     cv::drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0));
+
     return matchImg;
 }
 

@@ -22,7 +22,7 @@
 #include <iCub/iKin/iKinFwd.h>
 
 
-#ifdef DUSING_GPU
+#ifdef USING_GPU
     #include <iCub/stereoVision/utils.h>
 #endif
 
@@ -50,9 +50,9 @@ class SFM: public yarp::os::RFModule
     IplImage* output_match;
 
 
-    cv::Mat leftMat, rightMat, matMatches;
+    cv::Mat leftMat, rightMat;
 
-#ifdef DUSING_GPU
+#ifdef USING_GPU
     /* pointer to the utilities class */
     Utilities                 *utils;
 #endif
