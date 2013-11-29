@@ -37,6 +37,7 @@ private:
     bool useCalibrated;
     bool useHorn;
     bool updateCamera;
+    bool updateOnce;
 
     bool useBestDisp;
     int uniquenessRatio; 
@@ -47,7 +48,8 @@ private:
     int minDisparity;
     int preFilterCap;
     int disp12MaxDiff;
-    
+    int widthInit;
+
     #ifdef USING_GPU
         /* pointer to the utilities class */
         Utilities                 *utils;
@@ -107,6 +109,9 @@ public:
     bool isOpen();
     void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
 
+    void updateCamerasOnce();
+    void startUpdate();
+    void stopUpdate();
     
 
 

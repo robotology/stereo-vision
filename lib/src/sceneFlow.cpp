@@ -35,7 +35,7 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
         int argc=0; char *argv[1];
         cameraFinder.configure("ICUB_ROOT",argc,argv);
 
-        disp=new DisparityThread(cameraFinder,false,true);
+        disp=new DisparityThread(cameraFinder,false,false);
         opt=new OpticalFlowThread(rf);
         
         fprintf(stdout, "Threads created...\n");
@@ -522,6 +522,10 @@ int SceneFlow::getImgHeight()
     return height;
 }
 
+void SceneFlow::recalibrate()
+{
+    disp->updateCamerasOnce();
+}
 
 void SceneFlow::printMatrix(Mat &matrix) {
     int row=matrix.rows;

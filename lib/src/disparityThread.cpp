@@ -46,7 +46,7 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
         fprintf(stdout, "Disparity Thread has started...\n");
 
     }
-
+    this->widthInit=320;
     this->useBestDisp=true;
     this->uniquenessRatio=15;
     this->speckleWindowSize=50;
@@ -60,7 +60,7 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
     this->init=true;
     this->work=false;
     this->done=false;
-
+    this->updateOnce=false;
     this->updateCamera=updateCamera;
 
     #ifdef USING_GPU
@@ -129,7 +129,7 @@ void DisparityThread::run()
         updateViaKinematics(true);
         
         mutexDisp->wait();        
-        if(updateCamera)
+        if(updateCamera || updateOnce)
         {
 
             #ifdef USING_GPU
@@ -145,15 +145,15 @@ void DisparityThread::run()
                 utils->getMatches(leftM,rightM);
  
                 this->stereo->setMatches(leftM,rightM);
-                this->stereo->estimateEssential();       
-                this->stereo->essentialDecomposition();
                 
              #else
                 this->stereo->findMatch(false,15,10.0);
-                this->stereo->estimateEssential();       
-                this->stereo->essentialDecomposition();               
+          
              #endif
-        
+            this->stereo->estimateEssential();       
+            bool success=this->stereo->essentialDecomposition();     
+            if(success && updateOnce)
+                updateOnce=false;
         }
         // Compute Disparity
         this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
@@ -172,6 +172,16 @@ void DisparityThread::setImages(Mat &left, Mat &right)
     IplImage r=right;
 
     stereo->setImages(&l,&r);
+
+    if(l.width!=widthInit)
+    {
+        if(l.width==320)
+            this->numberOfDisparities=64;
+        if(l.width==640)
+            this->numberOfDisparities=128;
+
+        widthInit=l.width;
+    }
     this->done=false;
     this->work=true;
     this->resume();
@@ -328,6 +338,22 @@ void DisparityThread::threadRelease()
 bool DisparityThread::checkDone() 
 {
     return done;
+}
+
+void DisparityThread::stopUpdate() 
+{
+    updateCamera=false;
+}
+
+void DisparityThread::startUpdate() 
+{
+    updateCamera=true;
+}
+
+void DisparityThread::updateCamerasOnce() 
+{
+    updateCamera=false;
+    updateOnce=true;
 }
 void DisparityThread::triangulate(Point2f &pixel,Point3f &point) 
 {
