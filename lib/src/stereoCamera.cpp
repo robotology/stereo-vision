@@ -460,8 +460,8 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         
 
         disp.convertTo(map, CV_32FC1, 1.0,0.0);
-        //map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
-        normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+        map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
+        //normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
         
 
         if(cameraChanged)
