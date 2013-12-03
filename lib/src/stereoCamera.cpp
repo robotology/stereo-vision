@@ -584,7 +584,6 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
         cv::drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
     }
     
-    fprintf(stdout,"%lu match found \n",PointsR.size());
     return matchImg;
 
 }
@@ -761,46 +760,92 @@ void StereoCamera::estimateEssential() {
     vector<Point2f> filteredL;
     vector<Point2f> filteredR;
 
+    fprintf(stdout,"%lu Match Found \n",PointsR.size());
+    Mat pl=Mat(3,1,CV_64FC1);
+    Mat pr=Mat(3,1,CV_64FC1);
+
     for(int i=0; i<(int) PointsL.size(); i++) {
-        Mat pl=Mat(3,1,CV_64FC1);
         pl.at<double>(0,0)=PointsL[i].x;
         pl.at<double>(1,0)=PointsL[i].y;
         pl.at<double>(2,0)=1;
         
-        Mat pr=Mat(3,1,CV_64FC1);
         pr.at<double>(0,0)=PointsR[i].x;
         pr.at<double>(1,0)=PointsR[i].y;
         pr.at<double>(2,0)=1;
              
-        Mat s=pr.t()*F_exp*pl;
-        if(s.at<double>(0,0)<0.01) {
+        Mat xrFxl=pr.t()*F_exp*pl;
+        Mat Fxl=F_exp*pl;
+        Mat Fxr=F_exp.t()*pr;
+
+        double num=xrFxl.at<double>(0,0);
+        num=num*num;
+
+        double errL1=Fxl.at<double>(0,0);
+        errL1=errL1*errL1;
+
+        double errL2=Fxl.at<double>(1,0);
+        errL2=errL2*errL2;
+
+
+        double errR1=Fxr.at<double>(0,0);
+        errR1=errR1*errR1;
+
+        double errR2=Fxr.at<double>(1,0);
+        errR2=errR2*errR2;
+
+        double sampsonDistance=num/(errL1+errL2+errR1+errR2);
+
+        if(sampsonDistance<0.01) {
             filteredL.push_back(PointsL[i]);
             filteredR.push_back(PointsR[i]);
         }
     }
+
+    fprintf(stdout,"%lu Match After Kinematics Filtering \n",filteredL.size());
 
     vector<uchar> status;
     this->F=findFundamentalMat(Mat(filteredL), Mat(filteredR),status, CV_FM_8POINT, 1, 0.999);
     
     
     for(int i=0; i<(int) filteredL.size(); i++) {
-        Mat pl=Mat(3,1,CV_64FC1);
         pl.at<double>(0,0)=filteredL[i].x;
         pl.at<double>(1,0)=filteredL[i].y;
         pl.at<double>(2,0)=1;
         
-        Mat pr=Mat(3,1,CV_64FC1);
         pr.at<double>(0,0)=filteredR[i].x;
         pr.at<double>(1,0)=filteredR[i].y;
         pr.at<double>(2,0)=1;
              
-        Mat s=pr.t()*F*pl;
-        if(status[i]==1 && s.at<double>(0,0)<0.01) {
+        Mat xrFxl=pr.t()*F*pl;
+        Mat Fxl=F*pl;
+        Mat Fxr=F.t()*pr;
+
+        double num=xrFxl.at<double>(0,0);
+        num=num*num;
+
+        double errL1=Fxl.at<double>(0,0);
+        errL1=errL1*errL1;
+
+        double errL2=Fxl.at<double>(1,0);
+        errL2=errL2*errL2;
+
+
+        double errR1=Fxr.at<double>(0,0);
+        errR1=errR1*errR1;
+
+        double errR2=Fxr.at<double>(1,0);
+        errR2=errR2*errR2;
+
+        double sampsonDistance=num/(errL1+errL2+errR1+errR2);
+
+        if(status[i]==1 && sampsonDistance<0.01) {
             InliersL.push_back(filteredL[i]);
             InliersR.push_back(filteredR[i]);
         }
 
     }
+
+    fprintf(stdout,"%lu Match After RANSAC Filtering \n",InliersL.size());
 
     if(this->InliersL.size()<10 || this->InliersR.size()<10 ) {
         InliersL.clear();
@@ -1448,6 +1493,11 @@ Mat StereoCamera::drawMatches()
     if(this->imleftund.empty() || this->imrightund.empty()) {
               imleftund=imleft;
               imrightund=imright;
+    }
+
+    if(InliersL.empty()) {
+        InliersL=PointsL;
+        InliersR=PointsR;
     }
 
     Mat matchImg;

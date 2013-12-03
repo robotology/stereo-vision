@@ -531,15 +531,41 @@ public:
     */
     Point2f getDistortedPixel(int u, int v, int cam=1);
 
-
+    /**
+    * The method returns a 3-Channels 8bit image with the image matches.
+    * @return The 3-Channels 8bit image with the image matches. Call findMatch() to retrieve the keypoints first.
+    */
     Mat drawMatches();
     
+    /**
+    * The function initialize the matches of the current image pair. For example matches can be computed in GPU with higher framerate.
+    * @param pointsL vector of Point2f representing the keypoints on the left image.
+    * @param pointsR vector of Point2f representing the keypoints on the right image.
+    */
     void setMatches(std::vector<cv::Point2f> & pointsL, std::vector<cv::Point2f> & pointsR); 
-    
+  
+    /**
+    * The function set the expected Rotation and Translation parameters for the current image pair. They can be computed using the Kinematics.
+    * @param Rot 3x3 matrix representing the rotation between the left and the right camera.
+    * @param Tran 3x1 vector representing the translation between the left and the right camera.
+    */
     void setExpectedPosition(Mat &Rot, Mat &Tran);
 
+    /**
+    * The function computes the fundamental matrix starting from known camera matrices.
+    * @param P1 a 3x4 matrix representing the camera matrix of the left view.
+    * @param P2 a 3x4 matrix representing the camera matrix of the right view.
+    * @return a 3x3 matrix representing the fundamental matrix.
+    */
     Mat FfromP(Mat& P1, Mat& P2);
 
+    /**
+    * Given the u,v pixel coordinates in the rectified image the method returns the position of the pixel in the non-rectified frame.
+    * @param u the x pixel coordinate in the rectified image.
+    * @param v the y pixel coordinate in the rectified image.
+    * @param cam cam=1 for left image, cam=2 for right image.
+    * @return the pixel position in the non-rectified image.
+    */
     Point2f fromRectifiedToOriginal(int u, int v, int camera);
 
 };

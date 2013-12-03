@@ -25,7 +25,7 @@ bool SFM::configure(ResourceFinder &rf)
     outDispName=name+outDispName;
     
     string rpc_name=name+"/rpc";
-    string world_name=name+"/world:o";
+    string world_name=name+rf.check("outWorldPort",Value("/world:o")).asString().c_str();
 
     int calib= rf.check("useCalibrated",Value(1)).asInt();
     bool useCalibrated= calib ? true : false;
@@ -1074,7 +1074,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.y);
         reply.addDouble(point.z);
     }
-    else if (command.size()==2) {
+    else if (!command.get(0).isString() && command.size()==2) {
         int u = command.get(0).asInt();
         int v = command.get(1).asInt(); 
         int uR,vR;
