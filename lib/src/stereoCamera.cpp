@@ -757,6 +757,7 @@ void StereoCamera::estimateEssential() {
     updateExpectedCameraMatrices();
     Mat F_exp=FfromP(Pleft_exp,Pright_exp);
 
+    
     vector<Point2f> filteredL;
     vector<Point2f> filteredR;
 
@@ -777,24 +778,17 @@ void StereoCamera::estimateEssential() {
         Mat Fxl=F_exp*pl;
         Mat Fxr=F_exp.t()*pr;
 
-        double num=xrFxl.at<double>(0,0);
-        num=num*num;
+        pow(xrFxl,2,xrFxl);
 
-        double errL1=Fxl.at<double>(0,0);
-        errL1=errL1*errL1;
+        pow(Fxl,2,Fxl);
 
-        double errL2=Fxl.at<double>(1,0);
-        errL2=errL2*errL2;
-
-
-        double errR1=Fxr.at<double>(0,0);
-        errR1=errR1*errR1;
-
-        double errR2=Fxr.at<double>(1,0);
-        errR2=errR2*errR2;
-
-        double sampsonDistance=num/(errL1+errL2+errR1+errR2);
-
+        pow(Fxr,2,Fxr);
+        
+        Scalar den1,den2;
+        den1=sum(Fxl);
+        den2=sum(Fxr);
+        double sampsonDistance=xrFxl.at<double>(0,0)/(den1.val[0]+den2.val[0]);
+        
         if(sampsonDistance<0.01) {
             filteredL.push_back(PointsL[i]);
             filteredR.push_back(PointsR[i]);
@@ -820,25 +814,21 @@ void StereoCamera::estimateEssential() {
         Mat Fxl=F*pl;
         Mat Fxr=F.t()*pr;
 
-        double num=xrFxl.at<double>(0,0);
-        num=num*num;
 
-        double errL1=Fxl.at<double>(0,0);
-        errL1=errL1*errL1;
+        pow(xrFxl,2,xrFxl);
 
-        double errL2=Fxl.at<double>(1,0);
-        errL2=errL2*errL2;
+        pow(Fxl,2,Fxl);
+
+        pow(Fxr,2,Fxr);
+        
+        Scalar den1,den2;
+        den1=sum(Fxl);
+        den2=sum(Fxr);
+        double sampsonDistance=xrFxl.at<double>(0,0)/(den1.val[0]+den2.val[0]);
 
 
-        double errR1=Fxr.at<double>(0,0);
-        errR1=errR1*errR1;
-
-        double errR2=Fxr.at<double>(1,0);
-        errR2=errR2*errR2;
-
-        double sampsonDistance=num/(errL1+errL2+errR1+errR2);
-
-        if(status[i]==1 && sampsonDistance<0.01) {
+        if(status[i]==1 && xrFxl.at<double>(0,0)<0.001) 
+        {
             InliersL.push_back(filteredL[i]);
             InliersR.push_back(filteredR[i]);
         }
@@ -944,8 +934,7 @@ bool StereoCamera::essentialDecomposition() {
     Mat diff_angles=rvec_exp-rvec_new;
     Mat diff_tran=T_exp-t_est;
     
-    fprintf(stdout, "Angles Differences: %f %f %f \n", diff_angles.at<double>(0,0),diff_angles.at<double>(1,0),diff_angles.at<double>(2,0));
-    fprintf(stdout, "Translation Differences: %f %f %f \n", diff_tran.at<double>(0,0),diff_tran.at<double>(1,0),diff_tran.at<double>(2,0));
+
     /*fprintf(stdout, "Estimated Translation \n ");
     printMatrix(t_est);
     fprintf(stdout, "\n ");*/
@@ -955,6 +944,9 @@ bool StereoCamera::essentialDecomposition() {
     //if(norm(tnew) >0 && norm(Rnew)>0 && abs(rvec_new.at<double>(0,0))<0.05 && abs(rvec_new.at<double>(2,0))<0.05 && abs(rvec_new.at<double>(1,0))<0.5 && abs(t_est.at<double>(0,0)) <0.069 && abs(t_est.at<double>(0,0))>0.066 && abs(t_est.at<double>(1,0))<0.01 && abs(t_est.at<double>(2,0))< 0.02)
     if(abs(diff_angles.at<double>(0,0))<0.1 && abs(diff_angles.at<double>(1,0))<0.1 && abs(diff_angles.at<double>(2,0))<0.1 && abs(diff_tran.at<double>(0,0))<0.005&& abs(diff_tran.at<double>(1,0))<0.005 && abs(diff_tran.at<double>(2,0))<0.005)    
     {
+    
+        fprintf(stdout, "Angles Differences: %f %f %f \n", diff_angles.at<double>(0,0),diff_angles.at<double>(1,0),diff_angles.at<double>(2,0));
+        fprintf(stdout, "Translation Differences: %f %f %f \n", diff_tran.at<double>(0,0),diff_tran.at<double>(1,0),diff_tran.at<double>(2,0));    
         this->mutex->wait();
         this->R=Rnew;
         this->T=(tnew/norm(tnew))*norm(this->T);
@@ -1495,10 +1487,6 @@ Mat StereoCamera::drawMatches()
               imrightund=imright;
     }
 
-    if(InliersL.empty()) {
-        InliersL=PointsL;
-        InliersR=PointsR;
-    }
 
     Mat matchImg;
     vector<KeyPoint> keypoints1(InliersL.size());
