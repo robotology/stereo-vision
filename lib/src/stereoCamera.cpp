@@ -1067,27 +1067,59 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
      int err2=0; //R2 t2
      int err3=0; //R1 t2
      int err4=0; //R2 t1
+     Mat point(4,1,CV_64FC1);
 
          for(int i=0; i<(int) InliersL.size(); i++) 
          {
              Point3f point3D=triangulation(points1[i],points2[i],P1,P2);
-             if(point3D.z<0) {
+             Mat H1=buildRotTras(R1,t1);
+             point.at<double>(0,0)=point3D.x;
+             point.at<double>(1,0)=point3D.y;
+             point.at<double>(2,0)=point3D.z;
+             point.at<double>(0,0)=1.0;
+             Mat rotatedPoint=H1*point;
+
+             fprintf(stdout, "Camera P2 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+
+             if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
                  err1++;                 
              }
              point3D=triangulation(points1[i],points2[i],P1,P3);
-             
-             if(point3D.z<0) {
+             Mat H2=buildRotTras(R2,t2);
+             point.at<double>(0,0)=point3D.x;
+             point.at<double>(1,0)=point3D.y;
+             point.at<double>(2,0)=point3D.z;
+             point.at<double>(0,0)=1.0;
+             rotatedPoint=H2*point;  
+             fprintf(stdout, "Camera P3 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+
+             if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
                  err2++;                 
              }
                           
-             point3D=triangulation(points1[i],points2[i],P1,P4);             
-             if(point3D.z<0) {
+             point3D=triangulation(points1[i],points2[i],P1,P4);   
+             Mat H3=buildRotTras(R1,t2);
+             point.at<double>(0,0)=point3D.x;
+             point.at<double>(1,0)=point3D.y;
+             point.at<double>(2,0)=point3D.z;
+             point.at<double>(0,0)=1.0;
+             rotatedPoint=H3*point;
+             fprintf(stdout, "Camera P4 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+
+             if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
                  err3++;                 
              } 
              
              point3D=triangulation(points1[i],points2[i],P1,P5);
+             Mat H4=buildRotTras(R2,t1);
+             point.at<double>(0,0)=point3D.x;
+             point.at<double>(1,0)=point3D.y;
+             point.at<double>(2,0)=point3D.z;
+             point.at<double>(0,0)=1.0;
+             rotatedPoint=H4*point;
+             fprintf(stdout, "Camera P5 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
              
-             if(point3D.z<0) {
+             if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
                  err4++;                 
              } 
 
