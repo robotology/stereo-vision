@@ -789,7 +789,7 @@ void StereoCamera::estimateEssential() {
         den2=sum(Fxr);
         double sampsonDistance=xrFxl.at<double>(0,0)/(den1.val[0]+den2.val[0]);
         
-        if(sampsonDistance<0.01) {
+        if(sampsonDistance<0.1) {
             filteredL.push_back(PointsL[i]);
             filteredR.push_back(PointsR[i]);
         }
@@ -1079,7 +1079,7 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              point.at<double>(0,0)=1.0;
              Mat rotatedPoint=H1*point;
 
-             fprintf(stdout, "Camera P2 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+             //fprintf(stdout, "Camera P2 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
 
              if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
                  err1++;                 
@@ -1091,7 +1091,7 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              point.at<double>(2,0)=point3D.z;
              point.at<double>(0,0)=1.0;
              rotatedPoint=H2*point;  
-             fprintf(stdout, "Camera P3 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+             //fprintf(stdout, "Camera P3 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
 
              if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
                  err2++;                 
@@ -1104,7 +1104,7 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              point.at<double>(2,0)=point3D.z;
              point.at<double>(0,0)=1.0;
              rotatedPoint=H3*point;
-             fprintf(stdout, "Camera P4 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+             //fprintf(stdout, "Camera P4 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
 
              if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
                  err3++;                 
@@ -1117,7 +1117,7 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
              point.at<double>(2,0)=point3D.z;
              point.at<double>(0,0)=1.0;
              rotatedPoint=H4*point;
-             fprintf(stdout, "Camera P5 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+             //fprintf(stdout, "Camera P5 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
              
              if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
                  err4++;                 
