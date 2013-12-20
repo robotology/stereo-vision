@@ -281,9 +281,14 @@ bool SFM::updateModule()
         mutexDisp->post();
         
         calibUpdated=success;
-       
         if(success && doSFMOnce)
+        {
+            numberOfTrials=0;
             doSFMOnce=false;
+        }
+        else
+            if(doSFMOnce)
+                numberOfTrials++;
     }
     mutexDisp->wait();
     this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
@@ -1016,15 +1021,23 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if(command.get(0).asString()=="recalibrate")
     {
+        numberOfTrials=0;
         calibUpdated=false;
         doSFMOnce=true;
         
-        while(calibUpdated==false)
+        while(calibUpdated==false || numberOfTrials<5)
         {
 			Time::delay(1.0);
 		}       
         
-        reply.addString("ACK");
+        if(numberOfTrials==0)
+            reply.addString("ACK");
+        else
+        {
+            reply.addString("Calibration failed after 5 trials.. Please show a non planar scene.");
+        }
+
+
         return true;
     }
 

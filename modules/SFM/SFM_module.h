@@ -174,6 +174,7 @@ class SFM: public yarp::os::RFModule
     BufferedPort<ImageOf<PixelBgr> > outDisp;
     BufferedPort<ImageOf<PixelBgr> > outMatch;
 
+    int numberOfTrials;
     string camCalibFile;
     bool useBestDisp;
     int uniquenessRatio; 
