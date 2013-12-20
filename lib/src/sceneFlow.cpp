@@ -349,9 +349,7 @@ Point3f SceneFlow::getSceneFlowPixel(int u, int v)
     return flowPoint;
 
 }
-
-
-void SceneFlow::getSceneFlow(Mat &flow3D)
+void SceneFlow::getSceneFlow(Mat &flow3D, int U1, int V1, int U2, int V2)
 {
     flowSem->wait();
     flow3D.create(optFlow.rows,optFlow.cols,CV_32FC3);
@@ -367,9 +365,9 @@ void SceneFlow::getSceneFlow(Mat &flow3D)
         return;
     }
     
-    for (int v=0; v<optFlow.rows; v++)
+    for (int v=V1; v<V2; v++)
     {
-        for(int u=0; u<optFlow.cols; u++)
+        for(int u=U1; u<U2; u++)
         {
             int valOld=(int)dispFloatOld.ptr<uchar>(v)[u];
             int valNew=(int)dispFloatNew.ptr<uchar>(v+cvRound(optFlow.ptr<float>(v)[2*u+1]))[u+cvRound(optFlow.ptr<float>(v)[2*u])];
@@ -423,6 +421,12 @@ void SceneFlow::getSceneFlow(Mat &flow3D)
 
     flowSem->post();
 
+}
+
+
+void SceneFlow::getSceneFlow(Mat &flow3D)
+{
+    getSceneFlow(flow3D,0,0, flow3D.cols, flow3D.rows);
 }
 
 

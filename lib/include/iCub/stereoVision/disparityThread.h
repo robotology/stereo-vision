@@ -88,6 +88,7 @@ private:
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
     void updateViaKinematics(bool exp=false);
+    bool loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T);
 public:
 
     DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false,bool rectify=true);

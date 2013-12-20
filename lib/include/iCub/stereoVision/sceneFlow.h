@@ -82,6 +82,8 @@ public:
     int getImgWidth();
     int getImgHeight();
     void getSceneFlow(Mat &flow3D);
+    void getSceneFlow(Mat &flow3D, int U1, int V1, int U2, int V2);
+
     void threadRelease();
     void recalibrate();
 };

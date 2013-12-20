@@ -1,5 +1,27 @@
 #include "iCub/stereoVision/disparityThread.h"
 
+bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
+{
+
+    Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
+    if (Bottle *pXo=extrinsics.find("HN").asList()) 
+    {
+        Ro=Mat::zeros(3,3,CV_64FC1);
+        T=Mat::zeros(3,1,CV_64FC1);
+        for (int i=0; i<(pXo->size()-4); i+=4) {
+            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
+            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
+            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
+            T.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+        }
+    }
+    else
+    {
+        return false;
+    }
+    return true;
+}
+
 DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, bool updateCamera, bool rectify) : RateThread(10) 
 {
     Bottle pars=rf.findGroup("STEREO_DISPARITY");
@@ -28,13 +50,31 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
     this->mutexDisp = new Semaphore(1);
     this->stereo=new StereoCamera(rectify);
 
+    ResourceFinder localCalibration;
+    localCalibration.setContext("cameraCalibration");
+    localCalibration.setDefaultConfigFile("SFM_currCalib.ini");
+    localCalibration.configure(NULL,0);
+
+    Mat R_SFM;
+    Mat T_SFM;
+    loadExtrinsics(localCalibration,R_SFM,T_SFM);
+
+
     if(success)
     {
         stereo->setIntrinsics(KL,KR,DistL,DistR);
-        stereo->setRotation(R,0);
-        stereo->setTranslation(T,0);
         this->HL_root= Mat::zeros(4,4,CV_64F);
 
+        if(!R_SFM.empty() && !T_SFM.empty())
+        {
+            stereo->setRotation(R_SFM,0);
+            stereo->setTranslation(T_SFM,0);
+        }
+        else
+        {
+            stereo->setRotation(R,0);
+            stereo->setTranslation(T,0);
+        }
         if(useCalibrated)
         {
             Mat KL=this->stereo->getKleft();
