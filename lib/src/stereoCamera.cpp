@@ -545,9 +545,11 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
     /*Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
     Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
     Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce" );*/
+    fprintf(stdout, "1 \n");
     cv::SiftFeatureDetector  detector;
     cv::SiftDescriptorExtractor descriptorExtractor;
     cv::BFMatcher descriptorMatcher;
+    fprintf(stdout, "2 \n");
 
     Mat gray(imleft.rows,imleft.cols, CV_8UC1);
     imleftund.convertTo(gray,CV_8UC1);
@@ -555,14 +557,17 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
     detector.detect( gray, keypoints1 );
     Mat descriptors1;
     descriptorExtractor.compute(this->imleftund, keypoints1, descriptors1 );
+    fprintf(stdout, "3 \n");
 
     vector<KeyPoint> keypoints2;
     detector.detect( this->imrightund, keypoints2 );
     Mat descriptors2;
     descriptorExtractor.compute( this->imrightund, keypoints2, descriptors2 );
+    fprintf(stdout, "4 \n");
 
     vector<DMatch> filteredMatches;
     crossCheckMatching( descriptorMatcher, descriptors1, descriptors2, filteredMatches,radius, 1 );
+    fprintf(stdout, "5 \n");
 
     vector<char> matchMask(filteredMatches.size(),1);
     for(int i=0; i<(int)filteredMatches.size(); i++) {
@@ -580,12 +585,14 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
         } else
             matchMask[i]=0;
     }
+    fprintf(stdout, "6 \n");
 
    // draw Matches
     Mat matchImg;
     if(visualize) {
         cv::drawMatches(this->imleftund, keypoints1, this->imrightund, keypoints2,filteredMatches,matchImg,Scalar(0,0,255,0), Scalar(0,0,255,0),matchMask);
     }
+    fprintf(stdout, "7 \n");
     
     return matchImg;
 
