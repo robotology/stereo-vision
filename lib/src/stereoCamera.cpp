@@ -542,21 +542,24 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
     this->InliersL.clear();
     this->InliersR.clear();
 
-    Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
+    /*Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
     Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
-    Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce" );
+    Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce" );*/
+    cv::SiftFeatureDetector  detector;
+    cv::SiftDescriptorExtractor descriptorExtractor;
+    cv::BFMatcher descriptorMatcher;
 
     Mat gray(imleft.rows,imleft.cols, CV_8UC1);
     imleftund.convertTo(gray,CV_8UC1);
     vector<KeyPoint> keypoints1;
-    detector->detect( gray, keypoints1 );
+    detector.detect( gray, keypoints1 );
     Mat descriptors1;
-    descriptorExtractor->compute(this->imleftund, keypoints1, descriptors1 );
+    descriptorExtractor.compute(this->imleftund, keypoints1, descriptors1 );
 
     vector<KeyPoint> keypoints2;
-    detector->detect( this->imrightund, keypoints2 );
+    detector.detect( this->imrightund, keypoints2 );
     Mat descriptors2;
-    descriptorExtractor->compute( this->imrightund, keypoints2, descriptors2 );
+    descriptorExtractor.compute( this->imrightund, keypoints2, descriptors2 );
 
     vector<DMatch> filteredMatches;
     crossCheckMatching( descriptorMatcher, descriptors1, descriptors2, filteredMatches,radius, 1 );
@@ -1443,14 +1446,14 @@ const Mat StereoCamera::getRotation() {
 }
 
 
-void StereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher,
+void StereoCamera::crossCheckMatching( cv::BFMatcher &descriptorMatcher,
                          const Mat& descriptors1, const Mat& descriptors2,
                          vector<DMatch>& filteredMatches12, double radius, int knn )
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
-    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) radius );
-    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) radius );
+    descriptorMatcher.radiusMatch( descriptors1, descriptors2, matches12, (float) radius );
+    descriptorMatcher.radiusMatch( descriptors2, descriptors1, matches21, (float) radius );
     for( size_t m = 0; m < matches12.size(); m++ )
     {
         bool findCrossCheck = false;
