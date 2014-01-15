@@ -236,13 +236,18 @@ bool SFM::updateModule()
     if(yarp_imgL==NULL || yarp_imgR==NULL)
         return true;
 
+	fprintf(stdout, "1 \n");
     left=(IplImage*) yarp_imgL->getIplImage(); 
     //left= cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/L.ppm");
     right=(IplImage*) yarp_imgR->getIplImage(); 
     //right=cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/R.ppm");
       
+	fprintf(stdout, "2 \n");
+
     if(init)
     {
+
+		fprintf(stdout, "3 \n");
 
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
@@ -251,19 +256,25 @@ bool SFM::updateModule()
         if(left->width==640)
             this->numberOfDisparities=128;
 
+		fprintf(stdout, "4 \n");
+
         init=false;
 
     }
     Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
     Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);     
 
+	fprintf(stdout, "5 \n");
 
     Mat leftMat(left); 
     Mat rightMat(right);
     this->stereo->setImages(left,right);
+	fprintf(stdout, "6 \n");
     
     if(doSFM || doSFMOnce)
     {
+		fprintf(stdout, "7 \n");
+
         #ifdef USING_GPU
             utils->extractMatch_GPU( leftMat, rightMat);
             vector<Point2f> leftM;
@@ -274,8 +285,10 @@ bool SFM::updateModule()
         #else
             this->stereo->findMatch(false,15);
         #endif
-
+		fprintf(stdout, "8 \n");
+		
         this->stereo->estimateEssential();        
+		fprintf(stdout, "9 \n");
 
         bool success=this->stereo->essentialDecomposition();
         mutexDisp->post();
