@@ -75,7 +75,7 @@ bool SFM::configure(ResourceFinder &rf)
     output_match=NULL;
     outputD=NULL;
     init=true;
-
+	numberOfTrials=0;
 #ifdef USING_GPU
     utils = new Utilities();
     utils->initSIFT_GPU();
