@@ -37,5 +37,5 @@ add_executable(SFM ${source} ${header} )
         target_link_libraries(SFM stereoVision iKin icubmod ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
     endif()
 
-install(TARGETS SFM DESTINATION ${ICUB_DIR}/bin)
+install(TARGETS SFM DESTINATION bin)
 

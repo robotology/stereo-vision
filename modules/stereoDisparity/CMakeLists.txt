@@ -15,5 +15,5 @@ add_executable(stereoDisparity ${source} ${header})
 
 target_link_libraries(stereoDisparity stereoVision iKin icubmod ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
 
-install(TARGETS stereoDisparity DESTINATION ${ICUB_DIR}/bin)
+install(TARGETS stereoDisparity DESTINATION bin)
 

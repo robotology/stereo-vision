@@ -15,5 +15,5 @@ add_executable(testWorldImage ${source} ${header} )
 
 target_link_libraries(testWorldImage iKin icubmod ${YARP_LIBRARIES} ${OPENCV_LIBRARIES})
 
-install(TARGETS testWorldImage DESTINATION ${ICUB_DIR}/bin)
+install(TARGETS testWorldImage DESTINATION bin)
 
