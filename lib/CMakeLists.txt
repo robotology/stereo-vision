@@ -18,6 +18,10 @@ include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
 
 
+IF(OpenCV_VERSION_MINOR GREATER 2)
+	ADD_DEFINITIONS(-DUSE_NEWFEATURES)
+	message(STATUS "OpenCV Minor is " ${OpenCV_VERSION_MINOR}", Using new Feature Structures")
+ENDIF()
 
 if (USE_SIFT_GPU)
     FIND_PACKAGE(SIFTGPU)

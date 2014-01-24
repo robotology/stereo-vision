@@ -530,6 +530,7 @@ Point2f StereoCamera::fromRectifiedToOriginal(int u, int v, int camera)
     return originalPoint;
 
 }
+
 Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) {
     if(this->imleftund.empty() || this->imrightund.empty()) {
               imleftund=imleft;
@@ -542,32 +543,46 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius) 
     this->InliersL.clear();
     this->InliersR.clear();
 
-    /*Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
-    Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
-    Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce" );*/
-    fprintf(stdout, "1 \n");
-    cv::SiftFeatureDetector  detector;
-    cv::SiftDescriptorExtractor descriptorExtractor;
-    cv::BFMatcher descriptorMatcher;
-    fprintf(stdout, "2 \n");
 
-    Mat gray(imleft.rows,imleft.cols, CV_8UC1);
-    imleftund.convertTo(gray,CV_8UC1);
-    vector<KeyPoint> keypoints1;
-    detector.detect( gray, keypoints1 );
-    Mat descriptors1;
-    descriptorExtractor.compute(this->imleftund, keypoints1, descriptors1 );
-    fprintf(stdout, "3 \n");
+    #ifdef USE_NEWFEATURES
+        cv::SiftFeatureDetector  detector;
+        cv::SiftDescriptorExtractor descriptorExtractor;
+        cv::BFMatcher descriptorMatcher;
 
-    vector<KeyPoint> keypoints2;
-    detector.detect( this->imrightund, keypoints2 );
-    Mat descriptors2;
-    descriptorExtractor.compute( this->imrightund, keypoints2, descriptors2 );
-    fprintf(stdout, "4 \n");
+        Mat gray(imleft.rows,imleft.cols, CV_8UC1);
+        imleftund.convertTo(gray,CV_8UC1);
+        vector<KeyPoint> keypoints1;
+        detector.detect( gray, keypoints1 );
+        Mat descriptors1;
+        descriptorExtractor.compute(this->imleftund, keypoints1, descriptors1 );
 
-    vector<DMatch> filteredMatches;
-    crossCheckMatching( descriptorMatcher, descriptors1, descriptors2, filteredMatches,radius, 1 );
-    fprintf(stdout, "5 \n");
+        vector<KeyPoint> keypoints2;
+        detector.detect( this->imrightund, keypoints2 );
+        Mat descriptors2;
+        descriptorExtractor.compute( this->imrightund, keypoints2, descriptors2 );
+
+        vector<DMatch> filteredMatches;
+        crossCheckMatching( descriptorMatcher, descriptors1, descriptors2, filteredMatches,radius, 1 );
+    #else
+        Ptr<FeatureDetector> detector = FeatureDetector::create( "SIFT" );
+        Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
+        Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce" );
+
+        Mat gray(imleft.rows,imleft.cols, CV_8UC1);
+        imleftund.convertTo(gray,CV_8UC1);
+        vector<KeyPoint> keypoints1;
+        detector->detect( gray, keypoints1 );
+        Mat descriptors1;
+        descriptorExtractor->compute(this->imleftund, keypoints1, descriptors1 );
+
+        vector<KeyPoint> keypoints2;
+        detector->detect( this->imrightund, keypoints2 );
+        Mat descriptors2;
+        descriptorExtractor->compute( this->imrightund, keypoints2, descriptors2 );
+
+        vector<DMatch> filteredMatches;
+
+    #endif
 
     vector<char> matchMask(filteredMatches.size(),1);
     for(int i=0; i<(int)filteredMatches.size(); i++) {
@@ -1452,7 +1467,7 @@ const Mat StereoCamera::getRotation() {
     return this->R;
 }
 
-
+ #ifdef USE_NEWFEATURES
 void StereoCamera::crossCheckMatching( cv::BFMatcher &descriptorMatcher,
                          const Mat& descriptors1, const Mat& descriptors2,
                          vector<DMatch>& filteredMatches12, double radius, int knn )
@@ -1485,7 +1500,39 @@ void StereoCamera::crossCheckMatching( cv::BFMatcher &descriptorMatcher,
 
 
 
+#else
 
+void StereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher,
+                         const Mat& descriptors1, const Mat& descriptors2,
+                         vector<DMatch>& filteredMatches12, double radius, int knn )
+{
+    filteredMatches12.clear();
+    vector<vector<DMatch> > matches12, matches21;
+    descriptorMatcher->radiusMatch( descriptors1, descriptors2, matches12, (float) radius );
+    descriptorMatcher->radiusMatch( descriptors2, descriptors1, matches21, (float) radius );
+    for( size_t m = 0; m < matches12.size(); m++ )
+    {
+        bool findCrossCheck = false;
+        for( size_t fk = 0; fk < matches12[m].size(); fk++ )
+        {
+            DMatch forward = matches12[m][fk];
+
+            for( size_t bk = 0; bk < matches21[forward.trainIdx].size(); bk++ )
+            {
+                DMatch backward = matches21[forward.trainIdx][bk];
+                if( backward.trainIdx == forward.queryIdx )
+                {
+                    filteredMatches12.push_back(forward);
+                    findCrossCheck = true;
+                    break;
+                }
+            }
+            if( findCrossCheck ) break;
+        }
+    }
+}
+
+#endif
 
 
 
