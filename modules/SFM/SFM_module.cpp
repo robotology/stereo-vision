@@ -1029,7 +1029,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         calibUpdated=false;
         doSFMOnce=true;
         
-        while(calibUpdated==false || numberOfTrials<5)
+        while(!calibUpdated && numberOfTrials<5)
         {
 			Time::delay(0.1);
 		}       
