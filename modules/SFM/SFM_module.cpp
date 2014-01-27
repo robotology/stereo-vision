@@ -1038,6 +1038,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addString("ACK");
         else
         {
+			doSFMOnce=false;
             reply.addString("Calibration failed after 5 trials.. Please show a non planar scene.");
         }
 
