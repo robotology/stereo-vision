@@ -1031,7 +1031,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         
         while(calibUpdated==false || numberOfTrials<5)
         {
-			Time::delay(1.0);
+			Time::delay(0.1);
 		}       
         
         if(numberOfTrials==0)
