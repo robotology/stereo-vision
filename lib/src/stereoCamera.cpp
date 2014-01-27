@@ -963,6 +963,9 @@ bool StereoCamera::essentialDecomposition() {
     /*fprintf(stdout, "Estimated Translation \n ");
     printMatrix(t_est);
     fprintf(stdout, "\n ");*/
+
+    fprintf(stdout, "Angles Differences: %f %f %f \n", diff_angles.at<double>(0,0),diff_angles.at<double>(1,0),diff_angles.at<double>(2,0));
+    fprintf(stdout, "Translation Differences: %f %f %f \n", diff_tran.at<double>(0,0),diff_tran.at<double>(1,0),diff_tran.at<double>(2,0));    
     
     // Magic numbers: rvec_new are the rotation angles, only vergence (rvec_new(1,0)) is allowed to be large
     // t_est is the translation estimated, it can change a little bit when joint 4 of the head is moving
@@ -970,8 +973,7 @@ bool StereoCamera::essentialDecomposition() {
     if(abs(diff_angles.at<double>(0,0))<0.1 && abs(diff_angles.at<double>(1,0))<0.1 && abs(diff_angles.at<double>(2,0))<0.1 && abs(diff_tran.at<double>(0,0))<0.005&& abs(diff_tran.at<double>(1,0))<0.005 && abs(diff_tran.at<double>(2,0))<0.005)    
     {
     
-        fprintf(stdout, "Angles Differences: %f %f %f \n", diff_angles.at<double>(0,0),diff_angles.at<double>(1,0),diff_angles.at<double>(2,0));
-        fprintf(stdout, "Translation Differences: %f %f %f \n", diff_tran.at<double>(0,0),diff_tran.at<double>(1,0),diff_tran.at<double>(2,0));    
+
         this->mutex->wait();
         this->R=Rnew;
         this->T=(tnew/norm(tnew))*norm(this->T);
