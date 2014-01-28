@@ -1070,6 +1070,14 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             return true;          
         }
     }
+    if(command.get(0).asString()=="setMinDisp")
+    {
+        int dispNum=command.get(1).asInt();
+        this->minDisparity=dispNum;
+        this->setDispParameters(useBestDisp,uniquenessRatio,speckleWindowSize,speckleRange,numberOfDisparities,SADWindowSize,minDisparity,preFilterCap,disp12MaxDiff);
+        reply.addString("ACK");
+        return true;  
+    }
     if(command.get(0).asString()=="set" && command.size()==10)
     {
         bool bestDisp=command.get(1).asInt() ? true : false;
