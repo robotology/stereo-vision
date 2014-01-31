@@ -89,8 +89,8 @@ int main(int argc, char *argv[])
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("testImageWorld/conf");
-    rf.configure("ICUB_ROOT",argc,argv);
+    rf.setDefaultContext("testImageWorld");
+    rf.configure(argc,argv);
 
     TestWorldImage mod;
 

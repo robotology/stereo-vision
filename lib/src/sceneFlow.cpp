@@ -30,10 +30,10 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
     {
         fprintf(stdout, "Starting Disparity and Optical Flow Threads...\n");
         ResourceFinder cameraFinder;
-        cameraFinder.setDefaultContext("cameraCalibration/conf");
+        cameraFinder.setDefaultContext("cameraCalibration");
         cameraFinder.setDefaultConfigFile(configFileDisparity.c_str());
         int argc=0; char *argv[1];
-        cameraFinder.configure("ICUB_ROOT",argc,argv);
+        cameraFinder.configure(argc,argv);
 
         disp=new DisparityThread(cameraFinder,false,false);
         opt=new OpticalFlowThread(rf);

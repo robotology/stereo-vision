@@ -237,10 +237,7 @@ bool SFM::updateModule()
         return true;
 
     left=(IplImage*) yarp_imgL->getIplImage(); 
-    //left= cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/L.ppm");
     right=(IplImage*) yarp_imgR->getIplImage(); 
-    //right=cvLoadImage("/usr/local/src/robot/iCub/app/cameraCalibration/conf/R.ppm");
-      
 
     if(init)
     {
@@ -1218,7 +1215,7 @@ int main(int argc, char *argv[])
     rf.setVerbose(true);
     rf.setDefaultConfigFile("icubEyes.ini"); 
     rf.setDefaultContext("cameraCalibration");   
-    rf.configure("ICUB_ROOT",argc,argv);
+    rf.configure(argc,argv);
 
     SFM mod;
 

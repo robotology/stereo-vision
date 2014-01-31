@@ -139,13 +139,6 @@ void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat, Mat &matMatches)
         }
     }
     //fprintf(stdout, "using only %d \n", cnt);  
-    
-    /*if(writeS)
-    {
-       writeMatch("/usr/local/src/robot/iCub/app/cameraCalibration/conf/m.txt",pointsL,pointsR);
-       writeS=false;
-    }*/
-    
 }
 
 
@@ -207,13 +200,6 @@ void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat)
         }
     }
     //fprintf(stdout, "using only %d \n", cnt);  
-    
-    /*if(writeS)
-    {
-       writeMatch("/usr/local/src/robot/iCub/app/cameraCalibration/conf/m.txt",pointsL,pointsR);
-       writeS=false;
-    }*/
-    
 }
 
 void Utilities::getMatches(std::vector<cv::Point2f> & points1, std::vector<cv::Point2f>  & points2)
