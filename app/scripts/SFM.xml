@@ -3,19 +3,21 @@
 <name>SFM</name>
 
 		<module>
-			<name>SFM_module</name>
-			<node>icub15</node>
+			<name>SFM</name>
+			<node>icub-cuda</node>
 			<tag>SFM</tag>
         </module>
 		
 		<module>
-			<name>yarpview --name /matchViewer</name>
+			<name>yarpview</name>
+			<parameters>--name /matchViewer --x 0</parameters>
 			<node>icub16</node>
 			<tag>yarpviewTag</tag>
         </module>
 		
 		<module>
-			<name>yarpview --name /dispViewer</name>
+			<name>yarpview</name>
+			<parameters>--name /dispViewer --x 330</parameters>
 			<node>icub16</node>
 			<tag>yarpviewTag</tag>
         </module>
