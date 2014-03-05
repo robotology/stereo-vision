@@ -246,7 +246,7 @@ bool SFM::updateModule()
         if(left->width==320)
             this->numberOfDisparities=64;
         if(left->width==640)
-            this->numberOfDisparities=128l
+            this->numberOfDisparities=128l;
 
         init=false;
     }
