@@ -32,6 +32,7 @@
 #include <iCub/stereoVision/utils.h>
 
 
+using namespace std;
 using namespace cv;
 
 /************************************************************************/
