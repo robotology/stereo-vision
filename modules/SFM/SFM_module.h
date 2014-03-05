@@ -111,24 +111,13 @@ Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7.
 #include <iostream>
 #include <fstream>
 #include <deque>
-#include <yarp/os/Network.h>
-#include <yarp/os/RFModule.h>
-#include <yarp/os/Stamp.h>
-#include <yarp/sig/Vector.h>
-#include <yarp/sig/Matrix.h>
-#include <yarp/sig/Image.h>
+#include <yarp/os/all.h>
+#include <yarp/dev/all.h>
+#include <yarp/sig/all.h>
 #include <yarp/math/Math.h>
-#include <yarp/dev/Drivers.h>
-#include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/GazeControl.h>
-#include <yarp/dev/CartesianControl.h>
-#include <yarp/dev/ControlBoardInterfaces.h>
 #include <iCub/ctrl/math.h>
 #include <iCub/iKin/iKinFwd.h>
-#include <yarp/dev/GazeControl.h>
 #include <iCub/stereoVision/stereoCamera.h>
-#include <iCub/iKin/iKinFwd.h>
-
 
 #ifdef USING_GPU
     #include <iCub/stereoVision/utils.h>
@@ -188,6 +177,8 @@ class SFM: public yarp::os::RFModule
     bool doSFM;
     bool doSFMOnce;
     bool calibUpdated;
+    Mutex mutexRecalibration;
+    Event calibEndEvent;
     Semaphore* mutexDisp;
     
     PolyDriver* gazeCtrl;

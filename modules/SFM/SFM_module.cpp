@@ -75,7 +75,7 @@ bool SFM::configure(ResourceFinder &rf)
     output_match=NULL;
     outputD=NULL;
     init=true;
-	numberOfTrials=0;
+    numberOfTrials=0;
 #ifdef USING_GPU
     utils = new Utilities();
     utils->initSIFT_GPU();
@@ -241,56 +241,58 @@ bool SFM::updateModule()
 
     if(init)
     {
-
-
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
         if(left->width==320)
             this->numberOfDisparities=64;
         if(left->width==640)
-            this->numberOfDisparities=128;
-
+            this->numberOfDisparities=128l
 
         init=false;
-
     }
-    Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
-    Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);     
 
+    Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
+    Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
 
     Mat leftMat(left); 
     Mat rightMat(right);
     this->stereo->setImages(left,right);
     
+    mutexRecalibration.lock();
     if(doSFM || doSFMOnce)
     {
-
-        #ifdef USING_GPU
-            utils->extractMatch_GPU( leftMat, rightMat);
-            vector<Point2f> leftM;
-            vector<Point2f> rightM;
-            utils->getMatches(leftM,rightM);
-            mutexDisp->wait();
-            this->stereo->setMatches(leftM,rightM);
-        #else
-            this->stereo->findMatch(false,15);
-        #endif
-		
-        this->stereo->estimateEssential();        
-
+    #ifdef USING_GPU
+        utils->extractMatch_GPU( leftMat, rightMat);
+        vector<Point2f> leftM;
+        vector<Point2f> rightM;
+        utils->getMatches(leftM,rightM);
+        mutexDisp->wait();
+        this->stereo->setMatches(leftM,rightM);
+    #else
+        this->stereo->findMatch(false,15);
+    #endif
+        this->stereo->estimateEssential();
         bool success=this->stereo->essentialDecomposition();
         mutexDisp->post();
-        
-        calibUpdated=success;
-        if(success && doSFMOnce)
+
+        if (success)
         {
-            numberOfTrials=0;
+            calibUpdated=true;
             doSFMOnce=false;
+            calibEndEvent.signal();
         }
         else
-            if(doSFMOnce)
-                numberOfTrials++;
+        {
+            if (++numberOfTrials>5)
+            {
+                calibUpdated=false;
+                doSFMOnce=false;
+                calibEndEvent.signal();
+            }
+        }
     }
+    mutexRecalibration.unlock();
+
     mutexDisp->wait();
     this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
     mutexDisp->post();
@@ -1022,23 +1024,18 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if(command.get(0).asString()=="recalibrate")
     {
+        mutexRecalibration.lock();
         numberOfTrials=0;
-        calibUpdated=false;
         doSFMOnce=true;
-        
-        while(!calibUpdated && numberOfTrials<5)
-        {
-			Time::delay(0.1);
-		}       
-        
-        if(numberOfTrials==0)
+        mutexRecalibration.unlock();
+
+        calibEndEvent.reset();
+        calibEndEvent.wait();
+
+        if (calibUpdated)
             reply.addString("ACK");
         else
-        {
-			doSFMOnce=false;
             reply.addString("Calibration failed after 5 trials.. Please show a non planar scene.");
-        }
-
 
         return true;
     }
