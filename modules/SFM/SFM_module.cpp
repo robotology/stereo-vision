@@ -711,9 +711,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
     u=cvRound(usign);
     v=cvRound(vsign);
 
-
     IplImage disp16=this->stereo->getDisparity16();
-
 
     if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
         point.x=0.0;
@@ -845,11 +843,10 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, string 
     float vrect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)+1]; 
 
     float urect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)];
-    float vrect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)+1]; 
-
+    float vrect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)+1];
 
     Mat Q=this->stereo->getQ();
-    double disparity=urect2-urect1;
+    double disparity=urect1-urect2;
     float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
     point.x= (float)((float) (urect1+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
     point.y=(float)((float) (vrect1+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));

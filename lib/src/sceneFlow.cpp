@@ -233,14 +233,13 @@ void SceneFlow::triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disp
     }
     else 
     {
-        CvScalar scal= cvGet2D(&disp16,v,u);
-        double dispVal=-scal.val[0]/16.0;
+        CvScalar scal=cvGet2D(&disp16,v,u);
+        double dispVal=scal.val[0]/16.0;
         float w= (float) ((float) dispVal*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
         point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
         point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
         point.z=(float) Q.at<double>(2,3);
         
-     
         point.x=point.x/w;
         point.y=point.y/w;
         point.z=point.z/w;
