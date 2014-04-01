@@ -15,7 +15,7 @@ bool SFM::configure(ResourceFinder &rf)
     ResourceFinder localCalibration;
     localCalibration.setContext("cameraCalibration");
     localCalibration.setDefaultConfigFile("SFM_currCalib.ini");
-    localCalibration.configure(NULL,0);
+    localCalibration.configure(0,NULL);
 
     this->camCalibFile=localCalibration.getHomeContextPath().c_str();
     this->camCalibFile=this->camCalibFile+"/SFM_currCalib.ini";

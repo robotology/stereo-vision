@@ -53,7 +53,7 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
     ResourceFinder localCalibration;
     localCalibration.setContext("cameraCalibration");
     localCalibration.setDefaultConfigFile("SFM_currCalib.ini");
-    localCalibration.configure(NULL,0);
+    localCalibration.configure(0,NULL);
 
     Mat R_SFM;
     Mat T_SFM;
