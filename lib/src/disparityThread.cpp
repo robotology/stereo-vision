@@ -47,18 +47,19 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
     this->useHorn=useHorn;
     Mat KL, KR, DistL, DistR, R, T;
     success=loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
-    this->mutexDisp = new Semaphore(1);
-    this->stereo=new StereoCamera(rectify);
 
     ResourceFinder localCalibration;
     localCalibration.setContext("cameraCalibration");
     localCalibration.setDefaultConfigFile("SFM_currCalib.ini");
+    localCalibration.setVerbose();
     localCalibration.configure(0,NULL);
 
     Mat R_SFM;
     Mat T_SFM;
     loadExtrinsics(localCalibration,R_SFM,T_SFM);
 
+    this->mutexDisp = new Semaphore(1);
+    this->stereo=new StereoCamera(rectify);
 
     if(success)
     {
@@ -558,7 +559,7 @@ bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
     Ro=Mat::zeros(3,3,CV_64FC1);
     T=Mat::zeros(3,1,CV_64FC1);
 
-    Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
+    /*Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
     if (Bottle *pXo=extrinsics.find("HN").asList()) {
         for (int i=0; i<(pXo->size()-4); i+=4) {
             Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
@@ -568,7 +569,7 @@ bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
         }
     }
     else
-        return false;
+        return false;*/
 
     return true;
 }
