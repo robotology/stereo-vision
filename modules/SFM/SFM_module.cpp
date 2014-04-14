@@ -1,13 +1,12 @@
 #include "SFM_module.h"
 
-
-
 bool SFM::configure(ResourceFinder &rf)
 {
     string name=rf.check("name",Value("/SFM")).asString().c_str();
-    string left=rf.check("leftPort",Value("/left:i")).asString().c_str();
-    left=name+left;
+    string left=rf.check("leftPort",Value("/left:i")).asString().c_str();    
     string right=rf.check("rightPort",Value("/right:i")).asString().c_str();
+    left=name+left;
+    right=name+right;
 
     string outDispName=rf.check("outDispPort",Value("/disp:o")).asString().c_str();
     string outMatchName=rf.check("outMatchPort",Value("/match:o")).asString().c_str();
@@ -19,16 +18,15 @@ bool SFM::configure(ResourceFinder &rf)
 
     this->camCalibFile=localCalibration.getHomeContextPath().c_str();
     this->camCalibFile=this->camCalibFile+"/SFM_currCalib.ini";
-
-    right=name+right;
+    
     outMatchName=name+outMatchName;
     outDispName=name+outDispName;
     
     string rpc_name=name+"/rpc";
     string world_name=name+rf.check("outWorldPort",Value("/world:o")).asString().c_str();
 
-    int calib= rf.check("useCalibrated",Value(1)).asInt();
-    bool useCalibrated= calib ? true : false;
+    int calib=rf.check("useCalibrated",Value(1)).asInt();
+    bool useCalibrated=(calib!=0);
 
     leftImgPort.open(left.c_str());
     rightImgPort.open(right.c_str());
@@ -41,15 +39,12 @@ bool SFM::configure(ResourceFinder &rf)
     this->stereo=new StereoCamera(true);
     Mat KL, KR, DistL, DistR, R, T;
     
-
     loadIntrinsics(rf,KL,KR,DistL,DistR);
     loadExtrinsics(localCalibration,R,T);
     
-    this->mutexDisp = new Semaphore(1);
+    this->mutexDisp=new Semaphore(1);
 
     stereo->setIntrinsics(KL,KR,DistL,DistR);
-
-
 
     this->useBestDisp=true;
     this->uniquenessRatio=15;
@@ -64,7 +59,7 @@ bool SFM::configure(ResourceFinder &rf)
     this->HL_root= Mat::zeros(4,4,CV_64F);
     this->HR_root= Mat::zeros(4,4,CV_64F);
 
-    if(useCalibrated)
+    if (useCalibrated)
     {
         Mat KL=this->stereo->getKleft();
         Mat KR=this->stereo->getKright();
@@ -81,7 +76,6 @@ bool SFM::configure(ResourceFinder &rf)
     utils->initSIFT_GPU();
 #endif
     
-    
     Property option;
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");
@@ -95,7 +89,7 @@ bool SFM::configure(ResourceFinder &rf)
         return false;
     }
         
-    if(!R.empty() && !T.empty())
+    if (!R.empty() && !T.empty())
     {
         stereo->setRotation(R,0);
         stereo->setTranslation(T,0);
@@ -107,56 +101,58 @@ bool SFM::configure(ResourceFinder &rf)
     }
 
     doSFM=false;
-
     updateViaKinematics(true);
     
     return true;
-    
-    
 }
+
 
 void SFM::updateViaKinematics(bool exp)
 {
-        
     Matrix L1=getCameraHGazeCtrl(LEFT);
     Matrix R1=getCameraHGazeCtrl(RIGHT);
-    
-    Matrix RT=SE3inv(R1)*L1; 
-    
-    Mat R= Mat::zeros(3,3,CV_64F);
-    Mat T= Mat::zeros(3,1,CV_64F);
-    
-    for (int i=0; i<R.rows; i++)
-    {
-        for(int j=0; j<R.cols; j++)
-        {
-            R.at<double>(i,j)=RT(i,j);
-        }
-    }
-    
-    
-    for (int i=0; i<T.rows; i++)
-    {
-        T.at<double>(i,0)=RT(i,3);
-    }
-    
 
-    if(!exp)
+    Matrix RT=SE3inv(R1)*L1;
+
+    Mat R=Mat::zeros(3,3,CV_64F);
+    Mat T=Mat::zeros(3,1,CV_64F);
+
+    for (int i=0; i<R.rows; i++)
+        for(int j=0; j<R.cols; j++)
+            R.at<double>(i,j)=RT(i,j);
+
+    for (int i=0; i<T.rows; i++)
+        T.at<double>(i,0)=RT(i,3);
+
+    if (exp)
+        stereo->setExpectedPosition(R,T);
+    else
     {
         stereo->setRotation(R,0);
         stereo->setTranslation(T,0);
     }
-    else
-    {
-    
-        stereo->setExpectedPosition(R,T);
-    }
-
 }
+
+
+bool SFM::interruptModule()
+{
+    leftImgPort.interrupt();
+    leftImgPort.close();
+    rightImgPort.interrupt();
+    rightImgPort.close();
+    outDisp.close();
+    outDisp.interrupt();
+    
+    handlerPort.interrupt();
+    outMatch.close();
+    outMatch.interrupt();
+    worldPort.interrupt();
+    return true;
+}
+
 
 bool SFM::close()
 {
-    
     leftImgPort.interrupt();
     leftImgPort.close();
 
@@ -188,7 +184,6 @@ bool SFM::close()
     delete utils;
 #endif
     
-
     delete mutexDisp;
     return true;
 }
@@ -208,21 +203,7 @@ void SFM::printMatrix(Mat &matrix) {
         cout << endl;
 }
 
-bool SFM::interruptModule()
-{
-    leftImgPort.interrupt();
-    leftImgPort.close();
-    rightImgPort.interrupt();
-    rightImgPort.close();
-    outDisp.close();
-    outDisp.interrupt();
-    
-    handlerPort.interrupt();
-    outMatch.close();
-    outMatch.interrupt();
-    worldPort.interrupt();
-    return true;
-}
+
 bool SFM::updateModule()
 {
     ImageOf<PixelRgb> *yarp_imgL=NULL;
@@ -251,8 +232,8 @@ bool SFM::updateModule()
         init=false;
     }
 
-    Matrix yarp_Left=getCameraHGazeCtrl(LEFT);
-    Matrix yarp_Right=getCameraHGazeCtrl(RIGHT);
+    getCameraHGazeCtrl(LEFT);
+    getCameraHGazeCtrl(RIGHT);
 
     Mat leftMat(left); 
     Mat rightMat(right);
@@ -354,6 +335,7 @@ bool SFM::updateModule()
     return true;
 }
 
+
 double SFM::getPeriod()
 {
     return 0.01;
@@ -362,8 +344,6 @@ double SFM::getPeriod()
 
 bool SFM::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
 {
-
-    
     Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
     if (Bottle *pXo=extrinsics.find("HN").asList()) {
         Ro=Mat::zeros(3,3,CV_64FC1);
@@ -380,9 +360,11 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
         doSFMOnce=true;
         return false;
     }
+
     doSFMOnce=false;
     return true;
 }
+
 
 bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR)
 {
@@ -409,7 +391,6 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
     DistL.at<double>(0,2)=p1;
     DistL.at<double>(0,3)=p2;
     
-
     KL=Mat::eye(3,3,CV_64FC1);
     KL.at<double>(0,0)=fx;
     KL.at<double>(0,2)=cx;
@@ -438,13 +419,11 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
     DistR.at<double>(0,2)=p1;
     DistR.at<double>(0,3)=p2;
     
-
     KR=Mat::eye(3,3,CV_64FC1);
     KR.at<double>(0,0)=fx;
     KR.at<double>(0,2)=cx;
     KR.at<double>(1,1)=fy;
     KR.at<double>(1,2)=cy;
-
 
     return true;
 }
