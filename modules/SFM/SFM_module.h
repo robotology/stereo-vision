@@ -58,8 +58,7 @@ YARP libraries and OpenCV 2.2
 
 --rightPort  \e /right:i
 - The parameter \e inputRight specifies the right image input port.
-
-
+ 
 --outDispPort   \e /disp:o 
 - The parameter \e /disparity:o specifies the output port for the disparity image.
 
@@ -70,8 +69,7 @@ YARP libraries and OpenCV 2.2
 - The parameter \e /world:o  specifies the output port for the world image.
 
 --CommandPort   \e comm 
-- The parameter \e comm specifies the command port for rpc protocol.
-  
+- The parameter \e comm specifies the command port for rpc protocol. 
 
 \section portsc_sec Ports Created
 - <i> /SFM/left:i </i> accepts the incoming images from the left eye. 
