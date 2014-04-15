@@ -138,24 +138,24 @@ bool SFM::configure(ResourceFinder &rf)
 }
 
 
-void SFM::updateViaKinematics(const Vector& eyes)
+void SFM::updateViaKinematics(const yarp::sig::Vector& eyes)
 {
     double tilt=CTRL_DEG2RAD*eyes[0];
     double pan=CTRL_DEG2RAD*eyes[1];
     double ver=CTRL_DEG2RAD*eyes[2];
 
-    Vector rot_l_tilt(4,0.0);
+    yarp::sig::Vector rot_l_tilt(4,0.0);
     rot_l_tilt[0]=1.0;
     rot_l_tilt[3]=tilt;
-    Vector rot_l_pan(4,0.0);
+    yarp::sig::Vector rot_l_pan(4,0.0);
     rot_l_pan[1]=1.0;
     rot_l_pan[3]=pan+ver/2.0;
     Matrix L=axis2dcm(rot_l_pan)*axis2dcm(rot_l_tilt);
 
-    Vector rot_r_tilt(4,0.0);
+    yarp::sig::Vector rot_r_tilt(4,0.0);
     rot_r_tilt[0]=1.0;
     rot_r_tilt[3]=tilt;
-    Vector rot_r_pan(4,0.0);
+    yarp::sig::Vector rot_r_pan(4,0.0);
     rot_r_pan[1]=-1.0;
     rot_r_pan[3]=pan-ver/2.0;
     Matrix R=axis2dcm(rot_r_pan)*axis2dcm(rot_r_tilt);
@@ -420,7 +420,7 @@ double SFM::getPeriod()
 }
 
 
-bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, Vector& eyes)
+bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes)
 {
     Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
 
@@ -517,7 +517,7 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
 }
 
 
-bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, Vector& eyes, const string& groupname)
+bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname)
 {
     std::vector<string> lines;
     bool append = false;

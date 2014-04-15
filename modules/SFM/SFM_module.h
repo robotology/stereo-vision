@@ -183,7 +183,7 @@ class SFM: public yarp::os::RFModule
     PolyDriver headCtrl,gazeCtrl;
     IEncoders* iencs;
     IGazeControl* igaze;
-    Vector eyes0,eyes;
+    yarp::sig::Vector eyes0,eyes;
     Mat HL_root;
     Mat HR_root;
     Mat R0,T0;
@@ -194,11 +194,11 @@ class SFM: public yarp::os::RFModule
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);    
     void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
-    bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, Vector& eyes);
-    bool updateExtrinsics(Mat& Rot, Mat& Tr, Vector& eyes, const string& groupname);
+    bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
+    bool updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
     void printMatrix(Mat &matrix);
     void updateViaGazeCtrl(const bool update);
-    void updateViaKinematics(const Vector& eyes);
+    void updateViaKinematics(const yarp::sig::Vector& eyes);
     bool init;
     
 public:
