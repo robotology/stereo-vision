@@ -28,7 +28,6 @@ using namespace iCub::iKin;
 class DisparityThread : public RateThread
 {
 private:
-
     StereoCamera *stereo;
     bool done;
     bool work;
@@ -52,7 +51,7 @@ private:
 
     #ifdef USING_GPU
         /* pointer to the utilities class */
-        Utilities                 *utils;
+        Utilities *utils;
     #endif    
 
     yarp::sig::Vector QL;
@@ -60,8 +59,8 @@ private:
 
     Matrix yarp_initLeft,yarp_initRight;
     Matrix yarp_H0;
-    Semaphore* mutexDisp;
-    PolyDriver* gazeCtrl;
+    Mutex mutexDisp;
+    PolyDriver gazeCtrl;
     IGazeControl* igaze;
 
     iCubEye *LeyeKin;
@@ -78,9 +77,10 @@ private:
     Mat HL_root;
     Mat HR_root;
 
+    string moduleName;
     string robotName;
 
-    void buildRotTras(Mat & R, Mat & T, Mat & A);
+    void buildRotTras(Mat &R, Mat &T, Mat &A);
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T);
     Matrix getCameraHGazeCtrl(int camera);
     Matrix getCameraH(yarp::sig::Vector &head_angles,yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera);
@@ -89,13 +89,11 @@ private:
     void convert(Mat& mat, Matrix& matrix);
     void updateViaKinematics(bool exp=false);
     bool loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T);
+
 public:
-
-    DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false,bool rectify=true);
+    DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false, bool rectify=true);
     DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true);
-
-    ~DisparityThread(void) {};
-
+    ~DisparityThread() { };
 
     void setImages(Mat &left, Mat &right);
     void getDisparity(Mat &Disp);
@@ -113,12 +111,11 @@ public:
     void updateCamerasOnce();
     void startUpdate();
     void stopUpdate();
-    
 
-
-    bool threadInit(void);
-    void threadRelease(void);
-    void run(void); 
-    void onStop(void);
- 
+    bool threadInit();
+    void threadRelease();
+    void run(); 
+    void onStop();
 };
+
+

@@ -2,13 +2,13 @@
 
 bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
 {
-
     Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
     if (Bottle *pXo=extrinsics.find("HN").asList()) 
     {
         Ro=Mat::zeros(3,3,CV_64FC1);
         T=Mat::zeros(3,1,CV_64FC1);
-        for (int i=0; i<(pXo->size()-4); i+=4) {
+        for (int i=0; i<(pXo->size()-4); i+=4)
+        {
             Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
             Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
             Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
@@ -16,23 +16,23 @@ bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat 
         }
     }
     else
-    {
         return false;
-    }
+
     return true;
 }
 
-DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, bool updateCamera, bool rectify) : RateThread(10) 
+
+DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, bool updateCamera, bool rectify) : RateThread(10)
 {
     Bottle pars=rf.findGroup("STEREO_DISPARITY");
-    robotName = pars.check("robotName",Value("icub"), "module name (string)").asString().c_str();
+    moduleName=pars.check("moduleName",Value("disparityThreadLib")).asString().c_str();
+    robotName=pars.check("robotName",Value("icub")).asString().c_str();
 
     if (Bottle *pXo=pars.find("QL").asList()) 
     {
         QL.resize(pXo->size());
         for (int i=0; i<(pXo->size()); i++) 
             QL[i]=pXo->get(i).asDouble();
-        
     }
     
     if (Bottle *pXo=pars.find("QR").asList()) 
@@ -42,8 +42,8 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
             QR[i]=pXo->get(i).asDouble();
     }
 
-    int calib= rf.check("useCalibrated",Value(1)).asInt();
-    this->useCalibrated= calib ? true : false;
+    int calib=rf.check("useCalibrated",Value(1)).asInt();
+    this->useCalibrated=(calib!=0);
     this->useHorn=useHorn;
     Mat KL, KR, DistL, DistR, R, T;
     success=loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
@@ -54,19 +54,16 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
     localCalibration.setVerbose();
     localCalibration.configure(0,NULL);
 
-    Mat R_SFM;
-    Mat T_SFM;
+    Mat R_SFM,T_SFM;
     loadExtrinsics(localCalibration,R_SFM,T_SFM);
-
-    this->mutexDisp = new Semaphore(1);
     this->stereo=new StereoCamera(rectify);
 
-    if(success)
+    if (success)
     {
         stereo->setIntrinsics(KL,KR,DistL,DistR);
         this->HL_root= Mat::zeros(4,4,CV_64F);
 
-        if(!R_SFM.empty() && !T_SFM.empty())
+        if (!R_SFM.empty() && !T_SFM.empty())
         {
             stereo->setRotation(R_SFM,0);
             stereo->setTranslation(T_SFM,0);
@@ -76,7 +73,8 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
             stereo->setRotation(R,0);
             stereo->setTranslation(T,0);
         }
-        if(useCalibrated)
+
+        if (useCalibrated)
         {
             Mat KL=this->stereo->getKleft();
             Mat KR=this->stereo->getKright();
@@ -84,9 +82,9 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
             this->stereo->setIntrinsics(KL,KR,zeroDist,zeroDist);
         }
         
-        fprintf(stdout, "Disparity Thread has started...\n");
-
+        printf("Disparity Thread has started...\n");
     }
+
     this->widthInit=320;
     this->useBestDisp=true;
     this->uniquenessRatio=15;
@@ -104,11 +102,12 @@ DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, boo
     this->updateOnce=false;
     this->updateCamera=updateCamera;
 
-    #ifdef USING_GPU
-        utils = new Utilities();
-        utils->initSIFT_GPU();
-    #endif
+#ifdef USING_GPU
+    utils=new Utilities();
+    utils->initSIFT_GPU();
+#endif
 }
+
 
 bool DisparityThread::isOpen()
 {
@@ -118,94 +117,77 @@ bool DisparityThread::isOpen()
 
 void DisparityThread::updateViaKinematics(bool exp)
 {
-        
     Matrix L1=getCameraHGazeCtrl(LEFT);
     Matrix R1=getCameraHGazeCtrl(RIGHT);
     
     Matrix RT=SE3inv(R1)*L1; 
-    
-    Mat R= Mat::zeros(3,3,CV_64F);
-    Mat T= Mat::zeros(3,1,CV_64F);
+
+    Mat R=Mat::zeros(3,3,CV_64F);
+    Mat T=Mat::zeros(3,1,CV_64F);
     
     for (int i=0; i<R.rows; i++)
-    {
         for(int j=0; j<R.cols; j++)
-        {
             R.at<double>(i,j)=RT(i,j);
-        }
-    }
-    
     
     for (int i=0; i<T.rows; i++)
-    {
         T.at<double>(i,0)=RT(i,3);
-    }
     
-
-    if(!exp)
+    if (!exp)
     {
         stereo->setRotation(R,0);
         stereo->setTranslation(T,0);
     }
     else
-    {
-    
         stereo->setExpectedPosition(R,T);
-    }
-
 }
 
 
 void DisparityThread::run() 
 {
-    if(!success)
-    {
-        fprintf(stdout, "Error. Cannot load camera parameters... Check your config file \n");
-    }
+    if (!success)
+        printf("Error. Cannot load camera parameters... Check your config file \n");
 
-
-
-    if(work && success) 
+    if (work && success) 
     {
         updateViaKinematics(true);
         
-        mutexDisp->wait();        
-        if(updateCamera || updateOnce)
+        mutexDisp.lock();
+        if (updateCamera || updateOnce)
         {
+        #ifdef USING_GPU
+            Mat leftMat=this->stereo->getImLeft();
+            Mat rightMat=this->stereo->getImRight();
+            IplImage left=leftMat;
+            IplImage right=rightMat;
+            this->stereo->setImages(&left,&right);
+            utils->extractMatch_GPU( leftMat, rightMat);
+            vector<Point2f> leftM;
+            vector<Point2f> rightM;
+    
+            utils->getMatches(leftM,rightM);
+            this->stereo->setMatches(leftM,rightM);
+            
+         #else
+            this->stereo->findMatch(false,15,10.0);      
+         #endif
 
-            #ifdef USING_GPU
-                Mat leftMat=this->stereo->getImLeft();
-                Mat rightMat=this->stereo->getImRight();
-                IplImage left=leftMat;
-                IplImage right=rightMat;
-                this->stereo->setImages(&left,&right);
-                utils->extractMatch_GPU( leftMat, rightMat);
-                vector<Point2f> leftM;
-                vector<Point2f> rightM;
-        
-                utils->getMatches(leftM,rightM);
- 
-                this->stereo->setMatches(leftM,rightM);
-                
-             #else
-                this->stereo->findMatch(false,15,10.0);
-          
-             #endif
             this->stereo->estimateEssential();       
             bool success=this->stereo->essentialDecomposition();     
             if(success && updateOnce)
                 updateOnce=false;
         }
+
         // Compute Disparity
-        this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
-        mutexDisp->post();
+        this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize,
+                                       this->speckleRange, this->numberOfDisparities, this->SADWindowSize,
+                                       this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
+        mutexDisp.unlock();
         work=false;
         done=true;
         this->suspend();
     }
-
-
 }
+
 
 void DisparityThread::setImages(Mat &left, Mat &right) 
 {
@@ -214,89 +196,99 @@ void DisparityThread::setImages(Mat &left, Mat &right)
 
     stereo->setImages(&l,&r);
 
-    if(l.width!=widthInit)
+    if (l.width!=widthInit)
     {
-        if(l.width==320)
+        if (l.width==320)
             this->numberOfDisparities=64;
-        if(l.width==640)
+        if (l.width==640)
             this->numberOfDisparities=128;
 
         widthInit=l.width;
     }
+
     this->done=false;
     this->work=true;
     this->resume();
 }
 
+
 void DisparityThread::getDisparity(Mat &Disp)
 {
-    mutexDisp->wait();
+    mutexDisp.lock();
     Mat tmp=stereo->getDisparity();
-    Disp= tmp.clone();
-    mutexDisp->post();
+    Disp=tmp.clone();
+    mutexDisp.unlock();
 }
+
 
 void DisparityThread::getDisparityFloat(Mat &Disp) 
 {
-    mutexDisp->wait();
+    mutexDisp.lock();
     Mat tmp=stereo->getDisparity16();
     Disp= tmp.clone();
-    mutexDisp->post();
+    mutexDisp.unlock();
 }
+
+
 void DisparityThread::getQMat(Mat &Q) 
 {
-    mutexDisp->wait();
+    mutexDisp.lock();
     Mat tmp=stereo->getQ();
     Q= tmp.clone();
-    mutexDisp->post();
+    mutexDisp.unlock();
 }
+
 
 void DisparityThread::getMapper(Mat &Mapper) 
 {
-    mutexDisp->wait();
+    mutexDisp.lock();
     Mat tmp=stereo->getMapperL();
     Mapper= tmp.clone();
-    mutexDisp->post();
+    mutexDisp.unlock();
 }
+
 
 void DisparityThread::getRectMatrix(Mat &RL) 
 {
-    mutexDisp->wait();
+    mutexDisp.lock();
     Mat tmp=stereo->getRLrect();
     RL= tmp.clone();
-    mutexDisp->post();
+    mutexDisp.unlock();
 }
+
 
 bool DisparityThread::threadInit() 
 {
     Property option;
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");
-    option.put("local","/clientGaze/disparityThread");
-    gazeCtrl=new PolyDriver(option);
-    if (gazeCtrl->isValid()) {
-    	mutexDisp->wait();
-        gazeCtrl->view(igaze);
+    option.put("local",("/"+moduleName+"/gaze").c_str());
+    if (gazeCtrl.open(option))
+    {
+        mutexDisp.lock();
+        gazeCtrl.view(igaze);
         getCameraHGazeCtrl(LEFT);
         getCameraHGazeCtrl(RIGHT);
-        mutexDisp->post();
+        mutexDisp.unlock();
     }
-    else {
+    else
+    {
         cout<<"Devices not available"<<endl;
         success=false;
         return false;
-        
     }
+
     Property optHead;
     optHead.put("device","remote_controlboard");
     optHead.put("remote",("/"+robotName+"/head").c_str());
-    optHead.put("local","/disparityClient/head/position");
+    optHead.put("local",("/"+moduleName+"/head").c_str());
     if (polyHead.open(optHead))
     {
         polyHead.view(posHead);
         polyHead.view(HctrlLim);
     }
-    else {
+    else
+    {
         cout<<"Devices not available"<<endl;
         success=false;
         return false;
@@ -305,14 +297,14 @@ bool DisparityThread::threadInit()
     Property optTorso;
     optTorso.put("device","remote_controlboard");
     optTorso.put("remote",("/"+robotName+"/torso").c_str());
-    optTorso.put("local","/disparityClient/torso/position");
-
+    optTorso.put("local",("/"+moduleName+"/torso").c_str());
     if (polyTorso.open(optTorso))
     {
         polyTorso.view(posTorso);
         polyTorso.view(TctrlLim);
     }
-    else {
+    else
+    {
         cout<<"Devices not available"<<endl;
         success=false;
         return false;
@@ -339,25 +331,21 @@ bool DisparityThread::threadInit()
     LeyeKin->alignJointsBounds(lim);
     ReyeKin->alignJointsBounds(lim);
 
-    success=success&true;
-
-    if(updateCamera)
+    if (updateCamera)
     {
        updateViaKinematics();
        updateViaKinematics(true);    
     }
 
     return true;
-
 }
+
 
 void DisparityThread::threadRelease() 
 {
     delete stereo;
 
-    if(gazeCtrl->isValid())
-        delete gazeCtrl;
-    delete mutexDisp;
+    gazeCtrl.close();
 
     delete LeyeKin;
     delete ReyeKin;
@@ -371,34 +359,39 @@ void DisparityThread::threadRelease()
     #ifdef USING_GPU
         delete utils;
     #endif
-    
-    fprintf(stdout,"Disparity Thread Closed... \n");
 
+    printf("Disparity Thread Closed... \n");
 }
+
 
 bool DisparityThread::checkDone() 
 {
     return done;
 }
 
+
 void DisparityThread::stopUpdate() 
 {
     updateCamera=false;
 }
+
 
 void DisparityThread::startUpdate() 
 {
     updateCamera=true;
 }
 
+
 void DisparityThread::updateCamerasOnce() 
 {
     updateCamera=false;
     updateOnce=true;
 }
+
+
 void DisparityThread::triangulate(Point2f &pixel,Point3f &point) 
 {
-    this->mutexDisp->wait();
+    mutexDisp.lock();
     Mat disparity=stereo->getDisparity16();
     Mat Q= stereo->getQ();
     Mat Mapper=stereo->getMapperL();
@@ -413,7 +406,7 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        this->mutexDisp.unlock();
         return;
     }
 
@@ -430,7 +423,7 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        this->mutexDisp.unlock();
         return;
     }
     else 
@@ -452,7 +445,7 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        this->mutexDisp.unlock();
         return;
     } 
     else 
@@ -473,9 +466,10 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
     }
-    this->mutexDisp->post();
+    this->mutexDisp.unlock();
     return;
 }
+
 
 void DisparityThread::buildRotTras(Mat & R, Mat & T, Mat & A) 
 {
@@ -495,7 +489,9 @@ void DisparityThread::buildRotTras(Mat & R, Mat & T, Mat & A)
      }
 }
 
-bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T)
+
+bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL,
+                                           Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T)
 {
 
     Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
@@ -573,44 +569,55 @@ bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
 
     return true;
 }
-void DisparityThread::printMatrixYarp(Matrix &A) {
+
+
+void DisparityThread::printMatrixYarp(Matrix &A)
+{
     cout << endl;
-    for (int i=0; i<A.rows(); i++) {
-        for (int j=0; j<A.cols(); j++) {
+    for (int i=0; i<A.rows(); i++)
+    {
+        for (int j=0; j<A.cols(); j++)
             cout<<A(i,j)<<" ";
-        }
         cout<<endl;
     }
     cout << endl;
 }
 
-void DisparityThread::convert(Matrix& matrix, Mat& mat) {
+
+void DisparityThread::convert(Matrix& matrix, Mat& mat)
+{
     mat=cv::Mat(matrix.rows(),matrix.cols(),CV_64FC1);
     for(int i=0; i<matrix.rows(); i++)
         for(int j=0; j<matrix.cols(); j++)
             mat.at<double>(i,j)=matrix(i,j);
 }
 
-void DisparityThread::convert(Mat& mat, Matrix& matrix) {
+
+void DisparityThread::convert(Mat& mat, Matrix& matrix)
+{
     matrix.resize(mat.rows,mat.cols);
     for(int i=0; i<mat.rows; i++)
         for(int j=0; j<mat.cols; j++)
             matrix(i,j)=mat.at<double>(i,j);
 }
 
+
 void DisparityThread::getRootTransformation(Mat & Trans,int eye)
 {
-    mutexDisp->wait();
+    mutexDisp.lock();
 
     if(eye==LEFT)
        Trans= HL_root.clone();
     else
        Trans= HR_root.clone();
 
-    mutexDisp->post();
+    mutexDisp.unlock();
 
 }
-Matrix DisparityThread::getCameraH(yarp::sig::Vector &head_angles, yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera)
+
+
+Matrix DisparityThread::getCameraH(yarp::sig::Vector &head_angles,
+                                   yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera)
 {
 
     yarp::sig::Vector q(torso_angles.size()+head_angles.size());
@@ -649,8 +656,10 @@ Matrix DisparityThread::getCameraH(yarp::sig::Vector &head_angles, yarp::sig::Ve
 
     return H_curr;
 }
-Matrix DisparityThread::getCameraHGazeCtrl(int camera) {
 
+
+Matrix DisparityThread::getCameraHGazeCtrl(int camera)
+{
     yarp::sig::Vector x_curr;
     yarp::sig::Vector o_curr;
     bool check=false;
@@ -659,7 +668,7 @@ Matrix DisparityThread::getCameraHGazeCtrl(int camera) {
     else
         check=igaze->getRightEyePose(x_curr, o_curr);
 
-    if(!check)
+    if (!check)
     {
         Matrix H_curr(4, 4);
         return H_curr;    
@@ -673,18 +682,14 @@ Matrix DisparityThread::getCameraHGazeCtrl(int camera) {
     H_curr(1,3)=x_curr[1];
     H_curr(2,3)=x_curr[2];
 
-    if(camera==LEFT)
-    {
+    if (camera==LEFT)
         convert(H_curr,HL_root);
-    }
-    else if(camera==RIGHT)
-    {
+    else if (camera==RIGHT)
         convert(H_curr,HR_root);
-    }
-
 
     return H_curr;
 }
+
 
 void DisparityThread::onStop()
 {
@@ -693,9 +698,11 @@ void DisparityThread::onStop()
 }
 
 
-void DisparityThread::setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
+void DisparityThread::setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,
+                                        int _speckleRange, int _numberOfDisparities, int _SADWindowSize,
+                                        int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
 {
-    this->mutexDisp->wait();
+    mutexDisp.lock();
 
     this->useBestDisp=_useBestDisp;
     this->uniquenessRatio=_uniquenessRatio;
@@ -707,9 +714,10 @@ void DisparityThread::setDispParameters(bool _useBestDisp, int _uniquenessRatio,
     this->preFilterCap=_preFilterCap;
     this->disp12MaxDiff=_disp12MaxDiff;
 
-    this->mutexDisp->post();
+    this->mutexDisp.unlock();
 
 }
+
 
 Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double v2, string drive)
 {
@@ -721,7 +729,8 @@ Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double
         return point;
     }
 
-    this->mutexDisp->wait();
+    mutexDisp.lock();
+
     // Mapping from Rectified Cameras to Original Cameras
     Mat MapperL=this->stereo->getMapperL();
     Mat MapperR=this->stereo->getMapperR();
@@ -731,24 +740,23 @@ Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double
         point.y=0.0;
         point.z=0.0;
 
-        this->mutexDisp->post();
+        this->mutexDisp.unlock();
         return point;
     }
-
 
     if(cvRound(u1)<0 || cvRound(u1)>=MapperL.cols || cvRound(v1)<0 || cvRound(v1)>=MapperL.rows) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        this->mutexDisp.unlock();
         return point;
     }
     
-        if(cvRound(u2)<0 || cvRound(u2)>=MapperL.cols || cvRound(v2)<0 || cvRound(v2)>=MapperL.rows) {
+    if(cvRound(u2)<0 || cvRound(u2)>=MapperL.cols || cvRound(v2)<0 || cvRound(v2)>=MapperL.rows) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        this->mutexDisp.unlock();
         return point;
     }
 
@@ -781,6 +789,7 @@ Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double
         point.y=(float) P.at<double>(1,0);
         point.z=(float) P.at<double>(2,0);
     }
+
     if(drive=="RIGHT") {
         Mat Rright = this->stereo->getRotation();
         Mat Tright = this->stereo->getTranslation();
@@ -807,7 +816,6 @@ Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
-
     }
 
     if(drive=="ROOT") {
@@ -826,7 +834,9 @@ Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
     }
-    this->mutexDisp->post();
+
+    this->mutexDisp.unlock();
     return point;
 }
+
 
