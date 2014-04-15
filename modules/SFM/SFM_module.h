@@ -194,7 +194,6 @@ class SFM: public yarp::os::RFModule
     void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
     bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
     bool updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
-    void printMatrix(Mat &matrix);
     void updateViaGazeCtrl(const bool update);
     void updateViaKinematics(const yarp::sig::Vector& deyes);
     bool init;

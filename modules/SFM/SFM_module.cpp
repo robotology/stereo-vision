@@ -262,21 +262,6 @@ bool SFM::close()
 }
 
 
-void SFM::printMatrix(Mat &matrix) {
-    int row=matrix.rows;
-    int col =matrix.cols;
-        cout << endl;
-    for(int i = 0; i < matrix.rows; i++)
-    {
-        const double* Mi = matrix.ptr<double>(i);
-        for(int j = 0; j < matrix.cols; j++)
-            cout << Mi[j] << " ";
-        cout << endl;
-    }
-        cout << endl;
-}
-
-
 bool SFM::updateModule()
 {
     ImageOf<PixelRgb> *yarp_imgL=NULL;
