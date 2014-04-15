@@ -1,4 +1,6 @@
+
 #include "iCub/stereoVision/disparityThread.h"
+
 
 bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
 {
@@ -22,11 +24,12 @@ bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat 
 }
 
 
-DisparityThread::DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn, bool updateCamera, bool rectify) : RateThread(10)
+DisparityThread::DisparityThread(const string &name, yarp::os::ResourceFinder &rf,
+                                 bool useHorn, bool updateCamera, bool rectify) : RateThread(10)
 {
-    Bottle pars=rf.findGroup("STEREO_DISPARITY");
-    moduleName=pars.check("moduleName",Value("disparityThreadLib")).asString().c_str();
-    robotName=pars.check("robotName",Value("icub")).asString().c_str();
+    moduleName=name;
+    Bottle pars=rf.findGroup("STEREO_DISPARITY");    
+    robotName=pars.check("robotName",Value("icub")).asString().c_str();    
 
     if (Bottle *pXo=pars.find("QL").asList()) 
     {
@@ -115,24 +118,24 @@ bool DisparityThread::isOpen()
 }
 
 
-void DisparityThread::updateViaKinematics(bool exp)
+void DisparityThread::updateViaGazeCtrl(const bool update)
 {
     Matrix L1=getCameraHGazeCtrl(LEFT);
     Matrix R1=getCameraHGazeCtrl(RIGHT);
-    
-    Matrix RT=SE3inv(R1)*L1; 
+
+    Matrix RT=SE3inv(R1)*L1;
 
     Mat R=Mat::zeros(3,3,CV_64F);
     Mat T=Mat::zeros(3,1,CV_64F);
-    
+
     for (int i=0; i<R.rows; i++)
         for(int j=0; j<R.cols; j++)
             R.at<double>(i,j)=RT(i,j);
-    
+
     for (int i=0; i<T.rows; i++)
         T.at<double>(i,0)=RT(i,3);
-    
-    if (!exp)
+
+    if (update)
     {
         stereo->setRotation(R,0);
         stereo->setTranslation(T,0);
@@ -149,7 +152,7 @@ void DisparityThread::run()
 
     if (work && success) 
     {
-        updateViaKinematics(true);
+        updateViaGazeCtrl(false);
         
         mutexDisp.lock();
         if (updateCamera || updateOnce)
@@ -333,8 +336,8 @@ bool DisparityThread::threadInit()
 
     if (updateCamera)
     {
-       updateViaKinematics();
-       updateViaKinematics(true);    
+       updateViaGazeCtrl(false);
+       updateViaGazeCtrl(true);
     }
 
     return true;

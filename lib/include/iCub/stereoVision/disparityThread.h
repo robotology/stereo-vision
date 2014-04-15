@@ -1,3 +1,4 @@
+
 #include <iCub/stereoVision/stereoCamera.h>
 #include <yarp/dev/PolyDriver.h>
 #include <iCub/iKin/iKinFwd.h>
@@ -9,7 +10,6 @@
 #ifdef USING_GPU
     #include <iCub/stereoVision/utils.h>
 #endif
-
 
 using namespace std; 
 using namespace yarp::os; 
@@ -87,12 +87,11 @@ private:
     void printMatrixYarp(Matrix &A);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
-    void updateViaKinematics(bool exp=false);
+    void updateViaGazeCtrl(const bool update);
     bool loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T);
 
 public:
-    DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false, bool rectify=true);
-    DisparityThread(yarp::os::ResourceFinder &rf, bool useHorn=true);
+    DisparityThread(const string &name, yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false, bool rectify=true);
     ~DisparityThread() { };
 
     void setImages(Mat &left, Mat &right);
