@@ -1,4 +1,24 @@
+/* 
+ * Copyright (C) 2013 RobotCub Consortium
+ * Author: Sean Ryan Fanello
+ * email:   sean.fanello@iit.it
+ * website: www.robotcub.org
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+*/
+
+#include <algorithm>
 #include "SFM_module.h"
+
 
 bool SFM::configure(ResourceFinder &rf)
 {
@@ -37,13 +57,11 @@ bool SFM::configure(ResourceFinder &rf)
     attach(handlerPort);
 
     this->stereo=new StereoCamera(true);
-    Mat KL, KR, DistL, DistR, R, T;
+    Mat KL, KR, DistL, DistR;
     
     loadIntrinsics(rf,KL,KR,DistL,DistR);
-    loadExtrinsics(localCalibration,R,T);
+    loadExtrinsics(localCalibration,R0,T0,eyes0);
     
-    this->mutexDisp=new Semaphore(1);
-
     stereo->setIntrinsics(KL,KR,DistL,DistR);
 
     this->useBestDisp=true;
@@ -56,8 +74,8 @@ bool SFM::configure(ResourceFinder &rf)
     this->preFilterCap=63;
     this->disp12MaxDiff=0;
     
-    this->HL_root= Mat::zeros(4,4,CV_64F);
-    this->HR_root= Mat::zeros(4,4,CV_64F);
+    this->HL_root=Mat::zeros(4,4,CV_64F);
+    this->HR_root=Mat::zeros(4,4,CV_64F);
 
     if (useCalibrated)
     {
@@ -71,43 +89,97 @@ bool SFM::configure(ResourceFinder &rf)
     outputD=NULL;
     init=true;
     numberOfTrials=0;
+
 #ifdef USING_GPU
-    utils = new Utilities();
+    utils=new Utilities();
     utils->initSIFT_GPU();
 #endif
     
-    Property option;
-    option.put("device","gazecontrollerclient");
-    option.put("remote","/iKinGazeCtrl");
-    option.put("local","/client/SFMClient");
-    gazeCtrl=new PolyDriver(option);
-    if (gazeCtrl->isValid()) {
-        gazeCtrl->view(igaze);
-    }
-    else {
+    Property optionHead;
+    optionHead.put("device","remote_controlboard");
+    optionHead.put("remote","/icub/head");
+    optionHead.put("local",(name+"/headClient").c_str());
+    if (headCtrl.open(optionHead))
+        headCtrl.view(iencs);
+    else
+    {
         cout<<"Devices not available"<<endl;
         return false;
     }
-        
-    if (!R.empty() && !T.empty())
+
+    Property optionGaze;
+    optionGaze.put("device","gazecontrollerclient");
+    optionGaze.put("remote","/iKinGazeCtrl");
+    optionGaze.put("local",(name+"/gazeClient").c_str());
+    if (gazeCtrl.open(optionGaze))
+        gazeCtrl.view(igaze);
+    else
     {
-        stereo->setRotation(R,0);
-        stereo->setTranslation(T,0);
+        cout<<"Devices not available"<<endl;
+        headCtrl.close();
+        return false;
+    }
+
+    if (!R0.empty() && !T0.empty())
+    {
+        stereo->setRotation(R0,0);
+        stereo->setTranslation(T0,0);
     }
     else
     {
-       cout << "No local calibration file found in " <<  camCalibFile <<" ... Using Kinematics and Running SFM once." << endl;
-       updateViaKinematics();
+       cout << "No local calibration file found in " <<  camCalibFile << " ... Using Kinematics and Running SFM once." << endl;
+       updateViaGazeCtrl(true);
     }
 
     doSFM=false;
-    updateViaKinematics(true);
-    
+    updateViaGazeCtrl(false);
+
     return true;
 }
 
 
-void SFM::updateViaKinematics(bool exp)
+void SFM::updateViaKinematics(const Vector& eyes)
+{
+    double tilt=CTRL_DEG2RAD*eyes[0];
+    double pan=CTRL_DEG2RAD*eyes[1];
+    double ver=CTRL_DEG2RAD*eyes[2];
+
+    Vector rot_l_tilt(4,0.0);
+    rot_l_tilt[0]=1.0;
+    rot_l_tilt[3]=tilt;
+    Vector rot_l_pan(4,0.0);
+    rot_l_pan[1]=1.0;
+    rot_l_pan[3]=pan+ver/2.0;
+    Matrix L=axis2dcm(rot_l_pan)*axis2dcm(rot_l_tilt);
+
+    Vector rot_r_tilt(4,0.0);
+    rot_r_tilt[0]=1.0;
+    rot_r_tilt[3]=tilt;
+    Vector rot_r_pan(4,0.0);
+    rot_r_pan[1]=-1.0;
+    rot_r_pan[3]=pan-ver/2.0;
+    Matrix R=axis2dcm(rot_r_pan)*axis2dcm(rot_r_tilt);
+
+    Mat RT0=buildRotTras(R0,T0);
+    Matrix H0; convert(RT0,H0);
+    Matrix H=SE3inv(R)*H0*L;
+
+    Mat R=Mat::zeros(3,3,CV_64F);
+    Mat T=Mat::zeros(3,1,CV_64F);
+
+    for (int i=0; i<R.rows; i++)
+        for(int j=0; j<R.cols; j++)
+            R.at<double>(i,j)=H(i,j);
+
+    for (int i=0; i<T.rows; i++)
+        T.at<double>(i,0)=H(i,3);
+
+    this->stereo->setRotation(R,0);
+    this->stereo->setTranslation(T,0);
+}
+
+
+void SFM::updateViaGazeCtrl(const bool update)
 {
     Matrix L1=getCameraHGazeCtrl(LEFT);
     Matrix R1=getCameraHGazeCtrl(RIGHT);
@@ -124,13 +196,13 @@ void SFM::updateViaKinematics(bool exp)
     for (int i=0; i<T.rows; i++)
         T.at<double>(i,0)=RT(i,3);
 
-    if (exp)
-        stereo->setExpectedPosition(R,T);
-    else
+    if (update)
     {
         stereo->setRotation(R,0);
         stereo->setTranslation(T,0);
     }
+    else
+        stereo->setExpectedPosition(R,T);
 }
 
 
@@ -172,19 +244,19 @@ bool SFM::close()
     worldPort.interrupt();
     worldPort.close();
 
-    if(output_match!=NULL)
+    if (output_match!=NULL)
         cvReleaseImage(&output_match);
 
-    if(outputD!=NULL)
+    if (outputD!=NULL)
         cvReleaseImage(&outputD);
-   
-    delete gazeCtrl;
+
+    headCtrl.close();
+    gazeCtrl.close();
 
 #ifdef USING_GPU
     delete utils;
 #endif
     
-    delete mutexDisp;
     return true;
 }
 
@@ -208,14 +280,20 @@ bool SFM::updateModule()
 {
     ImageOf<PixelRgb> *yarp_imgL=NULL;
     ImageOf<PixelRgb> *yarp_imgR=NULL;
-
-    updateViaKinematics(true);
     
     yarp_imgL=leftImgPort.read(true);
     yarp_imgR=rightImgPort.read(true);
 
-    if(yarp_imgL==NULL || yarp_imgR==NULL)
+    if (yarp_imgL==NULL || yarp_imgR==NULL)
         return true;
+
+    // read encoders
+    iencs->getEncoder(3,&eyes[0]);
+    iencs->getEncoder(4,&eyes[1]);
+    iencs->getEncoder(5,&eyes[2]);
+
+    updateViaKinematics(eyes);
+    updateViaGazeCtrl(false);
 
     left=(IplImage*) yarp_imgL->getIplImage(); 
     right=(IplImage*) yarp_imgR->getIplImage(); 
@@ -247,14 +325,14 @@ bool SFM::updateModule()
         vector<Point2f> leftM;
         vector<Point2f> rightM;
         utils->getMatches(leftM,rightM);
-        mutexDisp->wait();
+        mutexDisp.lock();
         this->stereo->setMatches(leftM,rightM);
     #else
         this->stereo->findMatch(false,15);
     #endif
         this->stereo->estimateEssential();
         bool success=this->stereo->essentialDecomposition();
-        mutexDisp->post();
+        mutexDisp.unlock();
 
         if (success)
         {
@@ -274,9 +352,9 @@ bool SFM::updateModule()
     }
     mutexRecalibration.unlock();
 
-    mutexDisp->wait();
+    mutexDisp.lock();
     this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
-    mutexDisp->post();
+    mutexDisp.unlock();
     
    // DEBUG
  
@@ -342,17 +420,28 @@ double SFM::getPeriod()
 }
 
 
-bool SFM::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
+bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, Vector& eyes)
 {
     Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
-    if (Bottle *pXo=extrinsics.find("HN").asList()) {
+
+    eyes.resize(3,0.0);
+    if (Bottle *bEyes=extrinsics.find("eyes").asList())
+    {
+        size_t sz=std::min(eyes.length(),(size_t)bEyes->size());
+        for (size_t i=0; i<sz; i++)
+            eyes[i]=bEyes->get(i).asDouble();
+    }
+
+    if (Bottle *pXo=extrinsics.find("HN").asList())
+    {
         Ro=Mat::zeros(3,3,CV_64FC1);
-        T=Mat::zeros(3,1,CV_64FC1);
-        for (int i=0; i<(pXo->size()-4); i+=4) {
+        To=Mat::zeros(3,1,CV_64FC1);
+        for (int i=0; i<(pXo->size()-4); i+=4)
+        {
             Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
             Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
             Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
-            T.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+            To.at<double>(i/4,0)=pXo->get(i+3).asDouble();
         }
     }
     else
@@ -368,7 +457,6 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
 
 bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR)
 {
-
     Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
     if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
         return false;
@@ -428,11 +516,10 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
     return true;
 }
 
-bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, const string& groupname)
+
+bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, Vector& eyes, const string& groupname)
 {
-
     std::vector<string> lines;
-
     bool append = false;
 
     ifstream in;
@@ -460,11 +547,13 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, const string& groupname)
                 // replace w line
                 if (line.find("HN",0) != string::npos){
                     stringstream ss;
-                    ss << " (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
-                               << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
-                               << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
-                               << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")";
-                    line = "HN" + string(ss.str());
+                    ss << "eyes (" << eyes.toString().c_str() << ")" << endl;
+                    ss << "HN (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
+                                 << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
+                                 << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
+                                 << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")"
+                                 << endl;
+                    line = ss.str();
                 }
 
             }
@@ -477,13 +566,14 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, const string& groupname)
         // rewrite file
         if (!sectionFound){
             append = true;
-            cout << "Camera calibration parameter section " + string("[") + groupname + string("]") + " not found in file " << camCalibFile << ". Adding group..." << endl;
+            cout << "Camera calibration parameter section ["+groupname+"] not found in file " << camCalibFile << ". Adding group..." << endl;
         }
         else{
             // rewrite file
             ofstream out;
             out.open(camCalibFile.c_str(), ios::trunc);
-            if (out.is_open()){
+            if (out.is_open())
+            {
                 for (int i = 0; i < (int)lines.size(); i++)
                     out << lines[i] << endl;
                 out.close();
@@ -493,9 +583,8 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, const string& groupname)
         }
         
     }
-    else{
+    else
         append = true;
-    }
 
     if (append){
         // file doesn't exist or section is appended 
@@ -503,11 +592,13 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, const string& groupname)
         out.open(camCalibFile.c_str(), ios::app);
         if (out.is_open()){
             out << endl;
-            out << string("[") + groupname + string("]") << endl;
+            out << "["+groupname+"]" << endl;
+            out << "eyes (" << eyes.toString().c_str() << ")" << endl;
             out << "HN (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
                           << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
                           << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
-                          << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")";
+                          << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")"
+                          << endl;
             out.close();
         }
         else
@@ -517,9 +608,12 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, const string& groupname)
     return true;
 }
 
-void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
+
+void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio,
+                            int _speckleWindowSize,int _speckleRange, int _numberOfDisparities,
+                            int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
 {
-    this->mutexDisp->wait();
+    this->mutexDisp.lock();
     this->useBestDisp=_useBestDisp;
     this->uniquenessRatio=_uniquenessRatio;
     this->speckleWindowSize=_speckleWindowSize;
@@ -529,7 +623,7 @@ void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckl
     this->minDisparity=_minDisparity;
     this->preFilterCap=_preFilterCap;
     this->disp12MaxDiff=_disp12MaxDiff;
-    this->mutexDisp->post();
+    this->mutexDisp.unlock();
 
 }
 
@@ -545,7 +639,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         return point;
     }
 
-    this->mutexDisp->wait();
+    mutexDisp.lock();
 
     // Mapping from Rectified Cameras to Original Cameras
     Mat Mapper=this->stereo->getMapperL();
@@ -554,7 +648,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
 
@@ -570,7 +664,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
 
@@ -599,7 +693,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
 
@@ -653,10 +747,8 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
    }
 
-    this->mutexDisp->post();
+    mutexDisp.unlock();
     return point;
-
-
 }
 
 
@@ -671,7 +763,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         return point;
     }
 
-    this->mutexDisp->wait();
+    mutexDisp.lock();
 
     // Mapping from Rectified Cameras to Original Cameras
     Mat Mapper=this->stereo->getMapperL();
@@ -680,7 +772,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
 
@@ -696,7 +788,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
 
@@ -717,7 +809,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
 
@@ -771,7 +863,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
    }
 
-    this->mutexDisp->post();
+    mutexDisp.unlock();
     return point;
 
 }
@@ -787,7 +879,7 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, string 
         return point;
     }
 
-    this->mutexDisp->wait();
+    mutexDisp.lock();
     // Mapping from Rectified Cameras to Original Cameras
     Mat MapperL=this->stereo->getMapperL();
     Mat MapperR=this->stereo->getMapperR();
@@ -797,16 +889,15 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, string 
         point.y=0.0;
         point.z=0.0;
 
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
-
 
     if(cvRound(u1)<0 || cvRound(u1)>=MapperL.cols || cvRound(v1)<0 || cvRound(v1)>=MapperL.rows) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
     
@@ -814,7 +905,7 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, string 
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        this->mutexDisp->post();
+        mutexDisp.unlock();
         return point;
     }
 
@@ -884,31 +975,35 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, string 
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
     }
-    this->mutexDisp->post();
+    mutexDisp.unlock();
     return point;
 }
 
-Mat SFM::buildRotTras(Mat & R, Mat & T) {
-        
-        Mat A = Mat::eye(4, 4, CV_64F);
-        for(int i = 0; i < R.rows; i++)
-         {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = R.ptr<double>(i);
-            for(int j = 0; j < R.cols; j++)
-                 Mi[j]=MRi[j];
-         }
-        for(int i = 0; i < T.rows; i++)
-         {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = T.ptr<double>(i);
-                 Mi[3]=MRi[0];
-         }
-        return A;
+
+Mat SFM::buildRotTras(Mat& R, Mat& T)
+{     
+    Mat A=Mat::eye(4,4,CV_64F);
+    for (int i=0; i<R.rows; i++)
+    {
+        double* Mi=A.ptr<double>(i);
+        double* MRi=R.ptr<double>(i);
+        for (int j=0; j<R.cols; j++)
+            Mi[j]=MRi[j];
+    }
+
+    for (int i=0; i<T.rows; i++)
+    {
+        double* Mi=A.ptr<double>(i);
+        double* MRi=T.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
+
+    return A;
 }
 
-Matrix SFM::getCameraHGazeCtrl(int camera) {
 
+Matrix SFM::getCameraHGazeCtrl(int camera)
+{
     yarp::sig::Vector x_curr;
     yarp::sig::Vector o_curr;
     bool check=false;
@@ -933,35 +1028,37 @@ Matrix SFM::getCameraHGazeCtrl(int camera) {
 
     if(camera==LEFT)
     {
-        this->mutexDisp->wait();
+        mutexDisp.lock();
         convert(H_curr,HL_root);
-        this->mutexDisp->post();
+        mutexDisp.unlock();
     }
     else if(camera==RIGHT)
     {
-        this->mutexDisp->wait();
+        mutexDisp.lock();
         convert(H_curr,HR_root);
-        this->mutexDisp->post();
+        mutexDisp.unlock();
     }
-
 
     return H_curr;
 }
 
-void SFM::convert(Matrix& matrix, Mat& mat) {
+
+void SFM::convert(Matrix& matrix, Mat& mat)
+{
     mat=cv::Mat(matrix.rows(),matrix.cols(),CV_64FC1);
     for(int i=0; i<matrix.rows(); i++)
         for(int j=0; j<matrix.cols(); j++)
             mat.at<double>(i,j)=matrix(i,j);
 }
 
-void SFM::convert(Mat& mat, Matrix& matrix) {
+
+void SFM::convert(Mat& mat, Matrix& matrix)
+{
     matrix.resize(mat.rows,mat.cols);
     for(int i=0; i<mat.rows; i++)
         for(int j=0; j<mat.cols; j++)
             matrix(i,j)=mat.at<double>(i,j);
 }
-
 
 
 bool SFM::respond(const Bottle& command, Bottle& reply) 
@@ -1008,9 +1105,10 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if(command.get(0).asString()=="saveCurrentCalib")
     {
-        Mat newR=this->stereo->getRotation();
-        Mat newT= this->stereo->getTranslation();
-        updateExtrinsics(newR, newT, "STEREO_DISPARITY"); 
+        R0=this->stereo->getRotation();
+        T0=this->stereo->getTranslation();
+        eyes0=eyes;
+        updateExtrinsics(R0,T0,eyes0,"STEREO_DISPARITY"); 
         reply.addString("ACK");
         return true;               
     }
@@ -1121,8 +1219,10 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     }
     else
         reply.addString("NACK");
+
     return true;
 }
+
 
 Point2f SFM::projectPoint(string camera, double x, double y, double z)
 {
@@ -1137,15 +1237,14 @@ Point2f SFM::projectPoint(string camera, double x, double y, double z)
 
     vector<Point2f> response;
 
-    this->mutexDisp->wait();
+    mutexDisp.lock();
 
     if(camera=="left")
         response=this->stereo->projectPoints3D("left",points3D,HL_root);
     else
         response=this->stereo->projectPoints3D("right",points3D,HL_root);
 
-    this->mutexDisp->post();
-
+    mutexDisp.unlock();
     return response[0];
 }
 
@@ -1184,4 +1283,5 @@ int main(int argc, char *argv[])
 
     return mod.runModule(rf);
 }
+
 

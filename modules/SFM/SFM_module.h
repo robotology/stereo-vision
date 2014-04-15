@@ -137,21 +137,20 @@ using namespace yarp::dev;
 using namespace iCub::ctrl;
 using namespace iCub::iKin;
 
+
 class SFM: public yarp::os::RFModule
 {
+    IplImage*     left;
+    IplImage*     right;
+    StereoCamera* stereo;
+    IplImage*     outputD;
+    IplImage*     output_match;
 
-    IplImage* left;
-    IplImage* right;
-    StereoCamera *stereo;
-    IplImage* outputD;
-    IplImage* output_match;
-
-
-    cv::Mat leftMat, rightMat;
+    Mat leftMat, rightMat;
 
 #ifdef USING_GPU
     /* pointer to the utilities class */
-    Utilities                 *utils;
+    Utilities *utils;
 #endif
 
     yarp::os::Port rpc;
@@ -179,24 +178,28 @@ class SFM: public yarp::os::RFModule
     bool calibUpdated;
     Mutex mutexRecalibration;
     Event calibEndEvent;
-    Semaphore* mutexDisp;
+    Mutex mutexDisp;
     
-    PolyDriver* gazeCtrl;
+    PolyDriver headCtrl,gazeCtrl;
+    IEncoders* iencs;
     IGazeControl* igaze;
+    Vector eyes0,eyes;
     Mat HL_root;
-    Mat HR_root;    
+    Mat HR_root;
+    Mat R0,T0;
 
     bool loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR);
-    Mat buildRotTras(Mat & R, Mat & T);
+    Mat buildRotTras(Mat& R, Mat& T);
     Matrix getCameraHGazeCtrl(int camera);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);    
     void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
-    bool loadExtrinsics(yarp::os::ResourceFinder &rf,Mat &R, Mat &T);
+    bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, Vector& eyes);
+    bool updateExtrinsics(Mat& Rot, Mat& Tr, Vector& eyes, const string& groupname);
     void printMatrix(Mat &matrix);
-    void updateViaKinematics(bool exp=false);
+    void updateViaGazeCtrl(const bool update);
+    void updateViaKinematics(const Vector& eyes);
     bool init;
-    bool updateExtrinsics(Mat &Rot, Mat &Tr, const string& groupname);
     
 public:
 
@@ -214,3 +217,5 @@ public:
     Point3f get3DPointMatch(double u1, double v1, double u2, double v2, string drive="LEFT");
     Point2f projectPoint(string camera, double x, double y, double z);    
 };
+
+
