@@ -19,12 +19,10 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
     success=success & imagePortInLeft.open(localPortL.c_str());
     success=success & imagePortInRight.open(localPortR.c_str());
 
-
     flowSem=new Semaphore(1);
 
     success=success & Network::connect(inputL.c_str(),localPortL.c_str());
-    success=success & Network::connect(inputR.c_str(),localPortR.c_str());
-	
+    success=success & Network::connect(inputR.c_str(),localPortR.c_str());    
 
     if(success)
     {
@@ -35,7 +33,7 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
         int argc=0; char *argv[1];
         cameraFinder.configure(argc,argv);
 
-        disp=new DisparityThread(cameraFinder,false,false);
+        disp=new DisparityThread("SceneFlow/disparity",cameraFinder,false,false);
         opt=new OpticalFlowThread(rf);
         
         fprintf(stdout, "Threads created...\n");
@@ -65,15 +63,12 @@ void SceneFlow::close()
 
     opt->suspend();
     opt->stop();
-	flowSem->post();
-	
+    flowSem->post();
+    
     imagePortInLeft.interrupt();
     imagePortInLeft.close();
     imagePortInRight.interrupt();
     imagePortInRight.close();
-
-
-
 }
 
 void SceneFlow::threadRelease()
@@ -173,8 +168,8 @@ void SceneFlow::run()
 
             
             if(disp==NULL || opt==NULL)
-            	return;
-            	
+                return;
+                
             while (!disp->checkDone()||!opt->checkDone())
               Time::delay(0.01);
 
@@ -466,14 +461,14 @@ IplImage* SceneFlow::draw2DMotionField()
             if(hyp > cutoff){
                 p1.x = p0.x + cvRound(multiplier*hyp*cos(angle));
                 p1.y = p0.y + cvRound(multiplier*hyp*sin(angle));
-	            cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
-	            p0.x = p1.x + cvRound(3*cos(angle-CV_PI + CV_PI/4));
-	            p0.y = p1.y + cvRound(3*sin(angle-CV_PI + CV_PI/4));
-	            cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+                p0.x = p1.x + cvRound(3*cos(angle-CV_PI + CV_PI/4));
+                p0.y = p1.y + cvRound(3*sin(angle-CV_PI + CV_PI/4));
+                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
 
-	            p0.x = p1.x + cvRound(3*cos(angle-CV_PI - CV_PI/4));
-	            p0.y = p1.y + cvRound(3*sin(angle-CV_PI - CV_PI/4));
-	            cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+                p0.x = p1.x + cvRound(3*cos(angle-CV_PI - CV_PI/4));
+                p0.y = p1.y + cvRound(3*sin(angle-CV_PI - CV_PI/4));
+                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
                 
             }
         }
