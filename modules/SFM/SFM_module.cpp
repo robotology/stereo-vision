@@ -138,26 +138,26 @@ bool SFM::configure(ResourceFinder &rf)
 }
 
 
-void SFM::updateViaKinematics(const yarp::sig::Vector& eyes)
+void SFM::updateViaKinematics(const yarp::sig::Vector& deyes)
 {
-    double tilt=CTRL_DEG2RAD*eyes[0];
-    double pan=CTRL_DEG2RAD*eyes[1];
-    double ver=CTRL_DEG2RAD*eyes[2];
+    double dtilt=CTRL_DEG2RAD*deyes[0];
+    double dpan=CTRL_DEG2RAD*deyes[1];
+    double dver=CTRL_DEG2RAD*deyes[2];
 
     yarp::sig::Vector rot_l_tilt(4,0.0);
     rot_l_tilt[0]=1.0;
-    rot_l_tilt[3]=tilt;
+    rot_l_tilt[3]=dtilt;
     yarp::sig::Vector rot_l_pan(4,0.0);
     rot_l_pan[1]=1.0;
-    rot_l_pan[3]=pan+ver/2.0;
+    rot_l_pan[3]=dpan+dver/2.0;
     Matrix L1=axis2dcm(rot_l_pan)*axis2dcm(rot_l_tilt);
 
     yarp::sig::Vector rot_r_tilt(4,0.0);
     rot_r_tilt[0]=1.0;
-    rot_r_tilt[3]=tilt;
+    rot_r_tilt[3]=dtilt;
     yarp::sig::Vector rot_r_pan(4,0.0);
     rot_r_pan[1]=-1.0;
-    rot_r_pan[3]=pan-ver/2.0;
+    rot_r_pan[3]=dpan-dver/2.0;
     Matrix R1=axis2dcm(rot_r_pan)*axis2dcm(rot_r_tilt);
 
     Mat RT0=buildRotTras(R0,T0);
@@ -292,7 +292,7 @@ bool SFM::updateModule()
     iencs->getEncoder(4,&eyes[1]);
     iencs->getEncoder(5,&eyes[2]);
 
-    updateViaKinematics(eyes);
+    updateViaKinematics(eyes-eyes0);
     updateViaGazeCtrl(false);
 
     left=(IplImage*) yarp_imgL->getIplImage(); 

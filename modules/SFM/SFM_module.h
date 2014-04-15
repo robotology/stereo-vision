@@ -198,7 +198,7 @@ class SFM: public yarp::os::RFModule
     bool updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
     void printMatrix(Mat &matrix);
     void updateViaGazeCtrl(const bool update);
-    void updateViaKinematics(const yarp::sig::Vector& eyes);
+    void updateViaKinematics(const yarp::sig::Vector& deyes);
     bool init;
     
 public:
