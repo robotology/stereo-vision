@@ -61,6 +61,7 @@ bool SFM::configure(ResourceFinder &rf)
     
     loadIntrinsics(rf,KL,KR,DistL,DistR);
     loadExtrinsics(localCalibration,R0,T0,eyes0);
+    eyes.resize(eyes0.length(),0.0);
     
     stereo->setIntrinsics(KL,KR,DistL,DistR);
 
@@ -353,7 +354,9 @@ bool SFM::updateModule()
     mutexRecalibration.unlock();
 
     mutexDisp.lock();
-    this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange, this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap, this->disp12MaxDiff);
+    this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange,
+                                   this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap,
+                                   this->disp12MaxDiff);
     mutexDisp.unlock();
     
    // DEBUG
@@ -431,6 +434,8 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::s
         for (size_t i=0; i<sz; i++)
             eyes[i]=bEyes->get(i).asDouble();
     }
+
+    cout<<"read eyes configuration = ("<<eyes.toString(3,3).c_str()<<")"<<endl;
 
     if (Bottle *pXo=extrinsics.find("HN").asList())
     {
