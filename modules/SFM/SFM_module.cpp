@@ -157,7 +157,7 @@ void SFM::updateViaKinematics(const yarp::sig::Vector& deyes)
     rot_r_tilt[0]=1.0;
     rot_r_tilt[3]=dtilt;
     yarp::sig::Vector rot_r_pan(4,0.0);
-    rot_r_pan[1]=-1.0;
+    rot_r_pan[1]=1.0;
     rot_r_pan[3]=dpan-dver/2.0;
     Matrix R1=axis2dcm(rot_r_pan)*axis2dcm(rot_r_tilt);
 
