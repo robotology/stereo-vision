@@ -150,7 +150,7 @@ void SFM::updateViaKinematics(const yarp::sig::Vector& eyes)
     yarp::sig::Vector rot_l_pan(4,0.0);
     rot_l_pan[1]=1.0;
     rot_l_pan[3]=pan+ver/2.0;
-    Matrix L=axis2dcm(rot_l_pan)*axis2dcm(rot_l_tilt);
+    Matrix L1=axis2dcm(rot_l_pan)*axis2dcm(rot_l_tilt);
 
     yarp::sig::Vector rot_r_tilt(4,0.0);
     rot_r_tilt[0]=1.0;
@@ -158,11 +158,11 @@ void SFM::updateViaKinematics(const yarp::sig::Vector& eyes)
     yarp::sig::Vector rot_r_pan(4,0.0);
     rot_r_pan[1]=-1.0;
     rot_r_pan[3]=pan-ver/2.0;
-    Matrix R=axis2dcm(rot_r_pan)*axis2dcm(rot_r_tilt);
+    Matrix R1=axis2dcm(rot_r_pan)*axis2dcm(rot_r_tilt);
 
     Mat RT0=buildRotTras(R0,T0);
     Matrix H0; convert(RT0,H0);
-    Matrix H=SE3inv(R)*H0*L;
+    Matrix H=SE3inv(R1)*H0*L1;
 
     Mat R=Mat::zeros(3,3,CV_64F);
     Mat T=Mat::zeros(3,1,CV_64F);
