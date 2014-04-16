@@ -317,10 +317,10 @@ bool SFM::updateModule()
         this->stereo->findMatch(false,15);
     #endif
         this->stereo->estimateEssential();
-        bool success=this->stereo->essentialDecomposition();
+        bool ok=this->stereo->essentialDecomposition();
         mutexDisp.unlock();
 
-        if (success)
+        if (ok)
         {
             calibUpdated=true;
             doSFMOnce=false;
@@ -1086,7 +1086,13 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         calibEndEvent.wait();
 
         if (calibUpdated)
+        {
+            R0=this->stereo->getRotation();
+            T0=this->stereo->getTranslation();
+            eyes0=eyes;
+
             reply.addString("ACK");
+        }
         else
             reply.addString("Calibration failed after 5 trials.. Please show a non planar scene.");
 
@@ -1095,9 +1101,6 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if(command.get(0).asString()=="saveCurrentCalib")
     {
-        R0=this->stereo->getRotation();
-        T0=this->stereo->getTranslation();
-        eyes0=eyes;
         updateExtrinsics(R0,T0,eyes0,"STEREO_DISPARITY"); 
         reply.addString("ACK");
         return true;               
