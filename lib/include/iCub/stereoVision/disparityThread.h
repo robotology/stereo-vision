@@ -73,22 +73,23 @@ private:
     yarp::dev::IEncoders *posTorso;
     yarp::dev::IControlLimits *TctrlLim;
 
-    Matrix H;
-    Mat HL_root;
-    Mat HR_root;
+    yarp::sig::Vector eyes0,eyes;
+    Mat HL_root,HR_root;
+    Mat R0,T0;
 
     string moduleName;
     string robotName;
 
     void buildRotTras(Mat &R, Mat &T, Mat &A);
-    bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T);
+    bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &To);
     Matrix getCameraHGazeCtrl(int camera);
     Matrix getCameraH(yarp::sig::Vector &head_angles,yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera);
     void printMatrixYarp(Matrix &A);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
     void updateViaGazeCtrl(const bool update);
-    bool loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T);
+    void updateViaKinematics(const yarp::sig::Vector& deyes);
+    bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
 
 public:
     DisparityThread(const string &name, yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false, bool rectify=true);

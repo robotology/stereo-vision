@@ -2,19 +2,30 @@
 #include "iCub/stereoVision/disparityThread.h"
 
 
-bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder &rf, Mat &Ro, Mat &T)
+bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes)
 {
     Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
-    if (Bottle *pXo=extrinsics.find("HN").asList()) 
+
+    eyes.resize(3,0.0);
+    if (Bottle *bEyes=extrinsics.find("eyes").asList())
+    {
+        size_t sz=std::min(eyes.length(),(size_t)bEyes->size());
+        for (size_t i=0; i<sz; i++)
+            eyes[i]=bEyes->get(i).asDouble();
+    }
+
+    cout<<"read eyes configuration = ("<<eyes.toString(3,3).c_str()<<")"<<endl;
+
+    if (Bottle *pXo=extrinsics.find("HN").asList())
     {
         Ro=Mat::zeros(3,3,CV_64FC1);
-        T=Mat::zeros(3,1,CV_64FC1);
+        To=Mat::zeros(3,1,CV_64FC1);
         for (int i=0; i<(pXo->size()-4); i+=4)
         {
             Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
             Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
             Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
-            T.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+            To.at<double>(i/4,0)=pXo->get(i+3).asDouble();
         }
     }
     else
@@ -57,25 +68,23 @@ DisparityThread::DisparityThread(const string &name, yarp::os::ResourceFinder &r
     localCalibration.setVerbose();
     localCalibration.configure(0,NULL);
 
-    Mat R_SFM,T_SFM;
-    loadExtrinsics(localCalibration,R_SFM,T_SFM);
-    this->stereo=new StereoCamera(rectify);
+    loadExtrinsics(localCalibration,R0,T0,eyes0);
+    eyes.resize(eyes0.length(),0.0);
 
+    this->stereo=new StereoCamera(rectify);
     if (success)
     {
         stereo->setIntrinsics(KL,KR,DistL,DistR);
-        this->HL_root= Mat::zeros(4,4,CV_64F);
+        this->HL_root=Mat::zeros(4,4,CV_64F);
 
-        if (!R_SFM.empty() && !T_SFM.empty())
+        if (R0.empty() || T0.empty())
         {
-            stereo->setRotation(R_SFM,0);
-            stereo->setTranslation(T_SFM,0);
+            R0=R;
+            T0=T;
         }
-        else
-        {
-            stereo->setRotation(R,0);
-            stereo->setTranslation(T,0);
-        }
+
+        stereo->setRotation(R0,0);
+        stereo->setTranslation(T0,0);
 
         if (useCalibrated)
         {
@@ -118,6 +127,47 @@ bool DisparityThread::isOpen()
 }
 
 
+void DisparityThread::updateViaKinematics(const yarp::sig::Vector& deyes)
+{
+    double dtilt=CTRL_DEG2RAD*deyes[0];
+    double dpan=CTRL_DEG2RAD*deyes[1];
+    double dver=CTRL_DEG2RAD*deyes[2];
+
+    yarp::sig::Vector rot_l_tilt(4,0.0);
+    rot_l_tilt[0]=1.0;
+    rot_l_tilt[3]=dtilt;
+    yarp::sig::Vector rot_l_pan(4,0.0);
+    rot_l_pan[1]=1.0;
+    rot_l_pan[3]=dpan+dver/2.0;
+    Matrix L1=axis2dcm(rot_l_pan)*axis2dcm(rot_l_tilt);
+
+    yarp::sig::Vector rot_r_tilt(4,0.0);
+    rot_r_tilt[0]=1.0;
+    rot_r_tilt[3]=dtilt;
+    yarp::sig::Vector rot_r_pan(4,0.0);
+    rot_r_pan[1]=1.0;
+    rot_r_pan[3]=dpan-dver/2.0;
+    Matrix R1=axis2dcm(rot_r_pan)*axis2dcm(rot_r_tilt);
+
+    Mat RT0=buildRotTras(R0,T0);
+    Matrix H0; convert(RT0,H0);
+    Matrix H=SE3inv(R1)*H0*L1;
+
+    Mat R=Mat::zeros(3,3,CV_64F);
+    Mat T=Mat::zeros(3,1,CV_64F);
+
+    for (int i=0; i<R.rows; i++)
+        for(int j=0; j<R.cols; j++)
+            R.at<double>(i,j)=H(i,j);
+
+    for (int i=0; i<T.rows; i++)
+        T.at<double>(i,0)=H(i,3);
+
+    this->stereo->setRotation(R,0);
+    this->stereo->setTranslation(T,0);
+}
+
+
 void DisparityThread::updateViaGazeCtrl(const bool update)
 {
     Matrix L1=getCameraHGazeCtrl(LEFT);
@@ -148,10 +198,19 @@ void DisparityThread::updateViaGazeCtrl(const bool update)
 void DisparityThread::run() 
 {
     if (!success)
-        printf("Error. Cannot load camera parameters... Check your config file \n");
-
-    if (work && success) 
     {
+        printf("Error. Cannot load camera parameters... Check your config file \n");
+        return;
+    }
+
+    if (work)
+    {
+        // read encoders
+        posHead->getEncoder(3,&eyes[0]);
+        posHead->getEncoder(4,&eyes[1]);
+        posHead->getEncoder(5,&eyes[2]);
+
+        updateViaKinematics(eyes-eyes0);
         updateViaGazeCtrl(false);
         
         mutexDisp.lock();
@@ -164,20 +223,23 @@ void DisparityThread::run()
             IplImage right=rightMat;
             this->stereo->setImages(&left,&right);
             utils->extractMatch_GPU( leftMat, rightMat);
-            vector<Point2f> leftM;
-            vector<Point2f> rightM;
-    
+            vector<Point2f> leftM,rightM;
             utils->getMatches(leftM,rightM);
             this->stereo->setMatches(leftM,rightM);
-            
          #else
             this->stereo->findMatch(false,15,10.0);      
          #endif
 
-            this->stereo->estimateEssential();       
-            bool success=this->stereo->essentialDecomposition();     
-            if(success && updateOnce)
-                updateOnce=false;
+            this->stereo->estimateEssential();
+            if (this->stereo->essentialDecomposition())
+            {
+                R0=this->stereo->getRotation();
+                T0=this->stereo->getTranslation();
+                eyes0=eyes;
+
+                if (updateOnce)
+                    updateOnce=false;
+            }
         }
 
         // Compute Disparity
@@ -334,12 +396,6 @@ bool DisparityThread::threadInit()
     LeyeKin->alignJointsBounds(lim);
     ReyeKin->alignJointsBounds(lim);
 
-    if (updateCamera)
-    {
-       updateViaGazeCtrl(false);
-       updateViaGazeCtrl(true);
-    }
-
     return true;
 }
 
@@ -494,11 +550,11 @@ void DisparityThread::buildRotTras(Mat & R, Mat & T, Mat & A)
 
 
 bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL,
-                                           Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T)
+                                           Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &To)
 {
 
     Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
-    if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
+    if (!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
         return false;
 
     double fx=left.find("fx").asDouble();
@@ -548,7 +604,6 @@ bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
     DistR.at<double>(0,2)=p1;
     DistR.at<double>(0,3)=p2;
     
-
     KR=Mat::eye(3,3,CV_64FC1);
     KR.at<double>(0,0)=fx;
     KR.at<double>(0,2)=cx;
@@ -556,7 +611,7 @@ bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
     KR.at<double>(1,2)=cy;
 
     Ro=Mat::zeros(3,3,CV_64FC1);
-    T=Mat::zeros(3,1,CV_64FC1);
+    To=Mat::zeros(3,1,CV_64FC1);
 
     /*Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
     if (Bottle *pXo=extrinsics.find("HN").asList()) {
