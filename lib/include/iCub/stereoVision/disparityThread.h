@@ -80,7 +80,7 @@ private:
     string moduleName;
     string robotName;
 
-    void buildRotTras(Mat &R, Mat &T, Mat &A);
+    Mat buildRotTras(Mat &R, Mat &T);
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &To);
     Matrix getCameraHGazeCtrl(int camera);
     Matrix getCameraH(yarp::sig::Vector &head_angles,yarp::sig::Vector &torso_angles, iCubEye *eyeKin, int camera);

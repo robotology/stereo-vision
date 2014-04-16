@@ -530,22 +530,25 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
 }
 
 
-void DisparityThread::buildRotTras(Mat & R, Mat & T, Mat & A) 
-{
-    A = Mat::eye(4, 4, CV_64F);
-    for(int i = 0; i < R.rows; i++)
+Mat DisparityThread::buildRotTras(Mat& R, Mat& T)
+{     
+    Mat A=Mat::eye(4,4,CV_64F);
+    for (int i=0; i<R.rows; i++)
     {
-        double* Mi = A.ptr<double>(i);
-        double* MRi = R.ptr<double>(i);
-        for(int j = 0; j < R.cols; j++)
-             Mi[j]=MRi[j];
+        double* Mi=A.ptr<double>(i);
+        double* MRi=R.ptr<double>(i);
+        for (int j=0; j<R.cols; j++)
+            Mi[j]=MRi[j];
     }
-    for(int i = 0; i < T.rows; i++)
+
+    for (int i=0; i<T.rows; i++)
     {
-        double* Mi = A.ptr<double>(i);
-        double* MRi = T.ptr<double>(i);
+        double* Mi=A.ptr<double>(i);
+        double* MRi=T.ptr<double>(i);
         Mi[3]=MRi[0];
-     }
+    }
+
+    return A;
 }
 
 
@@ -858,11 +861,11 @@ Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double
         Mat RLrecttemp=RLrect.t();
         Mat Tfake = Mat::zeros(0,3,CV_64F);
         Mat Hrect = Mat::eye(4, 4, CV_64F);
-        buildRotTras(RLrecttemp,Tfake,Hrect);
+        Hrect=buildRotTras(RLrecttemp,Tfake);
 
         Mat HRL;
-        buildRotTras(Rright,Tright, HRL);
-        buildRotTras(RRright,TRright, Hrect);
+        HRL=buildRotTras(Rright,Tright);
+        Hrect=buildRotTras(RRright,TRright);
 
         Mat P(4,1,CV_64FC1);
         P.at<double>(0,0)=point.x;
@@ -886,7 +889,7 @@ Point3f DisparityThread::get3DPointMatch(double u1, double v1, double u2, double
         P.at<double>(3,0)=1;
 
         Mat Hrect;
-        buildRotTras(RLrect,Tfake,Hrect);
+        Hrect=buildRotTras(RLrect,Tfake);
         P=HL_root*Hrect*P;
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
