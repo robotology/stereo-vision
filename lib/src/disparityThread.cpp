@@ -518,7 +518,7 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
         P.at<double>(3,0)=1;
 
         Mat Hrect = Mat::eye(4, 4, CV_64F);
-        buildRotTras(RLrecttemp,Tfake,Hrect);     
+        Hrect=buildRotTras(RLrecttemp,Tfake);
       
         P=HL_root*Hrect*P;
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
