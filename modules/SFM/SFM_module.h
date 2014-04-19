@@ -207,12 +207,14 @@ public:
     bool interruptModule();
     bool respond(const Bottle& command, Bottle& reply);
 
-    void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,int _speckleRange, int _numberOfDisparities, int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
+    void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,
+                           int _speckleRange, int _numberOfDisparities, int _SADWindowSize,
+                           int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
     Point3f get3DPoints(int u, int v, const string &drive="LEFT");
     Point3f get3DPointsAndDisp(int u, int v, int &uR, int &vR, const string &drive);
   
-    Point3f get3DPointMatch(double u1, double v1, double u2, double v2, string drive="LEFT");
-    Point2f projectPoint(string camera, double x, double y, double z);    
+    Point3f get3DPointMatch(double u1, double v1, double u2, double v2, const string &drive="LEFT");
+    Point2f projectPoint(const string &camera, double x, double y, double z);    
 };
 
 

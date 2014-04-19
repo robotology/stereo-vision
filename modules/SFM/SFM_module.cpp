@@ -20,6 +20,7 @@
 #include "SFM_module.h"
 
 
+/******************************************************************************/
 bool SFM::configure(ResourceFinder &rf)
 {
     string name=rf.check("name",Value("/SFM")).asString().c_str();
@@ -139,6 +140,7 @@ bool SFM::configure(ResourceFinder &rf)
 }
 
 
+/******************************************************************************/
 void SFM::updateViaKinematics(const yarp::sig::Vector& deyes)
 {
     double dtilt=CTRL_DEG2RAD*deyes[0];
@@ -180,6 +182,7 @@ void SFM::updateViaKinematics(const yarp::sig::Vector& deyes)
 }
 
 
+/******************************************************************************/
 void SFM::updateViaGazeCtrl(const bool update)
 {
     Matrix L1=getCameraHGazeCtrl(LEFT);
@@ -207,6 +210,7 @@ void SFM::updateViaGazeCtrl(const bool update)
 }
 
 
+/******************************************************************************/
 bool SFM::interruptModule()
 {
     leftImgPort.interrupt();
@@ -224,6 +228,7 @@ bool SFM::interruptModule()
 }
 
 
+/******************************************************************************/
 bool SFM::close()
 {
     leftImgPort.interrupt();
@@ -262,15 +267,13 @@ bool SFM::close()
 }
 
 
+/******************************************************************************/
 bool SFM::updateModule()
 {
-    ImageOf<PixelRgb> *yarp_imgL=NULL;
-    ImageOf<PixelRgb> *yarp_imgR=NULL;
-    
-    yarp_imgL=leftImgPort.read(true);
-    yarp_imgR=rightImgPort.read(true);
+    ImageOf<PixelRgb> *yarp_imgL=leftImgPort.read(true);
+    ImageOf<PixelRgb> *yarp_imgR=rightImgPort.read(true);
 
-    if (yarp_imgL==NULL || yarp_imgR==NULL)
+    if ((yarp_imgL==NULL) || (yarp_imgR==NULL))
         return true;
 
     // read encoders
@@ -281,18 +284,17 @@ bool SFM::updateModule()
     updateViaKinematics(eyes-eyes0);
     updateViaGazeCtrl(false);
 
-    left=(IplImage*) yarp_imgL->getIplImage(); 
-    right=(IplImage*) yarp_imgR->getIplImage(); 
+    left=(IplImage*)yarp_imgL->getIplImage(); 
+    right=(IplImage*)yarp_imgR->getIplImage(); 
 
-    if(init)
+    if (init)
     {
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
-        if(left->width==320)
+        if (left->width==320)
             this->numberOfDisparities=64;
-        if(left->width==640)
+        if (left->width==640)
             this->numberOfDisparities=128l;
-
         init=false;
     }
 
@@ -304,7 +306,7 @@ bool SFM::updateModule()
     this->stereo->setImages(left,right);
     
     mutexRecalibration.lock();
-    if(doSFM || doSFMOnce)
+    if (doSFM || doSFMOnce)
     {
     #ifdef USING_GPU
         utils->extractMatch_GPU( leftMat, rightMat);
@@ -339,20 +341,19 @@ bool SFM::updateModule()
     mutexRecalibration.unlock();
 
     mutexDisp.lock();
-    this->stereo->computeDisparity(this->useBestDisp, this->uniquenessRatio, this->speckleWindowSize, this->speckleRange,
-                                   this->numberOfDisparities, this->SADWindowSize, this->minDisparity, this->preFilterCap,
-                                   this->disp12MaxDiff);
+    this->stereo->computeDisparity(this->useBestDisp,this->uniquenessRatio,this->speckleWindowSize,
+                                   this->speckleRange,this->numberOfDisparities,this->SADWindowSize,
+                                   this->minDisparity,this->preFilterCap,this->disp12MaxDiff);
     mutexDisp.unlock();
     
-   // DEBUG
- 
-   /*int uR,vR;
-   Point3f point = this->get3DPointsAndDisp(160,120,uR,vR,"ROOT");
-   circle(leftMat,cvPoint(160,120),2,cvScalar(255,0,0),2);
-   circle(rightMat,cvPoint(uR,vR),2,cvScalar(0,255,0),2);
-   */
+    // DEBUG
+    /*int uR,vR;
+    Point3f point = this->get3DPointsAndDisp(160,120,uR,vR,"ROOT");
+    circle(leftMat,cvPoint(160,120),2,cvScalar(255,0,0),2);
+    circle(rightMat,cvPoint(uR,vR),2,cvScalar(0,255,0),2);
+    */
 
-    if(outMatch.getOutputCount()>0)
+    if (outMatch.getOutputCount()>0)
     {
         /*Mat F= this->stereo->getFundamental();
         
@@ -367,47 +368,47 @@ bool SFM::updateModule()
             }        
         }*/
 
-        Mat matches =this->stereo->drawMatches();
-        cvtColor( matches, matches, CV_BGR2RGB);
-        ImageOf<PixelBgr>& imgMatch= outMatch.prepare();
-        imgMatch.resize(matches.cols, matches.rows);
-        IplImage tmpR = matches;
+        Mat matches=this->stereo->drawMatches();
+        cvtColor(matches,matches,CV_BGR2RGB);
+        ImageOf<PixelBgr>& imgMatch=outMatch.prepare();
+        imgMatch.resize(matches.cols,matches.rows);
+        IplImage tmpR=matches;
 
-        cvCopyImage( &tmpR, (IplImage *) imgMatch.getIplImage());       
-
+        cvCopyImage(&tmpR,(IplImage*)imgMatch.getIplImage());
         outMatch.write();
     }
             
-    if(outDisp.getOutputCount()>0)
+    if (outDisp.getOutputCount()>0)
     {
         IplImage disp=stereo->getDisparity();
         cvCvtColor(&disp,outputD,CV_GRAY2RGB);
         ImageOf<PixelBgr>& outim=outDisp.prepare();
         outim.wrapIplImage(outputD);
         outDisp.write();
-    }        
-    
+    }
 
-    if(worldPort.getOutputCount()>0)
+    if (worldPort.getOutputCount()>0)
     {
         ImageOf<PixelRgbFloat>& outim=worldPort.prepare(); 
         outim.resize(left->width,left->height);
         fillWorld3D(outim,0,0,left->width,left->height);
         worldPort.write();
-
-
     }
 
     return true;
 }
 
 
+/******************************************************************************/
 double SFM::getPeriod()
 {
-    return 0.01;
+    // the updateModule() method gets synchronized
+    // with camera input => no need for delay
+    return 0.0;
 }
 
 
+/******************************************************************************/
 bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes)
 {
     Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
@@ -445,7 +446,9 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::s
 }
 
 
-bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR)
+/******************************************************************************/
+bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL,
+                         Mat &DistR)
 {
     Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
     if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
@@ -507,7 +510,9 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
 }
 
 
-bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname)
+/******************************************************************************/
+bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes,
+                           const string& groupname)
 {
     std::vector<string> lines;
     bool append = false;
@@ -599,9 +604,11 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const str
 }
 
 
+/******************************************************************************/
 void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio,
-                            int _speckleWindowSize,int _speckleRange, int _numberOfDisparities,
-                            int _SADWindowSize, int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
+                            int _speckleWindowSize,int _speckleRange,
+                            int _numberOfDisparities, int _SADWindowSize,
+                            int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
 {
     this->mutexDisp.lock();
     this->useBestDisp=_useBestDisp;
@@ -618,6 +625,7 @@ void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio,
 }
 
 
+/******************************************************************************/
 Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &drive)
 {
     Point3f point;
@@ -742,6 +750,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
 }
 
 
+/******************************************************************************/
 Point3f SFM::get3DPoints(int u, int v, const string &drive)
 {
     Point3f point;
@@ -859,7 +868,9 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
 }
 
 
-Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, string drive)
+/******************************************************************************/
+Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
+                             const string &drive)
 {
     Point3f point;
     if(drive!="RIGHT" && drive !="LEFT" && drive!="ROOT") {
@@ -970,6 +981,7 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, string 
 }
 
 
+/******************************************************************************/
 Mat SFM::buildRotTras(Mat& R, Mat& T)
 {     
     Mat A=Mat::eye(4,4,CV_64F);
@@ -992,6 +1004,7 @@ Mat SFM::buildRotTras(Mat& R, Mat& T)
 }
 
 
+/******************************************************************************/
 Matrix SFM::getCameraHGazeCtrl(int camera)
 {
     yarp::sig::Vector x_curr;
@@ -1033,6 +1046,7 @@ Matrix SFM::getCameraHGazeCtrl(int camera)
 }
 
 
+/******************************************************************************/
 void SFM::convert(Matrix& matrix, Mat& mat)
 {
     mat=cv::Mat(matrix.rows(),matrix.cols(),CV_64FC1);
@@ -1042,6 +1056,7 @@ void SFM::convert(Matrix& matrix, Mat& mat)
 }
 
 
+/******************************************************************************/
 void SFM::convert(Mat& mat, Matrix& matrix)
 {
     matrix.resize(mat.rows,mat.cols);
@@ -1051,6 +1066,7 @@ void SFM::convert(Mat& mat, Matrix& matrix)
 }
 
 
+/******************************************************************************/
 bool SFM::respond(const Bottle& command, Bottle& reply) 
 {
     if(command.size()==0)
@@ -1217,7 +1233,8 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 }
 
 
-Point2f SFM::projectPoint(string camera, double x, double y, double z)
+/******************************************************************************/
+Point2f SFM::projectPoint(const string &camera, double x, double y, double z)
 {
     Point3f point3D;
     point3D.x=x;
@@ -1241,7 +1258,10 @@ Point2f SFM::projectPoint(string camera, double x, double y, double z)
     return response[0];
 }
 
-void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height)
+
+/******************************************************************************/
+void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width,
+                      int height)
 {
     IplImage* img=(IplImage*) worldImg.getIplImage();
     for(int i=v0; i<(v0+height); i++)
@@ -1257,6 +1277,8 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int widt
     }
 }
 
+
+/******************************************************************************/
 int main(int argc, char *argv[])
 {
     Network yarp;
