@@ -402,7 +402,7 @@ bool SFM::updateModule()
 double SFM::getPeriod()
 {
     // the updateModule() method gets synchronized
-    // with camera input => no need for delay
+    // with camera input => no need for periodicity
     return 0.0;
 }
 
