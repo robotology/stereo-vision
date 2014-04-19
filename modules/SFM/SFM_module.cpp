@@ -309,9 +309,8 @@ bool SFM::updateModule()
     if (doSFM || doSFMOnce)
     {
     #ifdef USING_GPU
-        utils->extractMatch_GPU( leftMat, rightMat);
-        vector<Point2f> leftM;
-        vector<Point2f> rightM;
+        utils->extractMatch_GPU(leftMat,rightMat);
+        vector<Point2f> leftM,rightM;
         utils->getMatches(leftM,rightM);
         mutexDisp.lock();
         this->stereo->setMatches(leftM,rightM);
