@@ -412,8 +412,8 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
     if (this->imleft.empty() || this->imright.empty())
     {
-          cout << "Images are not set! set the images first!" << endl;
-          return;
+        cout << "Images are not set! set the images first!" << endl;
+        return;
     }
 
     Size img_size=this->imleft.size();
