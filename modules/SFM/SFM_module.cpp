@@ -513,93 +513,23 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
 bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes,
                            const string& groupname)
 {
-    std::vector<string> lines;
-    bool append = false;
-
-    ifstream in;
-    in.open(camCalibFile.c_str()); //camCalibFile.c_str());
-    
-    if(in.is_open()){
-        // file exists
-        string line;
-        bool sectionFound = false;
-        bool sectionClosed = false;
-
-        // process lines
-        while(std::getline(in, line)){
-            // check if we left calibration section
-            if (sectionFound == true && line.find("[", 0) != string::npos)
-                sectionClosed = true;   // also valid if no groupname specified
-            // check if we enter calibration section
-            if (line.find(string("[") + groupname + string("]"), 0) != string::npos)
-                sectionFound = true;
-            // if no groupname specified
-            if (groupname == "")
-                sectionFound = true;
-            // if we are in calibration section (or no section/group specified)
-            if (sectionFound == true && sectionClosed == false){
-                // replace w line
-                if (line.find("HN",0) != string::npos){
-                    stringstream ss;
-                    ss << "eyes (" << eyes.toString().c_str() << ")" << endl;
-                    ss << "HN (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
-                                 << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
-                                 << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
-                                 << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")"
-                                 << endl;
-                    line = ss.str();
-                }
-
-            }
-            // buffer line
-            lines.push_back(line);
-        }
-        
-        in.close();
-
-        // rewrite file
-        if (!sectionFound){
-            append = true;
-            cout << "Camera calibration parameter section ["+groupname+"] not found in file " << camCalibFile << ". Adding group..." << endl;
-        }
-        else{
-            // rewrite file
-            ofstream out;
-            out.open(camCalibFile.c_str(), ios::trunc);
-            if (out.is_open())
-            {
-                for (int i = 0; i < (int)lines.size(); i++)
-                    out << lines[i] << endl;
-                out.close();
-            }
-            else
-                return false;
-        }
-        
+    ofstream out;
+    out.open(camCalibFile.c_str(),ios::app);
+    if (out.is_open())
+    {
+        out << endl;
+        out << "["+groupname+"]" << endl;
+        out << "eyes (" << eyes.toString().c_str() << ")" << endl;
+        out << "HN (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
+                      << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
+                      << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
+                      << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")"
+                      << endl;
+        out.close();
+        return true;
     }
     else
-        append = true;
-
-    if (append){
-        // file doesn't exist or section is appended 
-        ofstream out;
-        out.open(camCalibFile.c_str(), ios::app);
-        if (out.is_open()){
-            out << endl;
-            out << "["+groupname+"]" << endl;
-            out << "eyes (" << eyes.toString().c_str() << ")" << endl;
-            out << "HN (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
-                          << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
-                          << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
-                          << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")"
-                          << endl;
-            out.close();
-        }
-        else
-            return false;
-    }
-
-    return true;
+        return false;
 }
 
 
