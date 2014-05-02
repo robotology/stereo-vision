@@ -131,9 +131,12 @@ bool SFM::configure(ResourceFinder &rf)
     {
        cout << "No local calibration file found in " <<  camCalibFile << " ... Using Kinematics and Running SFM once." << endl;
        updateViaGazeCtrl(true);
+       R0=this->stereo->getRotation();
+       T0=this->stereo->getTranslation();
     }
 
     doSFM=false;
+    doSFMOnce=false;
     updateViaGazeCtrl(false);
 
     return true;
@@ -435,12 +438,8 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::s
         }
     }
     else
-    {
-        doSFMOnce=true;
         return false;
-    }
 
-    doSFMOnce=false;
     return true;
 }
 
@@ -514,7 +513,7 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes,
                            const string& groupname)
 {
     ofstream out;
-    out.open(camCalibFile.c_str(),ios::app);
+    out.open(camCalibFile.c_str());
     if (out.is_open())
     {
         out << endl;
