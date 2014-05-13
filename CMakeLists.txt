@@ -8,7 +8,7 @@ if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
-project(StereoVision)
+project(stereoVision)
 
 find_package(YARP)
 find_package(ICUB)
@@ -22,8 +22,10 @@ include(ICUBcontribHelpers)
 include(ICUBcontribOptions)
 icubcontrib_set_default_prefix()
 
-add_definitions(${YARP_DEFINES})   # add yarp definitions - this contains also -D_REENTRANT
-include(YarpInstallationHelpers)   # pick up yarp's cmake scripts
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+add_definitions(${YARP_DEFINES})
+include(YarpInstallationHelpers)
 
 ## add libraries
 add_subdirectory(lib)
