@@ -24,6 +24,7 @@
 bool SFM::configure(ResourceFinder &rf)
 {
     string name=rf.check("name",Value("/SFM")).asString().c_str();
+    string robot_name=rf.check("robot",Value("/icub")).asString().c_str();
     string left=rf.check("leftPort",Value("/left:i")).asString().c_str();    
     string right=rf.check("rightPort",Value("/right:i")).asString().c_str();
     left=name+left;
@@ -99,7 +100,7 @@ bool SFM::configure(ResourceFinder &rf)
     
     Property optionHead;
     optionHead.put("device","remote_controlboard");
-    optionHead.put("remote","/icub/head");
+    optionHead.put("remote",(robot_name+"/head").c_str());
     optionHead.put("local",(name+"/headClient").c_str());
     if (headCtrl.open(optionHead))
         headCtrl.view(iencs);
