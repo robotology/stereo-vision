@@ -23,12 +23,15 @@
 /******************************************************************************/
 bool SFM::configure(ResourceFinder &rf)
 {
-    string name=rf.check("name",Value("/SFM")).asString().c_str();
-    string robot_name=rf.check("robot",Value("/icub")).asString().c_str();
+    string name=rf.check("name",Value("SFM")).asString().c_str();
+    string robot=rf.check("robot",Value("icub")).asString().c_str();
     string left=rf.check("leftPort",Value("/left:i")).asString().c_str();    
     string right=rf.check("rightPort",Value("/right:i")).asString().c_str();
-    left=name+left;
-    right=name+right;
+
+    string sname;
+    sname="/"+name;
+    left=sname+left;
+    right=sname+right;
 
     string outDispName=rf.check("outDispPort",Value("/disp:o")).asString().c_str();
     string outMatchName=rf.check("outMatchPort",Value("/match:o")).asString().c_str();
@@ -41,11 +44,11 @@ bool SFM::configure(ResourceFinder &rf)
     this->camCalibFile=localCalibration.getHomeContextPath().c_str();
     this->camCalibFile=this->camCalibFile+"/SFM_currCalib.ini";
     
-    outMatchName=name+outMatchName;
-    outDispName=name+outDispName;
+    outMatchName=sname+outMatchName;
+    outDispName=sname+outDispName;
     
-    string rpc_name=name+"/rpc";
-    string world_name=name+rf.check("outWorldPort",Value("/world:o")).asString().c_str();
+    string rpc_name=sname+"/rpc";
+    string world_name=sname+rf.check("outWorldPort",Value("/world:o")).asString().c_str();
 
     int calib=rf.check("useCalibrated",Value(1)).asInt();
     bool useCalibrated=(calib!=0);
@@ -100,8 +103,8 @@ bool SFM::configure(ResourceFinder &rf)
     
     Property optionHead;
     optionHead.put("device","remote_controlboard");
-    optionHead.put("remote",(robot_name+"/head").c_str());
-    optionHead.put("local",(name+"/headClient").c_str());
+    optionHead.put("remote",("/"+robot+"/head").c_str());
+    optionHead.put("local",(sname+"/headClient").c_str());
     if (headCtrl.open(optionHead))
         headCtrl.view(iencs);
     else
@@ -113,7 +116,7 @@ bool SFM::configure(ResourceFinder &rf)
     Property optionGaze;
     optionGaze.put("device","gazecontrollerclient");
     optionGaze.put("remote","/iKinGazeCtrl");
-    optionGaze.put("local",(name+"/gazeClient").c_str());
+    optionGaze.put("local",(sname+"/gazeClient").c_str());
     if (gazeCtrl.open(optionGaze))
         gazeCtrl.view(igaze);
     else
