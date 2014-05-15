@@ -140,7 +140,6 @@ bool SFM::configure(ResourceFinder &rf)
     }
 
     doSFM=false;
-    doSFMOnce=false;
     updateViaGazeCtrl(false);
 
     return true;
@@ -313,7 +312,7 @@ bool SFM::updateModule()
     this->stereo->setImages(left,right);
     
     mutexRecalibration.lock();
-    if (doSFM || doSFMOnce)
+    if (doSFM)
     {
     #ifdef USING_GPU
         utils->extractMatch_GPU(leftMat,rightMat);
@@ -331,7 +330,7 @@ bool SFM::updateModule()
         if (ok)
         {
             calibUpdated=true;
-            doSFMOnce=false;
+            doSFM=false;
             calibEndEvent.signal();
         }
         else
@@ -339,7 +338,7 @@ bool SFM::updateModule()
             if (++numberOfTrials>5)
             {
                 calibUpdated=false;
-                doSFMOnce=false;
+                doSFM=false;
                 calibEndEvent.signal();
             }
         }
@@ -1009,25 +1008,11 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         return false;
     }
 
-    if(command.get(0).asString()=="stopSFM")
-    {
-        doSFM=false;
-        reply.addString("ACK");
-        return true;
-    }
-
-    if(command.get(0).asString()=="startSFM")
-    {
-        doSFM=true;
-        reply.addString("ACK");
-        return true;
-    }
-
-    if(command.get(0).asString()=="recalibrate")
+    if(command.get(0).asString()=="calibrate")
     {
         mutexRecalibration.lock();
         numberOfTrials=0;
-        doSFMOnce=true;
+        doSFM=true;
         mutexRecalibration.unlock();
 
         calibEndEvent.reset();
@@ -1047,7 +1032,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         return true;
     }
 
-    if(command.get(0).asString()=="saveCurrentCalib")
+    if(command.get(0).asString()=="save")
     {
         updateExtrinsics(R0,T0,eyes0,"STEREO_DISPARITY"); 
         reply.addString("ACK");

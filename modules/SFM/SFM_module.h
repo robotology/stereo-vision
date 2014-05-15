@@ -76,13 +76,11 @@ YARP libraries and OpenCV 2.2
 - <i> /SFM/right:i </i> accepts the incoming images from the right eye. 
 
 - <i> /SFM/disp:o </i> outputs the disparity map in grayscale values.
-- <i> /SFM/world:o</i> outputs the world image (3-channel float with X Y Z values). If there exists a connection with <i> /<stemName>/<box:i> </i> the output of the world port is an image with the same size of the box (width,height) specified in the bounding box (this saves computational time). Otherwise all the scene is returned.
+- <i> /SFM/world:o</i> outputs the world image (3-channel float with X Y Z values). 
 - <i> /SFM/match:o</i> outputs the match image.
 - <i> /SFM/rpc </i> for terminal commands comunication. 
-    - [stopSFM]: It stops the real-time update of the camera positions, ensuring higher framerate in the depth map computation. 
-    - [startSFM]: It starts the real-time update of the camera positions.
-    - [recalibrate]: It recomputes the camera positions once.
-    - [saveCurrentCalib]: It saves the current camera positions and uses it when the module starts.
+    - [calibrate]: It recomputes the camera positions once.
+    - [save]: It saves the current camera positions and uses it when the module starts.
     - [setNumDisp NumOfDisparities]: It sets the expected number of disparity (in pixel). Values must be divisible by 32. Good values are 64 for 320x240 images and 128 for 640x480 images.
     - [Point x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
     - [x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z d computed using the depth map wrt the the ROOT reference system, d is the disparity (in pixel) between the left pixel x and the right pixel x+d. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
@@ -172,7 +170,6 @@ class SFM: public yarp::os::RFModule
     int preFilterCap;
     int disp12MaxDiff;
     bool doSFM;
-    bool doSFMOnce;
     bool calibUpdated;
     Mutex mutexRecalibration;
     Event calibEndEvent;
