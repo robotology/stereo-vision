@@ -4,21 +4,21 @@
 
 		<module>
 			<name>SFM</name>
-			<node>icub-cuda</node>
+			<node>gpu-node</node>
 			<tag>SFM</tag>
         </module>
 		
 		<module>
 			<name>yarpview</name>
 			<parameters>--name /matchViewer --x 0</parameters>
-			<node>icub16</node>
+			<node>console</node>
 			<tag>yarpviewTag</tag>
         </module>
 		
 		<module>
 			<name>yarpview</name>
 			<parameters>--name /dispViewer --x 330</parameters>
-			<node>icub16</node>
+			<node>console</node>
 			<tag>yarpviewTag</tag>
         </module>
 		
