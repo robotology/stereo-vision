@@ -27,6 +27,7 @@ bool SFM::configure(ResourceFinder &rf)
     string robot=rf.check("robot",Value("icub")).asString().c_str();
     string left=rf.check("leftPort",Value("/left:i")).asString().c_str();    
     string right=rf.check("rightPort",Value("/right:i")).asString().c_str();
+    string SFMFile=rf.check("SFMFile",Value("SFM.ini")).asString().c_str();
 
     string sname;
     sname="/"+name;
@@ -38,11 +39,11 @@ bool SFM::configure(ResourceFinder &rf)
 
     ResourceFinder localCalibration;
     localCalibration.setContext("cameraCalibration");
-    localCalibration.setDefaultConfigFile("SFM_currCalib.ini");
+    localCalibration.setDefaultConfigFile(SFMFile.c_str());
     localCalibration.configure(0,NULL);
 
     this->camCalibFile=localCalibration.getHomeContextPath().c_str();
-    this->camCalibFile=this->camCalibFile+"/SFM_currCalib.ini";
+    this->camCalibFile+="/"+SFMFile;
     
     outMatchName=sname+outMatchName;
     outDispName=sname+outDispName;

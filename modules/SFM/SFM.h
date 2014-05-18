@@ -21,7 +21,8 @@
 
 @ingroup icub_stereoVision
 
-Structure From Motion (SFM) module for estimation of estrinsics parameter and computation of depth map.
+Structure From Motion (SFM) module for estimation of estrinsics
+parameter and computation of depth map. 
 
 Copyright (C) 2013 RobotCub Consortium
  
@@ -32,13 +33,24 @@ Date: first release around 24/07/2013
 CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 \section intro_sec Description
-The module uses a complete Structure From Motion (SFM) pipeline for the computation of the extrinsics parameters between
-two different views. These parameters are then used to rectify the images and to compute a depth map using the H. Hirschmuller Algorithm (CVPR 2006) implemented since Opencv 2.2. The Kinematics
-of the iCub is used to guess the current camera positions, then visual features are used to refine this model.
-Before start make sure you have calibrated the intrinsics parameters. For the stereo calibration see the module \ref stereoCalib "stereoCalib" . The module provides three output ports: the first one
-is the disparity map in grayscale values, the second port is the WorldImage, that is a 3-channels float image, in each pixel are stored the three
-X Y Z coordinates with respect to Root reference frame. The third port outputs the current keypoints matched. Non valid points are handled with the value (0,0,0). In addition a RPC port supports requests for
-3D/2D points computation (see below).
+The module uses a complete Structure From Motion (SFM) pipeline 
+for the computation of the extrinsics parameters between two 
+different views. These parameters are then used to rectify the 
+images and to compute a depth map using the H. Hirschmuller 
+Algorithm (CVPR 2006) implemented since Opencv 2.2. The 
+Kinematics of the iCub is used to guess the current camera 
+positions, then visual features are used to refine this model. 
+Before start make sure you have calibrated the intrinsics 
+parameters. For the stereo calibration see the module <a 
+href="http://wiki.icub.org/iCub/main/dox/html/group__icub__stereoCalib.html">stereoCalib</a>. 
+The module provides three output ports: the first one is the 
+disparity map in grayscale values, the second port is the 
+WorldImage, that is a 3-channels float image, in each pixel are 
+stored the three X Y Z coordinates with respect to Root 
+reference frame. The third port outputs the current keypoints 
+matched. Non valid points are handled with the value (0,0,0). In 
+addition a RPC port supports requests for 3D/2D points 
+computation (see below). 
 
 \note Tested on OpenCV 2.2, 2.3, 2.4
   
