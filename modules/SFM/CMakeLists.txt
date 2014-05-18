@@ -15,8 +15,8 @@ if(USE_SIFT_GPU)
 	add_definitions(-DUSING_GPU)
 endif()
 
-set(source SFM_module.cpp)
-set(header SFM_module.h)
+set(source SFM.cpp)
+set(header SFM.h)
 
 source_group("Source Files" FILES ${source})
 source_group("Header Files" FILES ${header})
