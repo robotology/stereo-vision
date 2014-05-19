@@ -40,22 +40,24 @@ images and to compute a depth map using the H. Hirschmuller
 Algorithm (CVPR 2006) implemented since Opencv 2.2. The 
 Kinematics of the iCub is used to guess the current camera 
 positions, then visual features are used to refine this model. 
-Before start make sure you have calibrated the intrinsics 
+Before starting, make sure you have calibrated the intrinsics 
 parameters. For the stereo calibration see the module <a 
 href="http://wiki.icub.org/iCub/main/dox/html/group__icub__stereoCalib.html">stereoCalib</a>. 
 The module provides three output ports: the first one is the 
 disparity map in grayscale values, the second port is the 
-WorldImage, that is a 3-channels float image, in each pixel are 
-stored the three X Y Z coordinates with respect to Root 
-reference frame. The third port outputs the current keypoints 
-matched. Non valid points are handled with the value (0,0,0). In 
-addition a RPC port supports requests for 3D/2D points 
-computation (see below). 
+WorldImage, that is a 3-channels float image, where in each 
+pixel are stored the three X Y Z coordinates with respect to 
+robot root reference frame. The third port outputs the current 
+keypoints match. Non valid points are handled with the special 
+value (0,0,0). In addition, a rpc port supports requests for 
+3D/2D points computation (see below). 
 
-\note Tested on OpenCV 2.2, 2.3, 2.4
-  
 \section lib_sec Libraries 
-YARP libraries and OpenCV 2.2
+YARP libraries and OpenCV 2.2 (at least). \n
+For better performance, we suggest you to run the module on a 
+machine equipped with GPU functionality along with the 
+<a href="http://cs.unc.edu/~ccwu/siftgpu">SiftGPU</a> library 
+installed.
 
 \section parameters_sec Parameters
 --name \e SFM 
@@ -65,22 +67,22 @@ YARP libraries and OpenCV 2.2
 --robot \e robotName
 - The parameter \e robotName specifies the name of the robot.
 
---leftPort  \e /left:i
+--leftPort \e /left:i
 - The parameter \e inputLeft specifies the left image input port.
 
---rightPort  \e /right:i
+--rightPort \e /right:i
 - The parameter \e inputRight specifies the right image input port.
  
---outDispPort   \e /disp:o 
+--outDispPort \e /disp:o 
 - The parameter \e /disparity:o specifies the output port for the disparity image.
 
---outMatchPort   \e /match:o 
+--outMatchPort \e /match:o 
 - The parameter \e /match:o specifies the output port for the match image.
 
---outWorldPort   \e /world:o 
+--outWorldPort \e /world:o 
 - The parameter \e /world:o  specifies the output port for the world image.
 
---CommandPort   \e comm 
+--CommandPort \e comm 
 - The parameter \e comm specifies the command port for rpc protocol. 
 
 \section portsc_sec Ports Created
@@ -109,7 +111,8 @@ None.
 None. 
  
 \section tested_os_sec Tested OS
-Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7.
+Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7. Tested 
+against OpenCV versions: 2.2, 2.3, 2.4. 
 
 \author Sean Ryan Fanello
 */ 
