@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml)
+file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template)
 file(GLOB conf    ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
                  
 ### create a single target that installs all applications at once

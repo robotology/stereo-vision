@@ -19,8 +19,6 @@
 /**
 \defgroup SFM SFM
 
-@ingroup icub_stereoVision
-
 Structure From Motion (SFM) module for estimation of estrinsics
 parameter and computation of depth map. 
 

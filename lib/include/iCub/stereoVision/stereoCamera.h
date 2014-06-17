@@ -19,8 +19,6 @@
 /**
  * \defgroup StereoVisionLib stereoVisionLib
  *  
- * @ingroup icub_stereoVision 
- *  
  * Vision library for dealing with stereo camera calibration,
  * 3D points generation and motion estimation
  *

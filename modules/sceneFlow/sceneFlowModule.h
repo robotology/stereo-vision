@@ -19,9 +19,7 @@
 /**
 \defgroup sceneFlowModule sceneFlowModule
 
-@ingroup icub_stereoVision
-
-A test module for the image of the world.
+A test module for the image of the world. 
 
 Copyright (C) 2011 RobotCub Consortium
  
