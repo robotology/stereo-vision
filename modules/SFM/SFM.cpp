@@ -75,7 +75,7 @@ bool SFM::configure(ResourceFinder &rf)
     this->uniquenessRatio=15;
     this->speckleWindowSize=50;
     this->speckleRange=16;
-    this->numberOfDisparities=64;
+    this->numberOfDisparities=96;
     this->SADWindowSize=7;
     this->minDisparity=0;
     this->preFilterCap=63;
@@ -298,10 +298,7 @@ bool SFM::updateModule()
     {
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
-        if (left->width==320)
-            this->numberOfDisparities=64;
-        if (left->width==640)
-            this->numberOfDisparities=128l;
+        this->numberOfDisparities=(left->width<=320)?96:128;
         init=false;
     }
 
