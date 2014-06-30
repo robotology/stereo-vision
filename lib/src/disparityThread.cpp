@@ -118,7 +118,7 @@ DisparityThread::DisparityThread(const string &name, yarp::os::ResourceFinder &r
     this->uniquenessRatio=15;
     this->speckleWindowSize=50;
     this->speckleRange=16;
-    this->numberOfDisparities=64;
+    this->numberOfDisparities=96;
     this->SADWindowSize=7;
     this->minDisparity=0;
     this->preFilterCap=63;
@@ -272,11 +272,7 @@ void DisparityThread::setImages(Mat &left, Mat &right)
 
     if (l.width!=widthInit)
     {
-        if (l.width==320)
-            this->numberOfDisparities=64;
-        if (l.width==640)
-            this->numberOfDisparities=128;
-
+        this->numberOfDisparities=(l.width<=320)?96:128;
         widthInit=l.width;
     }
 
