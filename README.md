@@ -1,4 +1,4 @@
-stereoVision
+Stereo Vision
 ============
 
 A C++ [YARP](https://github.com/robotology/yarp) library that provides the **iCub** robot with stereo vision capabilities.
