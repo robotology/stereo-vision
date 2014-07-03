@@ -14,7 +14,7 @@ A C++ [YARP](https://github.com/robotology/yarp) library that provides the **iCu
 
 ## Documentation
 
-Online documentation is available here: [http://robotology.github.io/stereoVision](http://robotology.github.io/stereoVision).
+Online documentation is available here: [http://robotology.github.io/stereo-vision](http://robotology.github.io/stereo-vision).
 
 ## License
 
