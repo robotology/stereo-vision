@@ -921,7 +921,6 @@ bool StereoCamera::essentialDecomposition() {
     W.at<double>(1,1)=0;
     W.at<double>(1,2)=0;
 
-
     W.at<double>(2,0)=0;
     W.at<double>(2,1)=0;
     W.at<double>(2,2)=1;
@@ -937,11 +936,9 @@ bool StereoCamera::essentialDecomposition() {
     Mat V=dec.vt;
     Mat U=dec.u;
 
-
     Mat R1=U*W*V;
     Mat R2=U*W.t()*V;
     
-
     if(determinant(R1)<0 || determinant(R2)<0) {
         E=-E;
         SVD dec2(E);
@@ -953,35 +950,28 @@ bool StereoCamera::essentialDecomposition() {
         R2=U*W.t()*V;
     }
 
-
     Mat t1=U(Range(0,3),Range(2,3));
     Mat t2=-t1;
-
 
     Mat Rnew=Mat(3,3,CV_64FC1);
     Rnew.setTo(0);
     Mat tnew=Mat(3,1,CV_64FC1);
 
     chierality(R1,R2,t1,t2,Rnew,tnew,this->InliersL,this->InliersR);
-
-
     
-    double t_norm=norm(T/norm(T),tnew/norm(tnew));
-    double r_norm=norm(R,Rnew);
+    //double t_norm=norm(T/norm(T),tnew/norm(tnew));
+    //double r_norm=norm(R,Rnew);
     
     Mat rvec_new=Mat::zeros(3,1,CV_64FC1);
     Mat rvec_exp=Mat::zeros(3,1,CV_64FC1);
     Rodrigues(Rnew,rvec_new);
-    
     Rodrigues(R_exp,rvec_exp);
-    
 
     Mat t_est=(tnew/norm(tnew))*norm(this->T);
     
     Mat diff_angles=rvec_exp-rvec_new;
     Mat diff_tran=T_exp-t_est;
     
-
     /*fprintf(stdout, "Estimated Translation \n ");
     printMatrix(t_est);
     fprintf(stdout, "\n ");*/
@@ -994,11 +984,9 @@ bool StereoCamera::essentialDecomposition() {
     //if(norm(tnew) >0 && norm(Rnew)>0 && abs(rvec_new.at<double>(0,0))<0.05 && abs(rvec_new.at<double>(2,0))<0.05 && abs(rvec_new.at<double>(1,0))<0.5 && abs(t_est.at<double>(0,0)) <0.069 && abs(t_est.at<double>(0,0))>0.066 && abs(t_est.at<double>(1,0))<0.01 && abs(t_est.at<double>(2,0))< 0.02)
     if(abs(diff_angles.at<double>(0,0))<0.1 && abs(diff_angles.at<double>(1,0))<0.15 && abs(diff_angles.at<double>(2,0))<0.1 && abs(diff_tran.at<double>(0,0))<0.005&& abs(diff_tran.at<double>(1,0))<0.005 && abs(diff_tran.at<double>(2,0))<0.005)    
     {
-    
-
         this->mutex->wait();
         this->R=Rnew;
-        this->T=(tnew/norm(tnew))*norm(this->T);
+        this->T=t_est;
         this->updatePMatrix();
         this->cameraChanged=true;
         this->mutex->post();
@@ -1006,13 +994,11 @@ bool StereoCamera::essentialDecomposition() {
         //printMatrix(R);
         //printMatrix(T);        
     }
-    return false;
-    //cout << "determinant is " << determinant(Rnew) << endl;; 
 
-        
-        
+    return false;
+
+    //cout << "determinant is " << determinant(Rnew) << endl;; 
     //cout << "WINNERS: " << endl;
-    
     //printMatrix(R2);
 
     /*Mat Tx=Mat(3,3,CV_64FC1);
@@ -1035,9 +1021,6 @@ bool StereoCamera::essentialDecomposition() {
     //printMatrix(t1);
     //printMatrix(t2);    
     //cout << "Det: " << determinant(R) << endl;; 
-
-    
-
 }
 
 
