@@ -903,7 +903,7 @@ void StereoCamera::estimateEssential() {
 bool StereoCamera::essentialDecomposition() {
 
     if(E.empty() ) {
-        cout << "Essential Matrix is Empy! Run the estimateEssential first!" << endl;
+        cout << "Essential Matrix is empty! Run the estimateEssential first!" << endl;
         return false;
     }
     if(this->InliersL.empty()) {
