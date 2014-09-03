@@ -577,7 +577,6 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius)
     vector<KeyPoint> keypoints1,keypoints2;
     Mat descriptors1,descriptors2;
 
-#ifdef USE_NEWFEATURES
     cv::SiftFeatureDetector detector;
     cv::SiftDescriptorExtractor descriptorExtractor;
     cv::BFMatcher descriptorMatcher;
@@ -587,17 +586,6 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius)
 
     detector.detect(grayright,keypoints2);
     descriptorExtractor.compute(grayright,keypoints2,descriptors2);
-#else
-    Ptr<FeatureDetector> detector = FeatureDetector::create("SIFT");
-    Ptr<DescriptorExtractor> descriptorExtractor = DescriptorExtractor::create("SIFT");
-    Ptr<DescriptorMatcher> descriptorMatcher = DescriptorMatcher::create("BruteForce");
-
-    detector->detect(grayleft,keypoints1);
-    descriptorExtractor->compute(grayleft,keypoints1,descriptors1);
-
-    detector->detect(grayright,keypoints2);
-    descriptorExtractor->compute(grayright,keypoints2,descriptors2);
-#endif
 
     vector<DMatch> filteredMatches;
     crossCheckMatching(descriptorMatcher,descriptors1,descriptors2,filteredMatches,radius);
@@ -1429,26 +1417,15 @@ const Mat StereoCamera::getRotation() {
 }
 
 
-#ifdef USE_NEWFEATURES
 void StereoCamera::crossCheckMatching( cv::BFMatcher &descriptorMatcher,
                          const Mat& descriptors1, const Mat& descriptors2,
                          vector<DMatch>& filteredMatches12, double radius)
-#else
-void StereoCamera::crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher,
-                         const Mat& descriptors1, const Mat& descriptors2,
-                         vector<DMatch>& filteredMatches12, double radius)
-#endif
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
 
-#ifdef USE_NEWFEATURES
     descriptorMatcher.radiusMatch(descriptors1,descriptors2,matches12,(float)radius);
     descriptorMatcher.radiusMatch(descriptors2,descriptors1,matches21,(float)radius);
-#else
-    descriptorMatcher->radiusMatch(descriptors1,descriptors2,matches12,(float)radius);
-    descriptorMatcher->radiusMatch(descriptors2,descriptors1,matches21,(float)radius);
-#endif
 
     for (size_t m=0; m<matches12.size(); m++)
     {

@@ -40,10 +40,8 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#ifdef USE_NEWFEATURES
-    #include "opencv2/features2d/features2d.hpp"
-    #include "opencv2/nonfree/features2d.hpp"
-#endif
+#include "opencv2/features2d/features2d.hpp"
+#include "opencv2/nonfree/features2d.hpp"
 
 #include <iCub/stereoVision/camera.h>
 #include <fstream>
@@ -148,11 +146,7 @@ private:
     bool readStringList( const string& filename, vector<string>& l );
     void runStereoCalib(const vector<string>& imagelist, Size boardSize,float sqsize);
     double* reprojectionError(Mat& Rot, Mat& Tras);
-#ifdef USE_NEWFEATURES
     void crossCheckMatching(  cv::BFMatcher &descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius);
-#else
-    void crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius);
-#endif
     void updatePMatrix();
     void stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize);
     void normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR);

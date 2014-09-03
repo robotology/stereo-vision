@@ -16,8 +16,6 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
 
-add_definitions(-DUSE_NEWFEATURES)
-
 if(USE_SIFT_GPU)
     find_package(SIFTGPU)
     if(SIFTGPU_FOUND)
