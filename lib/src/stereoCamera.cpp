@@ -773,14 +773,13 @@ Mat StereoCamera::FfromP(Mat& P1, Mat& P2)
 
 }
 
-void StereoCamera::estimateEssential() {
+void StereoCamera::estimateEssential()
+{
     this->InliersL.clear();
     this->InliersR.clear();
- 
 
-
-
-    if(this->PointsL.size()<10 || this->PointsL.size()<10 ) {
+    if (this->PointsL.size()<10 || this->PointsL.size()<10 )
+    {
         cout << "Not enough matches in memory! Run findMatch first!" << endl;
         this->E=Mat(3,3,CV_64FC1);
         return;
@@ -789,7 +788,6 @@ void StereoCamera::estimateEssential() {
     updateExpectedCameraMatrices();
     Mat F_exp=FfromP(Pleft_exp,Pright_exp);
 
-    
     vector<Point2f> filteredL;
     vector<Point2f> filteredR;
 
@@ -797,7 +795,8 @@ void StereoCamera::estimateEssential() {
     Mat pl=Mat(3,1,CV_64FC1);
     Mat pr=Mat(3,1,CV_64FC1);
 
-    for(int i=0; i<(int) PointsL.size(); i++) {
+    for (size_t i=0; i<(int) PointsL.size(); i++)
+    {
         pl.at<double>(0,0)=PointsL[i].x;
         pl.at<double>(1,0)=PointsL[i].y;
         pl.at<double>(2,0)=1;
@@ -821,7 +820,8 @@ void StereoCamera::estimateEssential() {
         den2=sum(Fxr);
         double sampsonDistance=xrFxl.at<double>(0,0)/(den1.val[0]+den2.val[0]);
         
-        if(sampsonDistance<0.1) {
+        if (sampsonDistance<0.1)
+        {
             filteredL.push_back(PointsL[i]);
             filteredR.push_back(PointsR[i]);
         }
@@ -832,8 +832,8 @@ void StereoCamera::estimateEssential() {
     vector<uchar> status;
     this->F=findFundamentalMat(Mat(filteredL), Mat(filteredR),status, CV_FM_8POINT, 1, 0.999);
     
-    
-    for(int i=0; i<(int) filteredL.size(); i++) {
+    for (size_t i=0; i<(int) filteredL.size(); i++)
+    {
         pl.at<double>(0,0)=filteredL[i].x;
         pl.at<double>(1,0)=filteredL[i].y;
         pl.at<double>(2,0)=1;
@@ -846,11 +846,8 @@ void StereoCamera::estimateEssential() {
         Mat Fxl=F*pl;
         Mat Fxr=F.t()*pr;
 
-
         pow(xrFxl,2,xrFxl);
-
         pow(Fxl,2,Fxl);
-
         pow(Fxr,2,Fxr);
         
         Scalar den1,den2;
@@ -858,18 +855,17 @@ void StereoCamera::estimateEssential() {
         den2=sum(Fxr);
         double sampsonDistance=xrFxl.at<double>(0,0)/(den1.val[0]+den2.val[0]);
 
-
-        if(status[i]==1 && xrFxl.at<double>(0,0)<0.001) 
+        if (status[i]==1 && xrFxl.at<double>(0,0)<0.001) 
         {
             InliersL.push_back(filteredL[i]);
             InliersR.push_back(filteredR[i]);
         }
-
     }
 
     fprintf(stdout,"%lu Match After RANSAC Filtering \n",InliersL.size());
 
-    if(this->InliersL.size()<10 || this->InliersR.size()<10 ) {
+    if (this->InliersL.size()<10 || this->InliersR.size()<10 )
+    {
         InliersL.clear();
         InliersR.clear();
         cout << "Not enough matches in memory! Run findMatch first!" << endl;
@@ -878,20 +874,21 @@ void StereoCamera::estimateEssential() {
     }    
    
     this->F=findFundamentalMat(Mat(InliersL), Mat(InliersR),status, CV_FM_8POINT, 1, 0.999);
-//    cout << "Matches: " << PointsL.size() << " Inliers: " << InliersL.size() << endl;
     this->E=this->Kright.t()*this->F*this->Kleft;
 
 }
 
 
-
-bool StereoCamera::essentialDecomposition() {
-
-    if(E.empty() ) {
+bool StereoCamera::essentialDecomposition()
+{
+    if (E.empty())
+    {
         cout << "Essential Matrix is empty! Run the estimateEssential first!" << endl;
         return false;
     }
-    if(this->InliersL.empty()) {
+    
+    if (this->InliersL.empty())
+    {
         cout << "No matches in memory! Run findMatch first!" << endl;
         return false;
     }
@@ -924,7 +921,8 @@ bool StereoCamera::essentialDecomposition() {
     Mat R1=U*W*V;
     Mat R2=U*W.t()*V;
     
-    if(determinant(R1)<0 || determinant(R2)<0) {
+    if (determinant(R1)<0 || determinant(R2)<0)
+    {
         E=-E;
         SVD dec2(E);
 
@@ -957,17 +955,13 @@ bool StereoCamera::essentialDecomposition() {
     Mat diff_angles=rvec_exp-rvec_new;
     Mat diff_tran=T_exp-t_est;
     
-    /*fprintf(stdout, "Estimated Translation \n ");
-    printMatrix(t_est);
-    fprintf(stdout, "\n ");*/
-
-    fprintf(stdout, "Angles Differences: %f %f %f \n", diff_angles.at<double>(0,0),diff_angles.at<double>(1,0),diff_angles.at<double>(2,0));
-    fprintf(stdout, "Translation Differences: %f %f %f \n", diff_tran.at<double>(0,0),diff_tran.at<double>(1,0),diff_tran.at<double>(2,0));    
+    fprintf(stdout,"Angles Differences: %f %f %f\n",diff_angles.at<double>(0,0),diff_angles.at<double>(1,0),diff_angles.at<double>(2,0));
+    fprintf(stdout,"Translation Differences: %f %f %f\n",diff_tran.at<double>(0,0),diff_tran.at<double>(1,0),diff_tran.at<double>(2,0));    
     
     // Magic numbers: rvec_new are the rotation angles, only vergence (rvec_new(1,0)) is allowed to be large
     // t_est is the translation estimated, it can change a little bit when joint 4 of the head is moving
-    //if(norm(tnew) >0 && norm(Rnew)>0 && abs(rvec_new.at<double>(0,0))<0.05 && abs(rvec_new.at<double>(2,0))<0.05 && abs(rvec_new.at<double>(1,0))<0.5 && abs(t_est.at<double>(0,0)) <0.069 && abs(t_est.at<double>(0,0))>0.066 && abs(t_est.at<double>(1,0))<0.01 && abs(t_est.at<double>(2,0))< 0.02)
-    if(abs(diff_angles.at<double>(0,0))<0.1 && abs(diff_angles.at<double>(1,0))<0.15 && abs(diff_angles.at<double>(2,0))<0.1 && abs(diff_tran.at<double>(0,0))<0.005&& abs(diff_tran.at<double>(1,0))<0.005 && abs(diff_tran.at<double>(2,0))<0.005)    
+    if (fabs(diff_angles.at<double>(0,0))<0.15 && fabs(diff_angles.at<double>(1,0))<0.15 && fabs(diff_angles.at<double>(2,0))<0.15 &&
+        fabs(diff_tran.at<double>(0,0))<0.01 && fabs(diff_tran.at<double>(1,0))<0.01  && fabs(diff_tran.at<double>(2,0))<0.01)    
     {
         this->mutex->wait();
         this->R=Rnew;
@@ -976,36 +970,9 @@ bool StereoCamera::essentialDecomposition() {
         this->cameraChanged=true;
         this->mutex->post();
         return true;
-        //printMatrix(R);
-        //printMatrix(T);        
     }
-
-    return false;
-
-    //cout << "determinant is " << determinant(Rnew) << endl;; 
-    //cout << "WINNERS: " << endl;
-    //printMatrix(R2);
-
-    /*Mat Tx=Mat(3,3,CV_64FC1);
-    Tx.setTo(0);
-    Tx.at<double>(0,1)=-tnew.at<double>(2,0);
-    Tx.at<double>(0,2)=tnew.at<double>(1,0);
-    Tx.at<double>(1,0)=tnew.at<double>(2,0);
-    Tx.at<double>(1,2)=-tnew.at<double>(0,0);
-    Tx.at<double>(2,0)=-tnew.at<double>(1,0);
-    Tx.at<double>(2,1)=tnew.at<double>(0,0);
-
-    Mat Erec=Tx*Rnew;
-    fprintf(stdout,"estimated \n");
-    printMatrix(Erec);
-           
-    fprintf(stdout,"true \n");
-    printMatrix(E); */
-    
-
-    //printMatrix(t1);
-    //printMatrix(t2);    
-    //cout << "Det: " << determinant(R) << endl;; 
+    else
+        return false;
 }
 
 
@@ -1384,6 +1351,7 @@ void StereoCamera::setRotation(Mat& Rot, int mul) {
     this->cameraChanged=true;
     this->mutex->post();
 }
+
 void StereoCamera::setTranslation(Mat& Tras, int mul) {
     this->mutex->wait();
     if(mul==0)
@@ -1428,9 +1396,10 @@ void StereoCamera::updateExpectedCameraMatrices()
 
         Pright_exp=Kright*A;
 }
-void StereoCamera::updatePMatrix() {
 
 
+void StereoCamera::updatePMatrix()
+{
         Mat A = Mat::eye(3, 4, CV_64F);
         Pleft=Kleft*A;
    
