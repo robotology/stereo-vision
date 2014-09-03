@@ -577,15 +577,15 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius)
     vector<KeyPoint> keypoints1,keypoints2;
     Mat descriptors1,descriptors2;
 
-    cv::SiftFeatureDetector detector;
-    cv::SiftDescriptorExtractor descriptorExtractor;
+    Ptr<cv::FeatureDetector> detector=cv::FeatureDetector::create("SIFT");
+    Ptr<cv::DescriptorExtractor> descriptorExtractor=cv::DescriptorExtractor::create("SIFT");
     cv::BFMatcher descriptorMatcher;
 
-    detector.detect(grayleft,keypoints1);
-    descriptorExtractor.compute(grayleft,keypoints1,descriptors1);
+    detector->detect(grayleft,keypoints1);
+    descriptorExtractor->compute(grayleft,keypoints1,descriptors1);
 
-    detector.detect(grayright,keypoints2);
-    descriptorExtractor.compute(grayright,keypoints2,descriptors2);
+    detector->detect(grayright,keypoints2);
+    descriptorExtractor->compute(grayright,keypoints2,descriptors2);
 
     vector<DMatch> filteredMatches;
     crossCheckMatching(descriptorMatcher,descriptors1,descriptors2,filteredMatches,radius);
