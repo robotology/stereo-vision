@@ -218,7 +218,7 @@ public:
     * @param displacement maximum pixel displacement between first and second camera
     * @param radius maximum radius between the first candidate match and the second one
     */
-    cv::Mat findMatch(bool visualize=false, double displacement=20.0, double radius=100.0);
+    cv::Mat findMatch(bool visualize=false, double displacement=20.0, double radius=200.0);
 
     /** It computes the Disparity Map using H. Hirschmuller Algorithm (CVPR 2006) (see \ref stereoDisparity).
     * @param best set equal true for better accuracy, equal false for save computation.
