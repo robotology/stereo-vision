@@ -1,0 +1,86 @@
+\doxysection{Disparity\+Thread Class Reference}
+\label{classDisparityThread}\index{DisparityThread@{DisparityThread}}
+
+
+{\ttfamily \#include $<$disparity\+Thread.\+h$>$}
+
+
+
+Inherits Periodic\+Thread.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\label{classDisparityThread_ab53d3046d1397fb7c0eef512e1aae683}} 
+{\bfseries Disparity\+Thread} (const string \&name, yarp\+::os\+::\+Resource\+Finder \&rf, bool use\+Horn=true, bool update\+Camera=false, bool rectify=true)
+\item 
+\mbox{\label{classDisparityThread_a8d0ab9537256c9387ba1bf2b48ebfbca}} 
+void {\bfseries set\+Images} (const Mat \&left, const Mat \&right)
+\item 
+\mbox{\label{classDisparityThread_a9d7c5ff0ddc84fbc74f78e6bc77c8297}} 
+void {\bfseries get\+Disparity} (Mat \&Disp)
+\item 
+\mbox{\label{classDisparityThread_ae499c13ea55662aa612781d0d7488741}} 
+Point3f {\bfseries get3\+D\+Point\+Match} (double u1, double v1, double u2, double v2, string drive)
+\item 
+\mbox{\label{classDisparityThread_aadcaf0193ce0c9418392803c77725efc}} 
+void {\bfseries get\+Disparity\+Float} (Mat \&Disp)
+\item 
+\mbox{\label{classDisparityThread_a0c5d331cc596e81ba9bfb67770a67fa7}} 
+void {\bfseries get\+Q\+Mat} (Mat \&Q)
+\item 
+\mbox{\label{classDisparityThread_af7d1aee791ada6fdf79be8bf8e40e260}} 
+void {\bfseries get\+Mapper} (Mat \&Mapper)
+\item 
+\mbox{\label{classDisparityThread_a0c0b139ecaf7fa43a63ce6610c184288}} 
+void {\bfseries get\+Rect\+Matrix} (Mat \&RL)
+\item 
+\mbox{\label{classDisparityThread_a9f132e68856b56d0dded0f1435d1f34c}} 
+void {\bfseries triangulate} (Point2f \&pixel, Point3f \&point)
+\item 
+\mbox{\label{classDisparityThread_ac4e45d17e21d68002ed8a3a979e7abab}} 
+bool {\bfseries check\+Done} ()
+\item 
+\mbox{\label{classDisparityThread_a9300dc8b230296501c99032633daa0dc}} 
+void {\bfseries get\+Root\+Transformation} (Mat \&Trans, int eye=L\+E\+FT)
+\item 
+\mbox{\label{classDisparityThread_af6afa37af0ff8dced127c760c016fe74}} 
+bool {\bfseries is\+Open} ()
+\item 
+\mbox{\label{classDisparityThread_a7c03f103346967e4fe23c315a1ad2f95}} 
+void {\bfseries set\+Disp\+Parameters} (bool \+\_\+use\+Best\+Disp, int \+\_\+uniqueness\+Ratio, int \+\_\+speckle\+Window\+Size, int \+\_\+speckle\+Range, int \+\_\+number\+Of\+Disparities, int \+\_\+\+S\+A\+D\+Window\+Size, int \+\_\+min\+Disparity, int \+\_\+pre\+Filter\+Cap, int \+\_\+disp12\+Max\+Diff)
+\item 
+\mbox{\label{classDisparityThread_afcfe2413bbbb52bd2e5737197f8c12b1}} 
+void {\bfseries update\+Cameras\+Once} ()
+\item 
+\mbox{\label{classDisparityThread_a2b80cd97a2bd3f530afdb8615577c2c3}} 
+void {\bfseries start\+Update} ()
+\item 
+\mbox{\label{classDisparityThread_a17f750f7e13366abb05f02ca0310ab91}} 
+void {\bfseries stop\+Update} ()
+\item 
+\mbox{\label{classDisparityThread_a741ecfd39ec8b949997e38ab31e5908e}} 
+bool {\bfseries thread\+Init} ()
+\item 
+\mbox{\label{classDisparityThread_a29bde42a3bfc24ff666e756febc42334}} 
+void {\bfseries thread\+Release} ()
+\item 
+\mbox{\label{classDisparityThread_a88e71e25e8170fe009933cde0c494fca}} 
+void {\bfseries run} ()
+\item 
+\mbox{\label{classDisparityThread_ad354c6f6ee5caba36aea07f66ffbc030}} 
+void {\bfseries on\+Stop} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The class defining the disparity computation. It computes the depth map and it updates the icub\textquotesingle{}s eye relative positions. 
+
+Definition at line 47 of file disparity\+Thread.\+h.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/runner/work/stereo-\/vision/stereo-\/vision/gh-\/pages/lib/include/i\+Cub/stereo\+Vision/disparity\+Thread.\+h\item 
+/home/runner/work/stereo-\/vision/stereo-\/vision/gh-\/pages/lib/src/disparity\+Thread.\+cpp\end{DoxyCompactItemize}

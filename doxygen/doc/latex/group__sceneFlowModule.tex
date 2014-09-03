@@ -1,0 +1,45 @@
+\section{scene\+Flow\+Module}
+\label{group__sceneFlowModule}\index{scene\+Flow\+Module@{scene\+Flow\+Module}}
+
+
+A test module for the image of the world.  
+
+
+A test module for the image of the world. 
+
+Copyright (C) 2011 Robot\+Cub Consortium
+
+Author\+: Sean Ryan Fanello, Ilaria Gori
+
+Date\+: 19/12/2011
+
+Copy\+Policy\+: Released under the terms of the G\+NU G\+PL v2.\+0.\hypertarget{group__sceneFlowModule_intro_sec}{}\subsection{Description}\label{group__sceneFlowModule_intro_sec}
+This is an example module for the \hyperlink{classSceneFlow}{Scene\+Flow} computation.\hypertarget{group__sceneFlowModule_lib_sec}{}\subsection{Libraries}\label{group__sceneFlowModule_lib_sec}
+Y\+A\+RP libraries and Open\+CV 2.\+4 (or gretear)\hypertarget{group__sceneFlowModule_parameters_sec}{}\subsection{Parameters}\label{group__sceneFlowModule_parameters_sec}
+--config\+Disparity {\itshape file.\+ini} 
+\begin{DoxyItemize}
+\item The parameter {\itshape file.\+ini} specifies the cameras config file (e.\+g icub\+Eyes.\+ini).
+\end{DoxyItemize}
+
+--dense\+Flow {\itshape val} 
+\begin{DoxyItemize}
+\item The parameter {\itshape val} specifies the flow type\+: dense if val=1; sparse if val=0.
+\end{DoxyItemize}
+
+--left\+Camera {\itshape left} 
+\begin{DoxyItemize}
+\item The parameter {\itshape left} specifies the left camera port (e.\+g. /icub/camcalib/left/out).
+\end{DoxyItemize}
+
+--right\+Camera {\itshape right} 
+\begin{DoxyItemize}
+\item The parameter {\itshape right} specifies the right camera port (e.\+g. /icub/camcalib/right/out).
+\end{DoxyItemize}\hypertarget{group__sceneFlowModule_portsc_sec}{}\subsection{Ports Created}\label{group__sceneFlowModule_portsc_sec}
+\hypertarget{group__sceneFlowModule_in_files_sec}{}\subsection{Input Data Files}\label{group__sceneFlowModule_in_files_sec}
+None.\hypertarget{group__sceneFlowModule_out_data_sec}{}\subsection{Output Data Files}\label{group__sceneFlowModule_out_data_sec}
+None.\hypertarget{group__sceneFlowModule_tested_os_sec}{}\subsection{Tested OS}\label{group__sceneFlowModule_tested_os_sec}
+Linux (Ubuntu 9.\+04, Debian Squeeze) and Windows 7.
+
+\begin{DoxyAuthor}{Author}
+Sean Ryan Fanello, Ilaria Gori 
+\end{DoxyAuthor}
