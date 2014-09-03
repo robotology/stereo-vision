@@ -1,0 +1,3271 @@
+\doxysection{Stereo\+Camera Class Reference}
+\label{classStereoCamera}\index{StereoCamera@{StereoCamera}}
+
+
+The base class defining stereo camera.  
+
+
+
+
+{\ttfamily \#include $<$stereo\+Camera.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classStereoCamera_a11256fe5a509436abc714a594b6cc801}{Stereo\+Camera}} (bool rectify=true)
+\begin{DoxyCompactList}\small\item\em Default Constructor. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classStereoCamera_a0c2cd4c7b5a0cdb96370c29a42601f40}{Stereo\+Camera}} (yarp\+::os\+::\+Resource\+Finder \&rf, bool rectify=true)
+\begin{DoxyCompactList}\small\item\em Costructor for initialization from file. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classStereoCamera_a5bfcf3ef7c9d45802bacbf040e7ca112}{Stereo\+Camera}} (\mbox{\hyperlink{classCamera}{Camera}} First, \mbox{\hyperlink{classCamera}{Camera}} Second, bool rectify=true)
+\begin{DoxyCompactList}\small\item\em Constructor for initialization using two calibrated cameras. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a067e1e94a48cb390491fea0f6748dda8}{init\+ELAS}} (yarp\+::os\+::\+Resource\+Finder \&rf)
+\begin{DoxyCompactList}\small\item\em Initialization of ELAS parameters. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a398f45eeefe7979a834659cfbb7a6961}{stereo\+Calibration}} (vector$<$ string $>$ image\+List, int board\+Width, int board\+Height, float sqsize=1.\+0)
+\begin{DoxyCompactList}\small\item\em It performs the stereo camera calibration. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a9f06cd4b170ad0ba45b681ee93d64851}{save\+Calibration}} (string extrinsic\+File\+Path, string intrinsic\+File\+Path)
+\begin{DoxyCompactList}\small\item\em It saves the calibration. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_adc36a2585c583219bddbb1c7fb0725df}{set\+Images}} (const Mat \&first\+Img, const Mat \&second\+Img)
+\begin{DoxyCompactList}\small\item\em It stores in memory a couple of images. \end{DoxyCompactList}\item 
+cv\+::\+Mat \mbox{\hyperlink{classStereoCamera_aeb1cf4e41058cd70c7df6b8c2511548d}{find\+Match}} (bool visualize=false, double displacement=20.\+0, double radius=200.\+0)
+\begin{DoxyCompactList}\small\item\em It finds matches between two images. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a79e986f2970bb2c5b5acd1ede65984aa}{compute\+Disparity}} (bool best=true, int uniqueness\+Ratio=15, int speckle\+Window\+Size=50, int speckle\+Range=16, int number\+Of\+Disparities=64, int SADWindow\+Size=7, int min\+Disparity=0, int pre\+Filter\+Cap=63, int disp12\+Max\+Diff=0)
+\begin{DoxyCompactList}\small\item\em It computes the Disparity Map (see stereo\+Disparity). \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a2751f357e5fabc7099303d45425208d7}{undistort\+Images}} ()
+\begin{DoxyCompactList}\small\item\em It undistorts the images. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_adf155975709fdbf09d3133899d074a02}{horn}} (Mat \&K1, Mat \&K2, vector$<$ Point2f $>$ \&Points1, vector$<$ Point2f $>$ \&Points2, Mat \&Rot, Mat \&Tras)
+\begin{DoxyCompactList}\small\item\em It performs the horn relative orientations algorithm i.\+e. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a36dae897d07544e8faca8c90216173a6}{horn\+Relative\+Orientations}} ()
+\begin{DoxyCompactList}\small\item\em It performs the horn relative orientations, all the parameters are assumed initialized in the \mbox{\hyperlink{classStereoCamera}{Stereo\+Camera}} object. \end{DoxyCompactList}\item 
+Point3f \mbox{\hyperlink{classStereoCamera_a3c8ef84424fa111c63437a3db8f04333}{triangulation}} (Point2f \&point1, Point2f \&point2)
+\begin{DoxyCompactList}\small\item\em It performs the triangulation using the stored in the internal P1 and P2 3x4 \mbox{\hyperlink{classCamera}{Camera}} Matrices. \end{DoxyCompactList}\item 
+Point3f \mbox{\hyperlink{classStereoCamera_ab68c8d3bd07f542243d681fbe8c8c6b7}{triangulation}} (Point2f \&point1, Point2f \&point2, Mat Camera1, Mat Camera2)
+\begin{DoxyCompactList}\small\item\em It performs the triangulation (HZ Chap 12.\+2 homogenous solution). \end{DoxyCompactList}\item 
+Point3f \mbox{\hyperlink{classStereoCamera_aaef25d8723eefdbab6e27c348492126b}{triangulation\+LS}} (Point2f \&point1, Point2f \&point2, Mat Camera1, Mat Camera2)
+\begin{DoxyCompactList}\small\item\em It performs the least square triangulation (HZ Chap 12.\+2 Inhomogenous solution). \end{DoxyCompactList}\item 
+Point3f \mbox{\hyperlink{classStereoCamera_a2fcd3e1767bcf04716b0e2ac76098430}{metric\+Triangulation}} (Point2f \&point1, double th\+Meters=10)
+\begin{DoxyCompactList}\small\item\em It performs the metric triangulation given the pixel coordinates on the first image. \end{DoxyCompactList}\item 
+Point3f \mbox{\hyperlink{classStereoCamera_a3cf53fac6336eea107a26bd5cdbbdd03}{metric\+Triangulation}} (Point2f \&point1, Mat \&H, double th\+Meters=10)
+\begin{DoxyCompactList}\small\item\em It performs the metric triangulation given the pixel coordinates on the first image. \end{DoxyCompactList}\item 
+Point3f \mbox{\hyperlink{classStereoCamera_a761ea623c4cde38b4fa1d798ef09b7ae}{triangulate\+Known\+Disparity}} (float u, float v, float d, Mat \&H)
+\begin{DoxyCompactList}\small\item\em It performs the metric triangulation given the pixel coordinates on the first image and the disparity between the two RECTIFIED images. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_ab2eded08bca185ac22cd6343cb4c85c8}{estimate\+Essential}} ()
+\begin{DoxyCompactList}\small\item\em It estimates the essential matrix (3x3) E between two views. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classStereoCamera_a180388e93b654802c7c56c18d206214b}{essential\+Decomposition}} ()
+\begin{DoxyCompactList}\small\item\em It decomposes the essential matrix in Rotation and Translation between the two views. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_aefb25fc2ecd8d0ce484e5981769dd635}{chierality}} (Mat \&R1, Mat \&R2, Mat \&t1, Mat \&t2, Mat \&R, Mat \&t, vector$<$ Point2f $>$ points1, vector$<$ Point2f $>$ points2)
+\begin{DoxyCompactList}\small\item\em It performs the chierality test\+: given a couple of rotation matrices, translation vectors and matches it finds the correct rotation and translation s.\+t. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_ac0cb76a6994bd7ab915cb02d83cf8f8e}{get\+Im\+Left}} () const
+\begin{DoxyCompactList}\small\item\em It returns the left (first) image. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_ac7930aa4fa0681246e74c08cf4b1079b}{get\+Im\+Right}} () const
+\begin{DoxyCompactList}\small\item\em It returns the right (second) image. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a52ba4f0331f3690ca0f983b10bd0c783}{get\+Im\+Left\+Und}} () const
+\begin{DoxyCompactList}\small\item\em It returns the left undistorted image. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a19009c20003a5c7e957a4b3c34913fe9}{get\+Im\+Right\+Und}} () const
+\begin{DoxyCompactList}\small\item\em It returns the right undistorted image. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a74adec3c305b13df4757e105cd72a7db}{get\+Disparity}} () const
+\begin{DoxyCompactList}\small\item\em It returns the disparity image. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a4a6e408446750224499ed9ecdc51629e}{get\+Disparity16}} () const
+\begin{DoxyCompactList}\small\item\em It returns the disparity image. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a9f10e66261a0211e5d786abc3df8a70b}{getQ}} () const
+\begin{DoxyCompactList}\small\item\em It returns the 4x4 disparity-\/to-\/depth mapping matrix. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a932e0ebd63c3e9a93b33c1846459aadc}{get\+Kleft}} () const
+\begin{DoxyCompactList}\small\item\em It returns the 3x3 left camera matrix. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a6f9e53e949b77cd19e28a4ec92034a3d}{get\+Kright}} () const
+\begin{DoxyCompactList}\small\item\em It returns the 3x3 right camera matrix. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_ab02e0869a054fe23d2b56def81a1a947}{get\+Fundamental}} () const
+\begin{DoxyCompactList}\small\item\em It returns the 3x3 fundamental matrix. \end{DoxyCompactList}\item 
+const vector$<$ Point2f $>$ \& \mbox{\hyperlink{classStereoCamera_aa50cb648f92d099e1ffbb7bab57c3fc3}{get\+Match\+Left}} () const
+\begin{DoxyCompactList}\small\item\em It returns the pixel coordinates of the matches in the left image. \end{DoxyCompactList}\item 
+const vector$<$ Point2f $>$ \& \mbox{\hyperlink{classStereoCamera_ac8b01bc577cc3de8e7e8bc246d5c50f0}{get\+Match\+Right}} () const
+\begin{DoxyCompactList}\small\item\em It returns the pixel coordinates of the matches in the right image. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a3ca6d46fc45835bff5fa0a5753ca40c0}{get\+Translation}} () const
+\begin{DoxyCompactList}\small\item\em It returns the translation vector between the two cameras. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a08b520f9976fc3213047844fedc02a54}{get\+Rotation}} () const
+\begin{DoxyCompactList}\small\item\em It returns the rotation matrix between the two cameras. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_ae1c7ef2cc1a3de5d10c6bb39fbb78719}{get\+MapperL}} () const
+\begin{DoxyCompactList}\small\item\em It returns the mapping between the original left camera and the rectified left camera. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_ac3f7763fdb6ed57f96924bb0b32b4ea7}{get\+MapperR}} () const
+\begin{DoxyCompactList}\small\item\em It returns the mapping between the original right camera and the rectified right camera. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_ab3adb747963c617fd2fe1a919b0c59c7}{get\+RLrect}} () const
+\begin{DoxyCompactList}\small\item\em It returns the rotation matrix between the original left camera and the rectified left camera. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a44e111911af89a299b134fd91b4bc7d6}{get\+RRrect}} () const
+\begin{DoxyCompactList}\small\item\em It returns the rotation matrix between the original right camera and the rectified right camera. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a1329b3894d527e1505618f57a1304624}{set\+Rotation}} (Mat \&Rot, int mode=0)
+\begin{DoxyCompactList}\small\item\em It sets the rotation matrix (if known) between the first and the second camera. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a7b10f1218e8e70f47b22080ba1820d39}{set\+Translation}} (Mat \&Tras, int mul=0)
+\begin{DoxyCompactList}\small\item\em It sets the translation vector (if known) between the first and the second camera. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a54754623497c8dddb61f520e17f465f8}{set\+Intrinsics}} (Mat \&K1, Mat \&K2, Mat \&Dist1, Mat \&Dist2)
+\begin{DoxyCompactList}\small\item\em It sets the intrinsic parameters. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_ae5ac866c6d4b6c4819b01a918e7b61e0}{rectify\+Images}} ()
+\begin{DoxyCompactList}\small\item\em The method rectifies the two images\+: it transform each image plane such that pairs conjugate epipolar lines become collinear and parallel to one of the image axes (i.\+e. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_ad81c9f7f4f15ef3f1e61d34fd8df9856}{get\+LRectified}} () const
+\begin{DoxyCompactList}\small\item\em The method returns the first rectified image. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_aff19b07a766c01d04ed623a05ef4d67d}{get\+RRectified}} () const
+\begin{DoxyCompactList}\small\item\em The method returns the second rectified image. \end{DoxyCompactList}\item 
+vector$<$ Point2f $>$ \mbox{\hyperlink{classStereoCamera_a03406c9d31c1b765a8d6ef9641222309}{project\+Points3D}} (string camera, vector$<$ Point3f $>$ \&points3D, Mat \&H)
+\begin{DoxyCompactList}\small\item\em The method returns the 2D projection of a set of 3D points in the cartesian space to the specified camera. \end{DoxyCompactList}\item 
+Mat \mbox{\hyperlink{classStereoCamera_a52ef2f3401488e5c4fa6badd1336f96d}{compute\+World\+Image}} (Mat \&H)
+\begin{DoxyCompactList}\small\item\em The method returns a 3-\/Channels float image with the world coordinates w.\+r.\+t H reference system. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_a589ca8eb4ebfc4377589a77bb15b85b7}{get\+Dist\+Coeff\+Right}} () const
+\begin{DoxyCompactList}\small\item\em It returns the 5x1 right distortion coefficients. \end{DoxyCompactList}\item 
+const Mat \& \mbox{\hyperlink{classStereoCamera_af9e52f941837f0db26d150d0ca4ff3bc}{get\+Dist\+Coeff\+Left}} () const
+\begin{DoxyCompactList}\small\item\em It returns the 5x1 left distortion coefficients. \end{DoxyCompactList}\item 
+Point2f \mbox{\hyperlink{classStereoCamera_af64550bb8a7a665930dee5eea87b7e47}{get\+Distorted\+Pixel}} (int u, int v, int cam=1)
+\begin{DoxyCompactList}\small\item\em Given the u,v pixel coordinates in the undistorted image the method returns the original position of the pixel in the distorted frame. \end{DoxyCompactList}\item 
+Mat \mbox{\hyperlink{classStereoCamera_a6580ff03c7cec5c385ec717f9c018e21}{draw\+Matches}} ()
+\begin{DoxyCompactList}\small\item\em The method returns a 3-\/Channels 8bit image with the image matches. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_ae683fafa11ea73e4b4c278402be259b6}{set\+Matches}} (std\+::vector$<$ cv\+::\+Point2f $>$ \&pointsL, std\+::vector$<$ cv\+::\+Point2f $>$ \&pointsR)
+\begin{DoxyCompactList}\small\item\em The function initialize the matches of the current image pair. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a9ecb303d7b36eaf5f086d8ddebd29b95}{set\+Expected\+Position}} (Mat \&Rot, Mat \&Tran)
+\begin{DoxyCompactList}\small\item\em The function set the expected Rotation and Translation parameters for the current image pair. \end{DoxyCompactList}\item 
+Mat \mbox{\hyperlink{classStereoCamera_a3fe4e87322f8644cd21ce06e8522c815}{FfromP}} (Mat \&P1, Mat \&P2)
+\begin{DoxyCompactList}\small\item\em The function computes the fundamental matrix starting from known camera matrices. \end{DoxyCompactList}\item 
+Point2f \mbox{\hyperlink{classStereoCamera_a3d8fde0cbd4604085b883f22cc606c01}{from\+Rectified\+To\+Original}} (int u, int v, int camera)
+\begin{DoxyCompactList}\small\item\em Given the u,v pixel coordinates in the rectified image the method returns the position of the pixel in the non-\/rectified frame. \end{DoxyCompactList}\item 
+cv\+::\+Mat \mbox{\hyperlink{classStereoCamera_ac92ce0b90b69773284be5825b0199bda}{remap\+Disparity}} (cv\+::\+Mat disp)
+\begin{DoxyCompactList}\small\item\em Remaps the disparity map on the basis of the mapping previously computed. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classStereoCamera_a5b15c07def1c09f53bfc6141f303fa09}{update\+Mappings}} ()
+\begin{DoxyCompactList}\small\item\em XXXXXXXXXXXXXXXXXXXX. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\label{classStereoCamera_ab7a8b46716078f726d757c96e1f34cc6}} 
+Mat {\bfseries filtered\+\_\+disp}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The base class defining stereo camera. 
+
+It allows to calibrate the cameras, to undistort a pair of images, to find matches between two images, to triangulate points and to estimate motion between two images. The basic assumption is that the two images come from a stereo camera, however this class works also with two arbitrary images. 
+
+Definition at line 91 of file stereo\+Camera.\+h.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\label{classStereoCamera_a11256fe5a509436abc714a594b6cc801}} 
+\index{StereoCamera@{StereoCamera}!StereoCamera@{StereoCamera}}
+\index{StereoCamera@{StereoCamera}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{StereoCamera()}{StereoCamera()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily Stereo\+Camera\+::\+Stereo\+Camera (\begin{DoxyParamCaption}\item[{bool}]{rectify = {\ttfamily true} }\end{DoxyParamCaption})}
+
+
+
+Default Constructor. 
+
+You should initialize all the intrinsic and extrinsic parameters using the provided methods. 
+
+Definition at line 116 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{116                                        \{}
+\DoxyCodeLine{117     this-\/>rectify=rectify;}
+\DoxyCodeLine{118     this-\/>epipolarTh=0.01;}
+\DoxyCodeLine{119     this-\/>cameraChanged = \textcolor{keyword}{true};}
+\DoxyCodeLine{120 }
+\DoxyCodeLine{121 \textcolor{preprocessor}{\#if !defined(USING\_GPU) \&\& !defined(OPENCV\_GREATER\_2)}}
+\DoxyCodeLine{122     cv::initModule\_nonfree();}
+\DoxyCodeLine{123 \textcolor{preprocessor}{\#endif }}
+\DoxyCodeLine{124 }
+\DoxyCodeLine{125 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a0c2cd4c7b5a0cdb96370c29a42601f40}} 
+\index{StereoCamera@{StereoCamera}!StereoCamera@{StereoCamera}}
+\index{StereoCamera@{StereoCamera}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{StereoCamera()}{StereoCamera()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily Stereo\+Camera\+::\+Stereo\+Camera (\begin{DoxyParamCaption}\item[{yarp\+::os\+::\+Resource\+Finder \&}]{rf,  }\item[{bool}]{rectify = {\ttfamily true} }\end{DoxyParamCaption})}
+
+
+
+Costructor for initialization from file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em rf} & is the config file generated by the stereo\+Calib module. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 128 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{128                                                                  \{}
+\DoxyCodeLine{129     Mat KL, KR, DistL, DistR, R, T;}
+\DoxyCodeLine{130     loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);}
+\DoxyCodeLine{131     this-\/>setIntrinsics(KL,KR,DistL,DistR);}
+\DoxyCodeLine{132     this-\/>setRotation(R,0);}
+\DoxyCodeLine{133     this-\/>setTranslation(T,0);}
+\DoxyCodeLine{134 }
+\DoxyCodeLine{135     this-\/>cameraChanged=\textcolor{keyword}{true};}
+\DoxyCodeLine{136     this-\/>epipolarTh=0.01;}
+\DoxyCodeLine{137     this-\/>rectify=rectify;}
+\DoxyCodeLine{138     buildUndistortRemap();}
+\DoxyCodeLine{139 }
+\DoxyCodeLine{140 \textcolor{preprocessor}{\#if !defined(USING\_GPU) \&\& !defined(OPENCV\_GREATER\_2)}}
+\DoxyCodeLine{141     cv::initModule\_nonfree();}
+\DoxyCodeLine{142 \textcolor{preprocessor}{\#endif }}
+\DoxyCodeLine{143 }
+\DoxyCodeLine{144 \}}
+
+\end{DoxyCode}
+
+
+References set\+Intrinsics(), set\+Rotation(), and set\+Translation().
+
+\mbox{\label{classStereoCamera_a5bfcf3ef7c9d45802bacbf040e7ca112}} 
+\index{StereoCamera@{StereoCamera}!StereoCamera@{StereoCamera}}
+\index{StereoCamera@{StereoCamera}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{StereoCamera()}{StereoCamera()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily Stereo\+Camera\+::\+Stereo\+Camera (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classCamera}{Camera}}}]{First,  }\item[{\mbox{\hyperlink{classCamera}{Camera}}}]{Second,  }\item[{bool}]{rectify = {\ttfamily true} }\end{DoxyParamCaption})}
+
+
+
+Constructor for initialization using two calibrated cameras. 
+
+\begin{DoxyNote}{Note}
+Only intrinsic parameters are initialized. 
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em First} & the first camera (Left eye is assumed but you can use any arbitrary camera). The 3D point coordinates have this reference system. \\
+\hline
+{\em Second} & the second camera (Right eye is assumed). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 147 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{147                                                                  \{}
+\DoxyCodeLine{148     this-\/>Kleft=Left.getCameraMatrix();}
+\DoxyCodeLine{149     this-\/>DistL=Left.getDistVector();}
+\DoxyCodeLine{150 }
+\DoxyCodeLine{151     this-\/>Kright=Right.getCameraMatrix();}
+\DoxyCodeLine{152     this-\/>DistR=Right.getDistVector();}
+\DoxyCodeLine{153     this-\/>cameraChanged=\textcolor{keyword}{true};}
+\DoxyCodeLine{154     this-\/>rectify=rectify;}
+\DoxyCodeLine{155     this-\/>epipolarTh=0.01;}
+\DoxyCodeLine{156     buildUndistortRemap();}
+\DoxyCodeLine{157 }
+\DoxyCodeLine{158 \textcolor{preprocessor}{\#if !defined(USING\_GPU) \&\& !defined(OPENCV\_GREATER\_2)}}
+\DoxyCodeLine{159     cv::initModule\_nonfree();}
+\DoxyCodeLine{160 \textcolor{preprocessor}{\#endif }}
+\DoxyCodeLine{161 }
+\DoxyCodeLine{162 \}}
+
+\end{DoxyCode}
+
+
+References Camera\+::get\+Camera\+Matrix(), and Camera\+::get\+Dist\+Vector().
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\label{classStereoCamera_aefb25fc2ecd8d0ce484e5981769dd635}} 
+\index{StereoCamera@{StereoCamera}!chierality@{chierality}}
+\index{chierality@{chierality}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{chierality()}{chierality()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::chierality (\begin{DoxyParamCaption}\item[{Mat \&}]{R1,  }\item[{Mat \&}]{R2,  }\item[{Mat \&}]{t1,  }\item[{Mat \&}]{t2,  }\item[{Mat \&}]{R,  }\item[{Mat \&}]{t,  }\item[{vector$<$ Point2f $>$}]{points1,  }\item[{vector$<$ Point2f $>$}]{points2 }\end{DoxyParamCaption})}
+
+
+
+It performs the chierality test\+: given a couple of rotation matrices, translation vectors and matches it finds the correct rotation and translation s.\+t. 
+
+the triangulated points have their depth coordinates greater than 0. The method is used by essential\+Decomposition, indeed an essential matrix generates 2 rotations and 2 translation. The chierality test is needed in order to discard wrong rototranslations. 
+\begin{DoxyParams}{Parameters}
+{\em R1} & first rotation 3x3 matrix \\
+\hline
+{\em R2} & second rotation 3x3 matrix \\
+\hline
+{\em t1} & first translation 3x1 matrix \\
+\hline
+{\em t2} & second translation 3x1 matrix \\
+\hline
+{\em R} & output rotation matrix \\
+\hline
+{\em t} & output translation matrix \\
+\hline
+{\em points1} & corrispondences in the first image \\
+\hline
+{\em points2} & corrispondences in the second image \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1171 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1171                                                                                                                                       \{}
+\DoxyCodeLine{1172 }
+\DoxyCodeLine{1173     Mat A= Mat::eye(3,4,CV\_64FC1);}
+\DoxyCodeLine{1174     Mat P1 = this-\/>Kleft*Mat::eye(3, 4, CV\_64F);}
+\DoxyCodeLine{1175 }
+\DoxyCodeLine{1176     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < R1.rows; i++)}
+\DoxyCodeLine{1177     \{}
+\DoxyCodeLine{1178         \textcolor{keywordtype}{double}* Mi = A.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1179         \textcolor{keywordtype}{double}* MRi = R1.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1180         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j = 0; j < R1.cols; j++)}
+\DoxyCodeLine{1181             Mi[j]=MRi[j];}
+\DoxyCodeLine{1182     \}}
+\DoxyCodeLine{1183 }
+\DoxyCodeLine{1184     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < t1.rows; i++)}
+\DoxyCodeLine{1185     \{}
+\DoxyCodeLine{1186         \textcolor{keywordtype}{double}* Mi = A.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1187         \textcolor{keywordtype}{double}* MRi = t1.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1188         Mi[3]=MRi[0];}
+\DoxyCodeLine{1189     \}}
+\DoxyCodeLine{1190 }
+\DoxyCodeLine{1191     Mat P2=this-\/>Kright*A;}
+\DoxyCodeLine{1192     A= Mat::eye(3,4,CV\_64FC1);}
+\DoxyCodeLine{1193 }
+\DoxyCodeLine{1194     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < R2.rows; i++)}
+\DoxyCodeLine{1195     \{}
+\DoxyCodeLine{1196         \textcolor{keywordtype}{double}* Mi = A.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1197         \textcolor{keywordtype}{double}* MRi = R2.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1198         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j = 0; j < R2.cols; j++)}
+\DoxyCodeLine{1199             Mi[j]=MRi[j];}
+\DoxyCodeLine{1200     \}}
+\DoxyCodeLine{1201     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < t2.rows; i++)}
+\DoxyCodeLine{1202     \{}
+\DoxyCodeLine{1203         \textcolor{keywordtype}{double}* Mi = A.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1204         \textcolor{keywordtype}{double}* MRi = t2.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1205         Mi[3]=MRi[0];}
+\DoxyCodeLine{1206     \}}
+\DoxyCodeLine{1207     Mat P3=this-\/>Kright*A;}
+\DoxyCodeLine{1208     A= Mat::eye(3,4,CV\_64FC1);}
+\DoxyCodeLine{1209 }
+\DoxyCodeLine{1210     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < R1.rows; i++)}
+\DoxyCodeLine{1211     \{}
+\DoxyCodeLine{1212         \textcolor{keywordtype}{double}* Mi = A.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1213         \textcolor{keywordtype}{double}* MRi = R1.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1214         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j = 0; j < R1.cols; j++)}
+\DoxyCodeLine{1215             Mi[j]=MRi[j];}
+\DoxyCodeLine{1216     \}}
+\DoxyCodeLine{1217     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < t1.rows; i++)}
+\DoxyCodeLine{1218     \{}
+\DoxyCodeLine{1219         \textcolor{keywordtype}{double}* Mi = A.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1220         \textcolor{keywordtype}{double}* MRi = t2.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1221         Mi[3]=MRi[0];}
+\DoxyCodeLine{1222     \}}
+\DoxyCodeLine{1223     Mat P4=this-\/>Kright*A;}
+\DoxyCodeLine{1224     A= Mat::eye(3,4,CV\_64FC1);}
+\DoxyCodeLine{1225 }
+\DoxyCodeLine{1226 }
+\DoxyCodeLine{1227     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < R2.rows; i++)}
+\DoxyCodeLine{1228     \{}
+\DoxyCodeLine{1229         \textcolor{keywordtype}{double}* Mi = A.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1230         \textcolor{keywordtype}{double}* MRi = R2.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1231         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j = 0; j < R2.cols; j++)}
+\DoxyCodeLine{1232             Mi[j]=MRi[j];}
+\DoxyCodeLine{1233     \}}
+\DoxyCodeLine{1234     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < t2.rows; i++)}
+\DoxyCodeLine{1235     \{}
+\DoxyCodeLine{1236         \textcolor{keywordtype}{double}* Mi = A.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1237         \textcolor{keywordtype}{double}* MRi = t1.ptr<\textcolor{keywordtype}{double}>(i);}
+\DoxyCodeLine{1238         Mi[3]=MRi[0];}
+\DoxyCodeLine{1239     \}}
+\DoxyCodeLine{1240     Mat P5=this-\/>Kright*A;}
+\DoxyCodeLine{1241 }
+\DoxyCodeLine{1242     \textcolor{keywordtype}{int} err1=0; \textcolor{comment}{//R1 t1}}
+\DoxyCodeLine{1243     \textcolor{keywordtype}{int} err2=0; \textcolor{comment}{//R2 t2}}
+\DoxyCodeLine{1244     \textcolor{keywordtype}{int} err3=0; \textcolor{comment}{//R1 t2}}
+\DoxyCodeLine{1245     \textcolor{keywordtype}{int} err4=0; \textcolor{comment}{//R2 t1}}
+\DoxyCodeLine{1246     Mat point(4,1,CV\_64FC1);}
+\DoxyCodeLine{1247 }
+\DoxyCodeLine{1248     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=0; i<(int) InliersL.size(); i++)}
+\DoxyCodeLine{1249     \{}
+\DoxyCodeLine{1250         Point3f point3D=triangulation(points1[i],points2[i],P1,P2);}
+\DoxyCodeLine{1251         Mat H1=buildRotTras(R1,t1);}
+\DoxyCodeLine{1252         point.at<\textcolor{keywordtype}{double}>(0,0)=point3D.x;}
+\DoxyCodeLine{1253         point.at<\textcolor{keywordtype}{double}>(1,0)=point3D.y;}
+\DoxyCodeLine{1254         point.at<\textcolor{keywordtype}{double}>(2,0)=point3D.z;}
+\DoxyCodeLine{1255         point.at<\textcolor{keywordtype}{double}>(0,0)=1.0;}
+\DoxyCodeLine{1256         Mat rotatedPoint=H1*point;}
+\DoxyCodeLine{1257         \textcolor{comment}{//fprintf(stdout, "{}Camera P2 Point3D: \%f \%f \%f Rotated Point: \%f \%f \%f \(\backslash\)n"{}, point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));}}
+\DoxyCodeLine{1258 }
+\DoxyCodeLine{1259         \textcolor{keywordflow}{if}(point3D.z<0 || rotatedPoint.at<\textcolor{keywordtype}{double}>(2,0)<0) \{}
+\DoxyCodeLine{1260             err1++;}
+\DoxyCodeLine{1261         \}}
+\DoxyCodeLine{1262         point3D=triangulation(points1[i],points2[i],P1,P3);}
+\DoxyCodeLine{1263         Mat H2=buildRotTras(R2,t2);}
+\DoxyCodeLine{1264         point.at<\textcolor{keywordtype}{double}>(0,0)=point3D.x;}
+\DoxyCodeLine{1265         point.at<\textcolor{keywordtype}{double}>(1,0)=point3D.y;}
+\DoxyCodeLine{1266         point.at<\textcolor{keywordtype}{double}>(2,0)=point3D.z;}
+\DoxyCodeLine{1267         point.at<\textcolor{keywordtype}{double}>(0,0)=1.0;}
+\DoxyCodeLine{1268         rotatedPoint=H2*point;}
+\DoxyCodeLine{1269         \textcolor{comment}{//fprintf(stdout, "{}Camera P3 Point3D: \%f \%f \%f Rotated Point: \%f \%f \%f \(\backslash\)n"{}, point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));}}
+\DoxyCodeLine{1270 }
+\DoxyCodeLine{1271         \textcolor{keywordflow}{if}(point3D.z<0 || rotatedPoint.at<\textcolor{keywordtype}{double}>(2,0)<0) \{}
+\DoxyCodeLine{1272             err2++;}
+\DoxyCodeLine{1273         \}}
+\DoxyCodeLine{1274 }
+\DoxyCodeLine{1275         point3D=triangulation(points1[i],points2[i],P1,P4);}
+\DoxyCodeLine{1276         Mat H3=buildRotTras(R1,t2);}
+\DoxyCodeLine{1277         point.at<\textcolor{keywordtype}{double}>(0,0)=point3D.x;}
+\DoxyCodeLine{1278         point.at<\textcolor{keywordtype}{double}>(1,0)=point3D.y;}
+\DoxyCodeLine{1279         point.at<\textcolor{keywordtype}{double}>(2,0)=point3D.z;}
+\DoxyCodeLine{1280         point.at<\textcolor{keywordtype}{double}>(0,0)=1.0;}
+\DoxyCodeLine{1281         rotatedPoint=H3*point;}
+\DoxyCodeLine{1282         \textcolor{comment}{//fprintf(stdout, "{}Camera P4 Point3D: \%f \%f \%f Rotated Point: \%f \%f \%f \(\backslash\)n"{}, point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));}}
+\DoxyCodeLine{1283 }
+\DoxyCodeLine{1284         \textcolor{keywordflow}{if}(point3D.z<0 || rotatedPoint.at<\textcolor{keywordtype}{double}>(2,0)<0) \{}
+\DoxyCodeLine{1285             err3++;}
+\DoxyCodeLine{1286         \}}
+\DoxyCodeLine{1287 }
+\DoxyCodeLine{1288         point3D=triangulation(points1[i],points2[i],P1,P5);}
+\DoxyCodeLine{1289         Mat H4=buildRotTras(R2,t1);}
+\DoxyCodeLine{1290         point.at<\textcolor{keywordtype}{double}>(0,0)=point3D.x;}
+\DoxyCodeLine{1291         point.at<\textcolor{keywordtype}{double}>(1,0)=point3D.y;}
+\DoxyCodeLine{1292         point.at<\textcolor{keywordtype}{double}>(2,0)=point3D.z;}
+\DoxyCodeLine{1293         point.at<\textcolor{keywordtype}{double}>(0,0)=1.0;}
+\DoxyCodeLine{1294         rotatedPoint=H4*point;}
+\DoxyCodeLine{1295         \textcolor{comment}{//fprintf(stdout, "{}Camera P5 Point3D: \%f \%f \%f Rotated Point: \%f \%f \%f \(\backslash\)n"{}, point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));}}
+\DoxyCodeLine{1296 }
+\DoxyCodeLine{1297         \textcolor{keywordflow}{if}(point3D.z<0 || rotatedPoint.at<\textcolor{keywordtype}{double}>(2,0)<0) \{}
+\DoxyCodeLine{1298             err4++;}
+\DoxyCodeLine{1299         \}}
+\DoxyCodeLine{1300 }
+\DoxyCodeLine{1301     \}}
+\DoxyCodeLine{1302 }
+\DoxyCodeLine{1303     \textcolor{comment}{/*printMatrix(R1);}}
+\DoxyCodeLine{1304 \textcolor{comment}{    printMatrix(t1);}}
+\DoxyCodeLine{1305 \textcolor{comment}{    printMatrix(R2);}}
+\DoxyCodeLine{1306 \textcolor{comment}{    printMatrix(t2);*/}}
+\DoxyCodeLine{1307     \textcolor{comment}{//fprintf(stdout, "{}Inliers: \%d, \%d, \(\backslash\)n"{},points1.size(),points2.size());}}
+\DoxyCodeLine{1308     \textcolor{comment}{//fprintf(stdout, "{}errors: \%d, \%d, \%d, \%d, \(\backslash\)n"{},err1,err2,err3,err4);}}
+\DoxyCodeLine{1309 }
+\DoxyCodeLine{1310     \textcolor{keywordtype}{double} minErr=10000;}
+\DoxyCodeLine{1311     \textcolor{keywordtype}{double} secondErr=minErr;}
+\DoxyCodeLine{1312 }
+\DoxyCodeLine{1313     \textcolor{keywordtype}{int} idx=0;}
+\DoxyCodeLine{1314     \textcolor{keywordflow}{if}(err1<minErr \&\& t1.ptr<\textcolor{keywordtype}{double}>(0)[0]<0)}
+\DoxyCodeLine{1315     \{}
+\DoxyCodeLine{1316         idx=1;}
+\DoxyCodeLine{1317         secondErr=minErr;}
+\DoxyCodeLine{1318         minErr=err1;}
+\DoxyCodeLine{1319     \}}
+\DoxyCodeLine{1320 }
+\DoxyCodeLine{1321     \textcolor{keywordflow}{if}(err2<minErr \&\& t2.ptr<\textcolor{keywordtype}{double}>(0)[0]<0)}
+\DoxyCodeLine{1322     \{}
+\DoxyCodeLine{1323         idx=2;}
+\DoxyCodeLine{1324         secondErr=minErr;}
+\DoxyCodeLine{1325         minErr=err2;}
+\DoxyCodeLine{1326     \}}
+\DoxyCodeLine{1327     \textcolor{keywordflow}{if}(err3<minErr \&\& t2.ptr<\textcolor{keywordtype}{double}>(0)[0]<0)}
+\DoxyCodeLine{1328     \{}
+\DoxyCodeLine{1329         idx=3;}
+\DoxyCodeLine{1330         secondErr=minErr;}
+\DoxyCodeLine{1331         minErr=err3;}
+\DoxyCodeLine{1332     \}}
+\DoxyCodeLine{1333     \textcolor{keywordflow}{if}(err4<minErr \&\& t1.ptr<\textcolor{keywordtype}{double}>(0)[0]<0)}
+\DoxyCodeLine{1334     \{}
+\DoxyCodeLine{1335         idx=4;}
+\DoxyCodeLine{1336         secondErr=minErr;}
+\DoxyCodeLine{1337         minErr=err4;}
+\DoxyCodeLine{1338     \}}
+\DoxyCodeLine{1339 }
+\DoxyCodeLine{1340     \textcolor{comment}{/*if(secondErr==minErr)}}
+\DoxyCodeLine{1341 \textcolor{comment}{      \{}}
+\DoxyCodeLine{1342 \textcolor{comment}{        R=this-\/>R;}}
+\DoxyCodeLine{1343 \textcolor{comment}{        t=this-\/>T;}}
+\DoxyCodeLine{1344 \textcolor{comment}{        return;      }}
+\DoxyCodeLine{1345 \textcolor{comment}{      \}*/}}
+\DoxyCodeLine{1346     \textcolor{keywordflow}{if}(idx==1) \{}
+\DoxyCodeLine{1347         R=R1;}
+\DoxyCodeLine{1348         t=t1;}
+\DoxyCodeLine{1349         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1350     \}}
+\DoxyCodeLine{1351     \textcolor{keywordflow}{if}(idx==2) \{}
+\DoxyCodeLine{1352         R=R2;}
+\DoxyCodeLine{1353         t=t2;}
+\DoxyCodeLine{1354         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1355     \}}
+\DoxyCodeLine{1356     \textcolor{keywordflow}{if}(idx==3) \{}
+\DoxyCodeLine{1357         R=R1;}
+\DoxyCodeLine{1358         t=t2;}
+\DoxyCodeLine{1359         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1360     \}}
+\DoxyCodeLine{1361     \textcolor{keywordflow}{if}(idx==4) \{}
+\DoxyCodeLine{1362         R=R2;}
+\DoxyCodeLine{1363         t=t1;}
+\DoxyCodeLine{1364         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1365     \}}
+\DoxyCodeLine{1366 }
+\DoxyCodeLine{1367 \}}
+
+\end{DoxyCode}
+
+
+References triangulation().
+
+
+
+Referenced by essential\+Decomposition().
+
+\mbox{\label{classStereoCamera_a79e986f2970bb2c5b5acd1ede65984aa}} 
+\index{StereoCamera@{StereoCamera}!computeDisparity@{computeDisparity}}
+\index{computeDisparity@{computeDisparity}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{computeDisparity()}{computeDisparity()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::compute\+Disparity (\begin{DoxyParamCaption}\item[{bool}]{best = {\ttfamily true},  }\item[{int}]{uniqueness\+Ratio = {\ttfamily 15},  }\item[{int}]{speckle\+Window\+Size = {\ttfamily 50},  }\item[{int}]{speckle\+Range = {\ttfamily 16},  }\item[{int}]{number\+Of\+Disparities = {\ttfamily 64},  }\item[{int}]{SADWindow\+Size = {\ttfamily 7},  }\item[{int}]{min\+Disparity = {\ttfamily 0},  }\item[{int}]{pre\+Filter\+Cap = {\ttfamily 63},  }\item[{int}]{disp12\+Max\+Diff = {\ttfamily 0} }\end{DoxyParamCaption})}
+
+
+
+It computes the Disparity Map (see stereo\+Disparity). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em best} & set equal true for better accuracy, equal false for save computation. \\
+\hline
+{\em uniqueness\+Ratio} & The margin in percents by which the best (minimum) computed cost function value should win the second best value to consider the found match correct. Normally, some value within 5-\/15 range is good enough. \\
+\hline
+{\em speckle\+Window\+Size} & Maximum size of smooth disparity regions to consider them noise speckles and invdalidate. Set it to 0 to disable speckle filtering. Otherwise, set it somewhere in 50-\/200 range. \\
+\hline
+{\em speckle\+Range} & Maximum disparity variation within each connected component. If you do speckle filtering, set it to some positive value, multiple of 16. Normally, 16 or 32 is good enough. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyNote}{Note}
+Run the calibration or set all the parameters before using this method. 
+\end{DoxyNote}
+
+
+Definition at line 581 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{584 \{}
+\DoxyCodeLine{585 }
+\DoxyCodeLine{586     \textcolor{keywordflow}{if} (this-\/>Kleft.empty() || this-\/>DistL.empty() || this-\/>Kright.empty() || this-\/>DistR.empty())}
+\DoxyCodeLine{587     \{}
+\DoxyCodeLine{588         cout <<\textcolor{stringliteral}{"{} Cameras are not calibrated! Run the Calibration first!"{}} << endl;}
+\DoxyCodeLine{589         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{590     \}}
+\DoxyCodeLine{591 }
+\DoxyCodeLine{592     \textcolor{keywordflow}{if} (this-\/>imleft.empty() || this-\/>imright.empty())}
+\DoxyCodeLine{593     \{}
+\DoxyCodeLine{594         cout << \textcolor{stringliteral}{"{}Images are not set! set the images first!"{}} << endl;}
+\DoxyCodeLine{595         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{596     \}}
+\DoxyCodeLine{597 }
+\DoxyCodeLine{598     Size img\_size=this-\/>imleft.size();}
+\DoxyCodeLine{599 }
+\DoxyCodeLine{600     \textcolor{keywordflow}{if} (cameraChanged)}
+\DoxyCodeLine{601     \{}
+\DoxyCodeLine{602         lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{603         stereoRectify(this-\/>Kleft, this-\/>DistL, this-\/>Kright, this-\/>DistR, img\_size,}
+\DoxyCodeLine{604                 this-\/>R, this-\/>T, this-\/>RLrect, this-\/>RRrect, this-\/>PLrect,}
+\DoxyCodeLine{605                 this-\/>PRrect, this-\/>Q, -\/1);}
+\DoxyCodeLine{606 }
+\DoxyCodeLine{607         \textcolor{keywordflow}{if} (!rectify)}
+\DoxyCodeLine{608         \{}
+\DoxyCodeLine{609             this-\/>RLrect=Mat::eye(3,3,CV\_32FC1);}
+\DoxyCodeLine{610             this-\/>RRrect=Mat::eye(3,3,CV\_32FC1);}
+\DoxyCodeLine{611             this-\/>PLrect=this-\/>Kleft;}
+\DoxyCodeLine{612             this-\/>PRrect=this-\/>Kright;}
+\DoxyCodeLine{613         \}}
+\DoxyCodeLine{614     \}}
+\DoxyCodeLine{615 }
+\DoxyCodeLine{616     \textcolor{keywordflow}{if} (cameraChanged)}
+\DoxyCodeLine{617     \{}
+\DoxyCodeLine{618         initUndistortRectifyMap(this-\/>Kleft, this-\/>DistL, this-\/>RLrect, this-\/>PLrect,}
+\DoxyCodeLine{619                 img\_size, CV\_32FC1, this-\/>map11, this-\/>map12);}
+\DoxyCodeLine{620         initUndistortRectifyMap(this-\/>Kright,  this-\/>DistR, this-\/>RRrect, this-\/>PRrect,}
+\DoxyCodeLine{621                 img\_size, CV\_32FC1, this-\/>map21, this-\/>map22);}
+\DoxyCodeLine{622     \}}
+\DoxyCodeLine{623 }
+\DoxyCodeLine{624     Mat img1r, img2r;}
+\DoxyCodeLine{625     remap(this-\/>imleft, img1r, this-\/>map11, this-\/>map12, cv::INTER\_LINEAR);}
+\DoxyCodeLine{626     remap(this-\/>imright, img2r, this-\/>map21,this-\/>map22, cv::INTER\_LINEAR);}
+\DoxyCodeLine{627 }
+\DoxyCodeLine{628     imgLeftRect = img1r;}
+\DoxyCodeLine{629     imgRightRect = img2r;}
+\DoxyCodeLine{630 }
+\DoxyCodeLine{631     Mat disp,disp8,map,dispTemp;}
+\DoxyCodeLine{632 }
+\DoxyCodeLine{633     \textcolor{keywordtype}{bool} success;}
+\DoxyCodeLine{634 }
+\DoxyCodeLine{635     \textcolor{keywordflow}{if} (use\_elas)}
+\DoxyCodeLine{636     \{}
+\DoxyCodeLine{637         success = elaswrap-\/>compute\_disparity(img1r, img2r, disp, numberOfDisparities);}
+\DoxyCodeLine{638         \textcolor{keywordflow}{if} (success)}
+\DoxyCodeLine{639         \{}
+\DoxyCodeLine{640             map = disp * (255.0 / numberOfDisparities);}
+\DoxyCodeLine{641             \textcolor{comment}{//threshold(map, map, 0, 255.0, THRESH\_TOZERO);}}
+\DoxyCodeLine{642         \}}
+\DoxyCodeLine{643     \} \textcolor{keywordflow}{else}}
+\DoxyCodeLine{644     \{}
+\DoxyCodeLine{645         \textcolor{keywordtype}{int} cn=this-\/>imleft.channels();}
+\DoxyCodeLine{646 \textcolor{preprocessor}{    \#ifdef OPENCV\_GREATER\_2}}
+\DoxyCodeLine{647         Ptr<StereoSGBM> sgbm=cv::StereoSGBM::create(minDisparity,numberOfDisparities,SADWindowSize,}
+\DoxyCodeLine{648                                                     8*cn*SADWindowSize*SADWindowSize,}
+\DoxyCodeLine{649                                                     32*cn*SADWindowSize*SADWindowSize,}
+\DoxyCodeLine{650                                                     disp12MaxDiff,preFilterCap,uniquenessRatio,}
+\DoxyCodeLine{651                                                     speckleWindowSize,speckleRange,}
+\DoxyCodeLine{652                                                     best?StereoSGBM::MODE\_HH:StereoSGBM::MODE\_SGBM);}
+\DoxyCodeLine{653         sgbm-\/>compute(img1r, img2r, disp);}
+\DoxyCodeLine{654 \textcolor{preprocessor}{    \#else}}
+\DoxyCodeLine{655         StereoSGBM sgbm;}
+\DoxyCodeLine{656         sgbm.preFilterCap =         preFilterCap; \textcolor{comment}{//63}}
+\DoxyCodeLine{657         sgbm.SADWindowSize =        SADWindowSize;        }
+\DoxyCodeLine{658         sgbm.P1 =                   8*cn*SADWindowSize*SADWindowSize;}
+\DoxyCodeLine{659         sgbm.P2 =                   32*cn*SADWindowSize*SADWindowSize;}
+\DoxyCodeLine{660         sgbm.minDisparity =         minDisparity; \textcolor{comment}{//-\/15}}
+\DoxyCodeLine{661         sgbm.numberOfDisparities =  numberOfDisparities;}
+\DoxyCodeLine{662         sgbm.uniquenessRatio =      uniquenessRatio; \textcolor{comment}{//22}}
+\DoxyCodeLine{663         sgbm.speckleWindowSize =    speckleWindowSize; \textcolor{comment}{//100}}
+\DoxyCodeLine{664         sgbm.speckleRange =         speckleRange; \textcolor{comment}{//32}}
+\DoxyCodeLine{665         sgbm.disp12MaxDiff =        disp12MaxDiff;}
+\DoxyCodeLine{666         sgbm.fullDP =               best; \textcolor{comment}{// alg == STEREO\_HH}}
+\DoxyCodeLine{667 }
+\DoxyCodeLine{668         sgbm(img1r, img2r, disp);}
+\DoxyCodeLine{669 \textcolor{preprocessor}{    \#endif}}
+\DoxyCodeLine{670 }
+\DoxyCodeLine{671         disp.convertTo(map, CV\_32FC1, 1.0,0.0);}
+\DoxyCodeLine{672         map.convertTo(map,CV\_32FC1,255/(numberOfDisparities*16.));}
+\DoxyCodeLine{673         \textcolor{comment}{//normalize(map,map, 0, 255, cv::NORM\_MINMAX, CV\_8UC1);}}
+\DoxyCodeLine{674 }
+\DoxyCodeLine{675         success = \textcolor{keyword}{true};}
+\DoxyCodeLine{676     \}}
+\DoxyCodeLine{677 }
+\DoxyCodeLine{678     \textcolor{keywordflow}{if} (success)}
+\DoxyCodeLine{679     \{}
+\DoxyCodeLine{680         \textcolor{keywordflow}{if} (cameraChanged)}
+\DoxyCodeLine{681         \{}
+\DoxyCodeLine{682             lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{683             Mat inverseMapL(map.rows*map.cols,1,CV\_32FC2);}
+\DoxyCodeLine{684             Mat inverseMapR(map.rows*map.cols,1,CV\_32FC2);}
+\DoxyCodeLine{685 }
+\DoxyCodeLine{686             \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} y=0; y<map.rows; y++)}
+\DoxyCodeLine{687             \{}
+\DoxyCodeLine{688                 \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} x=0; x<map.cols; x++)}
+\DoxyCodeLine{689                 \{}
+\DoxyCodeLine{690                     inverseMapL.ptr<\textcolor{keywordtype}{float}>(y*map.cols+x)[0]=(\textcolor{keywordtype}{float})x;}
+\DoxyCodeLine{691                     inverseMapL.ptr<\textcolor{keywordtype}{float}>(y*map.cols+x)[1]=(\textcolor{keywordtype}{float})y;}
+\DoxyCodeLine{692                     inverseMapR.ptr<\textcolor{keywordtype}{float}>(y*map.cols+x)[0]=(\textcolor{keywordtype}{float})x;}
+\DoxyCodeLine{693                     inverseMapR.ptr<\textcolor{keywordtype}{float}>(y*map.cols+x)[1]=(\textcolor{keywordtype}{float})y;}
+\DoxyCodeLine{694                 \}}
+\DoxyCodeLine{695             \}}
+\DoxyCodeLine{696 }
+\DoxyCodeLine{697             undistortPoints(inverseMapL,inverseMapL,this-\/>Kleft,this-\/>DistL,this-\/>RLrect,this-\/>PLrect);}
+\DoxyCodeLine{698             undistortPoints(inverseMapR,inverseMapR,this-\/>Kright,this-\/>DistR,this-\/>RRrect,this-\/>PRrect);}
+\DoxyCodeLine{699 }
+\DoxyCodeLine{700             Mat mapperL=inverseMapL.reshape(2,map.rows);}
+\DoxyCodeLine{701             Mat mapperR=inverseMapR.reshape(2,map.rows);}
+\DoxyCodeLine{702             this-\/>MapperL=mapperL;}
+\DoxyCodeLine{703             this-\/>MapperR=mapperR;}
+\DoxyCodeLine{704 }
+\DoxyCodeLine{705             cameraChanged = \textcolor{keyword}{false};}
+\DoxyCodeLine{706         \}}
+\DoxyCodeLine{707 }
+\DoxyCodeLine{708         Mat x;}
+\DoxyCodeLine{709         remap(map,dispTemp,this-\/>MapperL,x,cv::INTER\_LINEAR);}
+\DoxyCodeLine{710         dispTemp.convertTo(disp8,CV\_8U);}
+\DoxyCodeLine{711 }
+\DoxyCodeLine{712         \textcolor{keywordflow}{if} (use\_elas)}
+\DoxyCodeLine{713             disp.convertTo(disp, CV\_16SC1, 16.0);}
+\DoxyCodeLine{714     \}}
+\DoxyCodeLine{715 }
+\DoxyCodeLine{716     lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{717     this-\/>Disparity = disp8;}
+\DoxyCodeLine{718     this-\/>Disparity16 = disp;}
+\DoxyCodeLine{719 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a52ef2f3401488e5c4fa6badd1336f96d}} 
+\index{StereoCamera@{StereoCamera}!computeWorldImage@{computeWorldImage}}
+\index{computeWorldImage@{computeWorldImage}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{computeWorldImage()}{computeWorldImage()}}
+{\footnotesize\ttfamily Mat Stereo\+Camera\+::compute\+World\+Image (\begin{DoxyParamCaption}\item[{Mat \&}]{H }\end{DoxyParamCaption})}
+
+
+
+The method returns a 3-\/Channels float image with the world coordinates w.\+r.\+t H reference system. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em H} & the transformation from the camera reference system to the H reference system \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The 3-\/Channels float image with the world coordinates w.\+r.\+t H reference system. 
+\end{DoxyReturn}
+
+
+Definition at line 2231 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2232 \{}
+\DoxyCodeLine{2233     Mat worldImg(Disparity16.rows,Disparity16.cols,CV\_32FC3);}
+\DoxyCodeLine{2234 }
+\DoxyCodeLine{2235     \textcolor{keywordflow}{if}(H.empty())}
+\DoxyCodeLine{2236         H=H.eye(4,4,CV\_64FC1);}
+\DoxyCodeLine{2237 }
+\DoxyCodeLine{2238     \textcolor{keywordflow}{if}(Disparity16.empty() || MapperL.empty() || Q.empty())}
+\DoxyCodeLine{2239     \{}
+\DoxyCodeLine{2240         cout <<\textcolor{stringliteral}{"{} Run computeDisparity() method first"{}} << endl;}
+\DoxyCodeLine{2241         \textcolor{keywordflow}{return} worldImg;}
+\DoxyCodeLine{2242     \}}
+\DoxyCodeLine{2243 }
+\DoxyCodeLine{2244     Mat dispTemp;}
+\DoxyCodeLine{2245     Mat x;}
+\DoxyCodeLine{2246     remap(this-\/>Disparity16,dispTemp,this-\/>MapperL,x,cv::INTER\_LINEAR);}
+\DoxyCodeLine{2247     reprojectImageTo3D(dispTemp, worldImg,this-\/>Q,\textcolor{keyword}{true});}
+\DoxyCodeLine{2248 }
+\DoxyCodeLine{2249     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=0; i<worldImg.rows; i++)}
+\DoxyCodeLine{2250     \{}
+\DoxyCodeLine{2251         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<worldImg.cols; j++)}
+\DoxyCodeLine{2252         \{}
+\DoxyCodeLine{2253             Mat RLrectTmp=this-\/>getRLrect().t();}
+\DoxyCodeLine{2254             Mat Tfake = Mat::zeros(0,3,CV\_64F);}
+\DoxyCodeLine{2255             Mat P(4,1,CV\_64FC1);}
+\DoxyCodeLine{2256             \textcolor{keywordflow}{if}((worldImg.data + worldImg.step * i)[j * worldImg.channels() + 2]>100)}
+\DoxyCodeLine{2257             \{}
+\DoxyCodeLine{2258                 P.at<\textcolor{keywordtype}{double}>(0,0)=0.0;}
+\DoxyCodeLine{2259                 P.at<\textcolor{keywordtype}{double}>(1,0)=0.0;}
+\DoxyCodeLine{2260                 P.at<\textcolor{keywordtype}{double}>(2,0)=0.0;}
+\DoxyCodeLine{2261                 P.at<\textcolor{keywordtype}{double}>(3,0)=1.0;}
+\DoxyCodeLine{2262             \}}
+\DoxyCodeLine{2263             \textcolor{keywordflow}{else}}
+\DoxyCodeLine{2264             \{}
+\DoxyCodeLine{2265                 P.at<\textcolor{keywordtype}{double}>(0,0)=(worldImg.data + worldImg.step * i)[j * worldImg.channels() + 0];}
+\DoxyCodeLine{2266                 P.at<\textcolor{keywordtype}{double}>(1,0)=(worldImg.data + worldImg.step * i)[j * worldImg.channels() + 1];}
+\DoxyCodeLine{2267                 P.at<\textcolor{keywordtype}{double}>(2,0)=(worldImg.data + worldImg.step * i)[j * worldImg.channels() + 2];}
+\DoxyCodeLine{2268                 P.at<\textcolor{keywordtype}{double}>(3,0)=1;}
+\DoxyCodeLine{2269 }
+\DoxyCodeLine{2270                 Mat Hrect=buildRotTras(RLrectTmp,Tfake);}
+\DoxyCodeLine{2271                 P=H*Hrect*P;}
+\DoxyCodeLine{2272             \}}
+\DoxyCodeLine{2273             (worldImg.data + worldImg.step * i)[j * worldImg.channels() + 0]=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(0,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2274             (worldImg.data + worldImg.step * i)[j * worldImg.channels() + 1]=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(1,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2275             (worldImg.data + worldImg.step * i)[j * worldImg.channels() + 2]=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(2,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2276         \}}
+\DoxyCodeLine{2277     \}}
+\DoxyCodeLine{2278 }
+\DoxyCodeLine{2279     \textcolor{keywordflow}{return} worldImg;}
+\DoxyCodeLine{2280 \}}
+
+\end{DoxyCode}
+
+
+References get\+RLrect().
+
+\mbox{\label{classStereoCamera_a6580ff03c7cec5c385ec717f9c018e21}} 
+\index{StereoCamera@{StereoCamera}!drawMatches@{drawMatches}}
+\index{drawMatches@{drawMatches}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{drawMatches()}{drawMatches()}}
+{\footnotesize\ttfamily Mat Stereo\+Camera\+::draw\+Matches (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+The method returns a 3-\/Channels 8bit image with the image matches. 
+
+\begin{DoxyReturn}{Returns}
+The 3-\/Channels 8bit image with the image matches. Call \mbox{\hyperlink{classStereoCamera_aeb1cf4e41058cd70c7df6b8c2511548d}{find\+Match()}} to retrieve the keypoints first. 
+\end{DoxyReturn}
+
+
+Definition at line 1668 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1669 \{}
+\DoxyCodeLine{1670     \textcolor{keywordflow}{if} (this-\/>imleftund.empty() || this-\/>imrightund.empty())}
+\DoxyCodeLine{1671     \{}
+\DoxyCodeLine{1672         imleftund=imleft;}
+\DoxyCodeLine{1673         imrightund=imright;}
+\DoxyCodeLine{1674     \}}
+\DoxyCodeLine{1675 }
+\DoxyCodeLine{1676     Mat matchImg;}
+\DoxyCodeLine{1677     vector<KeyPoint> keypoints1(InliersL.size());}
+\DoxyCodeLine{1678     vector<KeyPoint> keypoints2(InliersL.size());}
+\DoxyCodeLine{1679     vector<DMatch> filteredMatches(InliersL.size());}
+\DoxyCodeLine{1680 }
+\DoxyCodeLine{1681     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i=0; i<InliersL.size(); i++)}
+\DoxyCodeLine{1682     \{}
+\DoxyCodeLine{1683         filteredMatches[i].queryIdx=i;}
+\DoxyCodeLine{1684         filteredMatches[i].trainIdx=i;}
+\DoxyCodeLine{1685 }
+\DoxyCodeLine{1686         keypoints1[i]=cv::KeyPoint(InliersL[i],2);}
+\DoxyCodeLine{1687         keypoints2[i]=cv::KeyPoint(InliersR[i],2);}
+\DoxyCodeLine{1688     \}}
+\DoxyCodeLine{1689 }
+\DoxyCodeLine{1690     cv::drawMatches(this-\/>imleftund,keypoints1,this-\/>imrightund,keypoints2,}
+\DoxyCodeLine{1691             filteredMatches,matchImg,Scalar(0,0,255,0),Scalar(0,0,255,0));}
+\DoxyCodeLine{1692 }
+\DoxyCodeLine{1693     \textcolor{keywordflow}{return} matchImg;}
+\DoxyCodeLine{1694 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a180388e93b654802c7c56c18d206214b}} 
+\index{StereoCamera@{StereoCamera}!essentialDecomposition@{essentialDecomposition}}
+\index{essentialDecomposition@{essentialDecomposition}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{essentialDecomposition()}{essentialDecomposition()}}
+{\footnotesize\ttfamily bool Stereo\+Camera\+::essential\+Decomposition (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+It decomposes the essential matrix in Rotation and Translation between the two views. 
+
+The output is stored in the private members R and T. 
+
+Definition at line 1071 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1072 \{}
+\DoxyCodeLine{1073     \textcolor{keywordflow}{if} (E.empty())}
+\DoxyCodeLine{1074     \{}
+\DoxyCodeLine{1075         cout << \textcolor{stringliteral}{"{}Essential Matrix is empty! Run the estimateEssential first!"{}} << endl;}
+\DoxyCodeLine{1076         \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{1077     \}}
+\DoxyCodeLine{1078 }
+\DoxyCodeLine{1079     \textcolor{keywordflow}{if} (this-\/>InliersL.empty())}
+\DoxyCodeLine{1080     \{}
+\DoxyCodeLine{1081         cout << \textcolor{stringliteral}{"{}No matches in memory! Run findMatch first!"{}} << endl;}
+\DoxyCodeLine{1082         \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{1083     \}}
+\DoxyCodeLine{1084 }
+\DoxyCodeLine{1085     Mat W=Mat(3,3,CV\_64FC1);}
+\DoxyCodeLine{1086     W.setTo(0);}
+\DoxyCodeLine{1087     W.at<\textcolor{keywordtype}{double}>(0,0)=0;}
+\DoxyCodeLine{1088     W.at<\textcolor{keywordtype}{double}>(0,1)=-\/1;}
+\DoxyCodeLine{1089     W.at<\textcolor{keywordtype}{double}>(0,2)=0;}
+\DoxyCodeLine{1090 }
+\DoxyCodeLine{1091     W.at<\textcolor{keywordtype}{double}>(1,0)=1;}
+\DoxyCodeLine{1092     W.at<\textcolor{keywordtype}{double}>(1,1)=0;}
+\DoxyCodeLine{1093     W.at<\textcolor{keywordtype}{double}>(1,2)=0;}
+\DoxyCodeLine{1094 }
+\DoxyCodeLine{1095     W.at<\textcolor{keywordtype}{double}>(2,0)=0;}
+\DoxyCodeLine{1096     W.at<\textcolor{keywordtype}{double}>(2,1)=0;}
+\DoxyCodeLine{1097     W.at<\textcolor{keywordtype}{double}>(2,2)=1;}
+\DoxyCodeLine{1098 }
+\DoxyCodeLine{1099     SVD dec(E);}
+\DoxyCodeLine{1100 }
+\DoxyCodeLine{1101     Mat Y=Mat::eye(3,3,CV\_64FC1);}
+\DoxyCodeLine{1102     Y.at<\textcolor{keywordtype}{double}>(2,2)=0.0;}
+\DoxyCodeLine{1103     E=dec.u*Y*dec.vt; \textcolor{comment}{// projection to the Essential Matrix space}}
+\DoxyCodeLine{1104 }
+\DoxyCodeLine{1105     dec(E);}
+\DoxyCodeLine{1106 }
+\DoxyCodeLine{1107     Mat V=dec.vt;}
+\DoxyCodeLine{1108     Mat U=dec.u;}
+\DoxyCodeLine{1109 }
+\DoxyCodeLine{1110     Mat R1=U*W*V;}
+\DoxyCodeLine{1111     Mat R2=U*W.t()*V;}
+\DoxyCodeLine{1112 }
+\DoxyCodeLine{1113     \textcolor{keywordflow}{if} (determinant(R1)<0 || determinant(R2)<0)}
+\DoxyCodeLine{1114     \{}
+\DoxyCodeLine{1115         E=-\/E;}
+\DoxyCodeLine{1116         SVD dec2(E);}
+\DoxyCodeLine{1117 }
+\DoxyCodeLine{1118         V=dec2.vt;}
+\DoxyCodeLine{1119         U=dec2.u;}
+\DoxyCodeLine{1120 }
+\DoxyCodeLine{1121         R1=U*W*V;}
+\DoxyCodeLine{1122         R2=U*W.t()*V;}
+\DoxyCodeLine{1123     \}}
+\DoxyCodeLine{1124 }
+\DoxyCodeLine{1125     Mat t1=U(Range(0,3),Range(2,3));}
+\DoxyCodeLine{1126     Mat t2=-\/t1;}
+\DoxyCodeLine{1127 }
+\DoxyCodeLine{1128     Mat Rnew=Mat(3,3,CV\_64FC1);}
+\DoxyCodeLine{1129     Rnew.setTo(0);}
+\DoxyCodeLine{1130     Mat tnew=Mat(3,1,CV\_64FC1);}
+\DoxyCodeLine{1131 }
+\DoxyCodeLine{1132     chierality(R1,R2,t1,t2,Rnew,tnew,this-\/>InliersL,this-\/>InliersR);}
+\DoxyCodeLine{1133 }
+\DoxyCodeLine{1134     Mat rvec\_new=Mat::zeros(3,1,CV\_64FC1);}
+\DoxyCodeLine{1135     Mat rvec\_exp=Mat::zeros(3,1,CV\_64FC1);}
+\DoxyCodeLine{1136     Rodrigues(Rnew,rvec\_new);}
+\DoxyCodeLine{1137     Rodrigues(R\_exp,rvec\_exp);}
+\DoxyCodeLine{1138 }
+\DoxyCodeLine{1139     Mat t\_est=(tnew/norm(tnew))*norm(this-\/>T);}
+\DoxyCodeLine{1140 }
+\DoxyCodeLine{1141     Mat diff\_angles=rvec\_exp-\/rvec\_new;}
+\DoxyCodeLine{1142     Mat diff\_tran=T\_exp-\/t\_est;}
+\DoxyCodeLine{1143 }
+\DoxyCodeLine{1144     std::cout << \textcolor{stringliteral}{"{}[StereoCamera] Angles Differences: "{}} << diff\_angles.at<\textcolor{keywordtype}{double}>(0,0) << \textcolor{stringliteral}{"{} "{}} <<}
+\DoxyCodeLine{1145                                                           diff\_angles.at<\textcolor{keywordtype}{double}>(1,0) << \textcolor{stringliteral}{"{} "{}} <<}
+\DoxyCodeLine{1146                                                           diff\_angles.at<\textcolor{keywordtype}{double}>(2,0) << std::endl;}
+\DoxyCodeLine{1147 }
+\DoxyCodeLine{1148     std::cout << \textcolor{stringliteral}{"{}[StereoCamera] Translation Differences: "{}} << diff\_tran.at<\textcolor{keywordtype}{double}>(0,0) << \textcolor{stringliteral}{"{} "{}} <<}
+\DoxyCodeLine{1149                                                                diff\_tran.at<\textcolor{keywordtype}{double}>(1,0) << \textcolor{stringliteral}{"{} "{}} <<}
+\DoxyCodeLine{1150                                                                diff\_tran.at<\textcolor{keywordtype}{double}>(2,0) << std::endl;}
+\DoxyCodeLine{1151 }
+\DoxyCodeLine{1152 }
+\DoxyCodeLine{1153 }
+\DoxyCodeLine{1154     \textcolor{comment}{// Magic numbers: rvec\_new are the rotation angles, only vergence (rvec\_new(1,0)) is allowed to be large}}
+\DoxyCodeLine{1155     \textcolor{comment}{// t\_est is the translation estimated, it can change a little bit when joint 4 of the head is moving}}
+\DoxyCodeLine{1156     \textcolor{keywordflow}{if} (fabs(diff\_angles.at<\textcolor{keywordtype}{double}>(0,0))<0.15 \&\& fabs(diff\_angles.at<\textcolor{keywordtype}{double}>(1,0))<0.15 \&\& fabs(diff\_angles.at<\textcolor{keywordtype}{double}>(2,0))<0.15 \&\&}
+\DoxyCodeLine{1157             fabs(diff\_tran.at<\textcolor{keywordtype}{double}>(0,0))<0.01 \&\& fabs(diff\_tran.at<\textcolor{keywordtype}{double}>(1,0))<0.01  \&\& fabs(diff\_tran.at<\textcolor{keywordtype}{double}>(2,0))<0.01)}
+\DoxyCodeLine{1158     \{}
+\DoxyCodeLine{1159         lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{1160         this-\/>R=Rnew;}
+\DoxyCodeLine{1161         this-\/>T=t\_est;}
+\DoxyCodeLine{1162         this-\/>updatePMatrix();}
+\DoxyCodeLine{1163         this-\/>cameraChanged=\textcolor{keyword}{true};}
+\DoxyCodeLine{1164         \textcolor{keywordflow}{return} \textcolor{keyword}{true};}
+\DoxyCodeLine{1165     \}}
+\DoxyCodeLine{1166     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{1167         \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{1168 \}}
+
+\end{DoxyCode}
+
+
+References chierality().
+
+\mbox{\label{classStereoCamera_ab2eded08bca185ac22cd6343cb4c85c8}} 
+\index{StereoCamera@{StereoCamera}!estimateEssential@{estimateEssential}}
+\index{estimateEssential@{estimateEssential}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{estimateEssential()}{estimateEssential()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::estimate\+Essential (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+It estimates the essential matrix (3x3) E between two views. 
+
+The output is stored in the private member E. 
+
+Definition at line 965 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{966 \{}
+\DoxyCodeLine{967     this-\/>InliersL.clear();}
+\DoxyCodeLine{968     this-\/>InliersR.clear();}
+\DoxyCodeLine{969 }
+\DoxyCodeLine{970     \textcolor{keywordflow}{if} (this-\/>PointsL.size()<10 || this-\/>PointsL.size()<10 )}
+\DoxyCodeLine{971     \{}
+\DoxyCodeLine{972         cout << \textcolor{stringliteral}{"{}Not enough matches in memory! Run findMatch first!"{}} << endl;}
+\DoxyCodeLine{973         this-\/>E=Mat(3,3,CV\_64FC1);}
+\DoxyCodeLine{974         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{975     \}}
+\DoxyCodeLine{976 }
+\DoxyCodeLine{977     updateExpectedCameraMatrices();}
+\DoxyCodeLine{978     Mat F\_exp=FfromP(Pleft\_exp,Pright\_exp);}
+\DoxyCodeLine{979 }
+\DoxyCodeLine{980     vector<Point2f> filteredL;}
+\DoxyCodeLine{981     vector<Point2f> filteredR;}
+\DoxyCodeLine{982 }
+\DoxyCodeLine{983     std::cout << \textcolor{stringliteral}{"{}[StereoCamera] "{}} << PointsR.size() << \textcolor{stringliteral}{"{} Matches Found."{}} << std::endl;}
+\DoxyCodeLine{984 }
+\DoxyCodeLine{985     Mat pl=Mat(3,1,CV\_64FC1);}
+\DoxyCodeLine{986     Mat pr=Mat(3,1,CV\_64FC1);}
+\DoxyCodeLine{987 }
+\DoxyCodeLine{988     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{size\_t} i=0; i<(int) PointsL.size(); i++)}
+\DoxyCodeLine{989     \{}
+\DoxyCodeLine{990         pl.at<\textcolor{keywordtype}{double}>(0,0)=PointsL[i].x;}
+\DoxyCodeLine{991         pl.at<\textcolor{keywordtype}{double}>(1,0)=PointsL[i].y;}
+\DoxyCodeLine{992         pl.at<\textcolor{keywordtype}{double}>(2,0)=1;}
+\DoxyCodeLine{993 }
+\DoxyCodeLine{994         pr.at<\textcolor{keywordtype}{double}>(0,0)=PointsR[i].x;}
+\DoxyCodeLine{995         pr.at<\textcolor{keywordtype}{double}>(1,0)=PointsR[i].y;}
+\DoxyCodeLine{996         pr.at<\textcolor{keywordtype}{double}>(2,0)=1;}
+\DoxyCodeLine{997 }
+\DoxyCodeLine{998         Mat xrFxl=pr.t()*F\_exp*pl;}
+\DoxyCodeLine{999         Mat Fxl=F\_exp*pl;}
+\DoxyCodeLine{1000         Mat Fxr=F\_exp.t()*pr;}
+\DoxyCodeLine{1001 }
+\DoxyCodeLine{1002         pow(xrFxl,2,xrFxl);}
+\DoxyCodeLine{1003 }
+\DoxyCodeLine{1004         pow(Fxl,2,Fxl);}
+\DoxyCodeLine{1005 }
+\DoxyCodeLine{1006         pow(Fxr,2,Fxr);}
+\DoxyCodeLine{1007 }
+\DoxyCodeLine{1008         Scalar den1,den2;}
+\DoxyCodeLine{1009         den1=sum(Fxl);}
+\DoxyCodeLine{1010         den2=sum(Fxr);}
+\DoxyCodeLine{1011         \textcolor{keywordtype}{double} sampsonDistance=xrFxl.at<\textcolor{keywordtype}{double}>(0,0)/(den1.val[0]+den2.val[0]);}
+\DoxyCodeLine{1012 }
+\DoxyCodeLine{1013         \textcolor{keywordflow}{if} (sampsonDistance<0.1)}
+\DoxyCodeLine{1014         \{}
+\DoxyCodeLine{1015             filteredL.push\_back(PointsL[i]);}
+\DoxyCodeLine{1016             filteredR.push\_back(PointsR[i]);}
+\DoxyCodeLine{1017         \}}
+\DoxyCodeLine{1018     \}}
+\DoxyCodeLine{1019 }
+\DoxyCodeLine{1020     std::cout << \textcolor{stringliteral}{"{}[StereoCamera] "{}} << filteredL.size() << \textcolor{stringliteral}{"{} Matches Left After Kinematics Filtering."{}} << std::endl;}
+\DoxyCodeLine{1021 }
+\DoxyCodeLine{1022     vector<uchar> status;}
+\DoxyCodeLine{1023     this-\/>F=findFundamentalMat(Mat(filteredL), Mat(filteredR), status, CV\_FM\_8POINT, 1, 0.999);}
+\DoxyCodeLine{1024 }
+\DoxyCodeLine{1025     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{size\_t} i=0; i<(int) filteredL.size(); i++)}
+\DoxyCodeLine{1026     \{}
+\DoxyCodeLine{1027         pl.at<\textcolor{keywordtype}{double}>(0,0)=filteredL[i].x;}
+\DoxyCodeLine{1028         pl.at<\textcolor{keywordtype}{double}>(1,0)=filteredL[i].y;}
+\DoxyCodeLine{1029         pl.at<\textcolor{keywordtype}{double}>(2,0)=1;}
+\DoxyCodeLine{1030 }
+\DoxyCodeLine{1031         pr.at<\textcolor{keywordtype}{double}>(0,0)=filteredR[i].x;}
+\DoxyCodeLine{1032         pr.at<\textcolor{keywordtype}{double}>(1,0)=filteredR[i].y;}
+\DoxyCodeLine{1033         pr.at<\textcolor{keywordtype}{double}>(2,0)=1;}
+\DoxyCodeLine{1034 }
+\DoxyCodeLine{1035         Mat xrFxl=pr.t()*F*pl;}
+\DoxyCodeLine{1036         Mat Fxl=F*pl;}
+\DoxyCodeLine{1037         Mat Fxr=F.t()*pr;}
+\DoxyCodeLine{1038 }
+\DoxyCodeLine{1039         pow(xrFxl,2,xrFxl);}
+\DoxyCodeLine{1040         pow(Fxl,2,Fxl);}
+\DoxyCodeLine{1041         pow(Fxr,2,Fxr);}
+\DoxyCodeLine{1042 }
+\DoxyCodeLine{1043         Scalar den1,den2;}
+\DoxyCodeLine{1044         den1=sum(Fxl);}
+\DoxyCodeLine{1045         den2=sum(Fxr);}
+\DoxyCodeLine{1046 }
+\DoxyCodeLine{1047         \textcolor{keywordflow}{if} (status[i]==1 \&\& xrFxl.at<\textcolor{keywordtype}{double}>(0,0)<0.001)}
+\DoxyCodeLine{1048         \{}
+\DoxyCodeLine{1049             InliersL.push\_back(filteredL[i]);}
+\DoxyCodeLine{1050             InliersR.push\_back(filteredR[i]);}
+\DoxyCodeLine{1051         \}}
+\DoxyCodeLine{1052     \}}
+\DoxyCodeLine{1053 }
+\DoxyCodeLine{1054     std::cout << \textcolor{stringliteral}{"{}[StereoCamera] "{}} << InliersL.size() << \textcolor{stringliteral}{"{} Matches Left After RANSAC Filtering."{}} << std::endl;}
+\DoxyCodeLine{1055 }
+\DoxyCodeLine{1056     \textcolor{keywordflow}{if} (this-\/>InliersL.size()<10 || this-\/>InliersR.size()<10 )}
+\DoxyCodeLine{1057     \{}
+\DoxyCodeLine{1058         InliersL.clear();}
+\DoxyCodeLine{1059         InliersR.clear();}
+\DoxyCodeLine{1060         cout << \textcolor{stringliteral}{"{}Not enough matches in memory! Run findMatch first!"{}} << endl;}
+\DoxyCodeLine{1061         this-\/>E=Mat(3,3,CV\_64FC1);}
+\DoxyCodeLine{1062         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1063     \}}
+\DoxyCodeLine{1064 }
+\DoxyCodeLine{1065     this-\/>F=findFundamentalMat(Mat(InliersL), Mat(InliersR),status, CV\_FM\_8POINT, 1, 0.999);}
+\DoxyCodeLine{1066     this-\/>E=this-\/>Kright.t()*this-\/>F*this-\/>Kleft;}
+\DoxyCodeLine{1067 }
+\DoxyCodeLine{1068 \}}
+
+\end{DoxyCode}
+
+
+References Ffrom\+P().
+
+\mbox{\label{classStereoCamera_a3fe4e87322f8644cd21ce06e8522c815}} 
+\index{StereoCamera@{StereoCamera}!FfromP@{FfromP}}
+\index{FfromP@{FfromP}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{FfromP()}{FfromP()}}
+{\footnotesize\ttfamily Mat Stereo\+Camera\+::\+FfromP (\begin{DoxyParamCaption}\item[{Mat \&}]{P1,  }\item[{Mat \&}]{P2 }\end{DoxyParamCaption})}
+
+
+
+The function computes the fundamental matrix starting from known camera matrices. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em P1} & a 3x4 matrix representing the camera matrix of the left view. \\
+\hline
+{\em P2} & a 3x4 matrix representing the camera matrix of the right view. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a 3x3 matrix representing the fundamental matrix. 
+\end{DoxyReturn}
+
+
+Definition at line 890 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{891 \{}
+\DoxyCodeLine{892     Mat F\_true(3,3,CV\_64FC1);}
+\DoxyCodeLine{893 }
+\DoxyCodeLine{894     Mat X1(2,4,CV\_64FC1);}
+\DoxyCodeLine{895     Mat X2(2,4,CV\_64FC1);}
+\DoxyCodeLine{896     Mat X3(2,4,CV\_64FC1);}
+\DoxyCodeLine{897 }
+\DoxyCodeLine{898     Mat Y1(2,4,CV\_64FC1);}
+\DoxyCodeLine{899     Mat Y2(2,4,CV\_64FC1);}
+\DoxyCodeLine{900     Mat Y3(2,4,CV\_64FC1);}
+\DoxyCodeLine{901 }
+\DoxyCodeLine{902 }
+\DoxyCodeLine{903     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=0; i<P1.rows; i++)}
+\DoxyCodeLine{904     \{}
+\DoxyCodeLine{905         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<P1.cols; j++)}
+\DoxyCodeLine{906         \{}
+\DoxyCodeLine{907             \textcolor{keywordflow}{if}(i==0)}
+\DoxyCodeLine{908             \{}
+\DoxyCodeLine{909                 X2.at<\textcolor{keywordtype}{double}>(1,j)= P1.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{910                 X3.at<\textcolor{keywordtype}{double}>(0,j)= P1.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{911                 Y2.at<\textcolor{keywordtype}{double}>(1,j)= P2.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{912                 Y3.at<\textcolor{keywordtype}{double}>(0,j)= P2.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{913             \}}
+\DoxyCodeLine{914             \textcolor{keywordflow}{if}(i==1)}
+\DoxyCodeLine{915             \{}
+\DoxyCodeLine{916                 X1.at<\textcolor{keywordtype}{double}>(0,j)= P1.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{917                 X3.at<\textcolor{keywordtype}{double}>(1,j)= P1.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{918                 Y1.at<\textcolor{keywordtype}{double}>(0,j)= P2.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{919                 Y3.at<\textcolor{keywordtype}{double}>(1,j)= P2.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{920             \}}
+\DoxyCodeLine{921 }
+\DoxyCodeLine{922             \textcolor{keywordflow}{if}(i==2)}
+\DoxyCodeLine{923             \{}
+\DoxyCodeLine{924                 X1.at<\textcolor{keywordtype}{double}>(1,j)= P1.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{925                 X2.at<\textcolor{keywordtype}{double}>(0,j)= P1.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{926                 Y1.at<\textcolor{keywordtype}{double}>(1,j)= P2.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{927                 Y2.at<\textcolor{keywordtype}{double}>(0,j)= P2.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{928 }
+\DoxyCodeLine{929             \}}
+\DoxyCodeLine{930         \}}
+\DoxyCodeLine{931     \}}
+\DoxyCodeLine{932 }
+\DoxyCodeLine{933 }
+\DoxyCodeLine{934     std::vector<Mat> MatX;}
+\DoxyCodeLine{935     std::vector<Mat> MatY;}
+\DoxyCodeLine{936 }
+\DoxyCodeLine{937     MatX.push\_back(X1);}
+\DoxyCodeLine{938     MatX.push\_back(X2);}
+\DoxyCodeLine{939     MatX.push\_back(X3);}
+\DoxyCodeLine{940 }
+\DoxyCodeLine{941     MatY.push\_back(Y1);}
+\DoxyCodeLine{942     MatY.push\_back(Y2);}
+\DoxyCodeLine{943     MatY.push\_back(Y3);}
+\DoxyCodeLine{944 }
+\DoxyCodeLine{945 }
+\DoxyCodeLine{946     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=0; i<F\_true.rows; i++)}
+\DoxyCodeLine{947     \{}
+\DoxyCodeLine{948         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<F\_true.cols; j++)}
+\DoxyCodeLine{949         \{}
+\DoxyCodeLine{950             Mat X=MatX[i];}
+\DoxyCodeLine{951             Mat Y=MatY[j];}
+\DoxyCodeLine{952 }
+\DoxyCodeLine{953             Mat concatenated;}
+\DoxyCodeLine{954 }
+\DoxyCodeLine{955             cv::vconcat(X,Y,concatenated);}
+\DoxyCodeLine{956 }
+\DoxyCodeLine{957             F\_true.at<\textcolor{keywordtype}{double}>(j,i)=cv::determinant(concatenated);}
+\DoxyCodeLine{958         \}}
+\DoxyCodeLine{959     \}}
+\DoxyCodeLine{960 }
+\DoxyCodeLine{961     \textcolor{keywordflow}{return} F\_true;}
+\DoxyCodeLine{962 \}}
+
+\end{DoxyCode}
+
+
+Referenced by estimate\+Essential().
+
+\mbox{\label{classStereoCamera_aeb1cf4e41058cd70c7df6b8c2511548d}} 
+\index{StereoCamera@{StereoCamera}!findMatch@{findMatch}}
+\index{findMatch@{findMatch}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{findMatch()}{findMatch()}}
+{\footnotesize\ttfamily Mat Stereo\+Camera\+::find\+Match (\begin{DoxyParamCaption}\item[{bool}]{visualize = {\ttfamily false},  }\item[{double}]{displacement = {\ttfamily 20.0},  }\item[{double}]{radius = {\ttfamily 200.0} }\end{DoxyParamCaption})}
+
+
+
+It finds matches between two images. 
+
+SIFT detector and descriptor is used. \begin{DoxyNote}{Note}
+Run set\+Images and indistort\+Images methods before using this method. 
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em visualize} & true if you want to visualize matches between images \\
+\hline
+{\em displacement} & maximum pixel displacement between first and second camera \\
+\hline
+{\em radius} & maximum radius between the first candidate match and the second one \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 750 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{751 \{}
+\DoxyCodeLine{752     \textcolor{keywordflow}{if} (this-\/>imleftund.empty() || this-\/>imrightund.empty())}
+\DoxyCodeLine{753     \{}
+\DoxyCodeLine{754         imleftund=imleft;}
+\DoxyCodeLine{755         imrightund=imright;}
+\DoxyCodeLine{756     \}}
+\DoxyCodeLine{757 }
+\DoxyCodeLine{758     this-\/>PointsL.clear();}
+\DoxyCodeLine{759     this-\/>PointsR.clear();}
+\DoxyCodeLine{760 }
+\DoxyCodeLine{761     this-\/>InliersL.clear();}
+\DoxyCodeLine{762     this-\/>InliersR.clear();}
+\DoxyCodeLine{763 }
+\DoxyCodeLine{764     Mat grayleft(imleftund.rows,imleftund.cols, CV\_8UC1);}
+\DoxyCodeLine{765     imleftund.convertTo(grayleft,CV\_8UC1);}
+\DoxyCodeLine{766 }
+\DoxyCodeLine{767     Mat grayright(imrightund.rows,imrightund.cols,CV\_8UC1);}
+\DoxyCodeLine{768     imrightund.convertTo(grayright,CV\_8UC1);}
+\DoxyCodeLine{769 }
+\DoxyCodeLine{770     vector<KeyPoint> keypoints1,keypoints2;}
+\DoxyCodeLine{771     Mat descriptors1,descriptors2;}
+\DoxyCodeLine{772 }
+\DoxyCodeLine{773 \textcolor{preprocessor}{\#ifdef OPENCV\_GREATER\_2}}
+\DoxyCodeLine{774     Ptr<xfeatures2d::SIFT> sift=xfeatures2d::SIFT::create();}
+\DoxyCodeLine{775     yAssert(sift!=NULL);}
+\DoxyCodeLine{776 }
+\DoxyCodeLine{777     sift-\/>detect(grayleft,keypoints1);}
+\DoxyCodeLine{778     sift-\/>compute(grayleft,keypoints1,descriptors1);}
+\DoxyCodeLine{779 }
+\DoxyCodeLine{780     sift-\/>detect(grayright,keypoints2);}
+\DoxyCodeLine{781     sift-\/>compute(grayright,keypoints2,descriptors2);}
+\DoxyCodeLine{782 \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{783     Ptr<cv::FeatureDetector> detector=cv::FeatureDetector::create(\textcolor{stringliteral}{"{}SIFT"{}});}
+\DoxyCodeLine{784     Ptr<cv::DescriptorExtractor> descriptorExtractor=cv::DescriptorExtractor::create(\textcolor{stringliteral}{"{}SIFT"{}});}
+\DoxyCodeLine{785 }
+\DoxyCodeLine{786     yAssert(detector!=NULL);}
+\DoxyCodeLine{787     yAssert(descriptorExtractor!=NULL);}
+\DoxyCodeLine{788 }
+\DoxyCodeLine{789     detector-\/>detect(grayleft,keypoints1);}
+\DoxyCodeLine{790     descriptorExtractor-\/>compute(grayleft,keypoints1,descriptors1);}
+\DoxyCodeLine{791 }
+\DoxyCodeLine{792     detector-\/>detect(grayright,keypoints2);}
+\DoxyCodeLine{793     descriptorExtractor-\/>compute(grayright,keypoints2,descriptors2);}
+\DoxyCodeLine{794 \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{795     }
+\DoxyCodeLine{796     cv::BFMatcher descriptorMatcher;}
+\DoxyCodeLine{797     vector<DMatch> filteredMatches;}
+\DoxyCodeLine{798     crossCheckMatching(descriptorMatcher,descriptors1,descriptors2,filteredMatches,radius);}
+\DoxyCodeLine{799 }
+\DoxyCodeLine{800     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{size\_t} i=0; i<filteredMatches.size(); i++)}
+\DoxyCodeLine{801     \{}
+\DoxyCodeLine{802         Point2f pointL=keypoints1[filteredMatches[i].queryIdx].pt;}
+\DoxyCodeLine{803         Point2f pointR=keypoints2[filteredMatches[i].trainIdx].pt;}
+\DoxyCodeLine{804         \textcolor{keywordflow}{if} (fabs(pointL.y-\/pointR.y)<displacement)}
+\DoxyCodeLine{805         \{}
+\DoxyCodeLine{806             this-\/>PointsR.push\_back(pointR);}
+\DoxyCodeLine{807             this-\/>PointsL.push\_back(pointL);}
+\DoxyCodeLine{808         \}}
+\DoxyCodeLine{809     \}}
+\DoxyCodeLine{810 }
+\DoxyCodeLine{811     Mat matchImg;}
+\DoxyCodeLine{812     \textcolor{keywordflow}{if} (visualize)}
+\DoxyCodeLine{813         cv::drawMatches(this-\/>imleftund,keypoints1,this-\/>imrightund,keypoints2,}
+\DoxyCodeLine{814                 filteredMatches,matchImg,Scalar(0,0,255,0),Scalar(0,0,255,0));}
+\DoxyCodeLine{815 }
+\DoxyCodeLine{816     \textcolor{keywordflow}{return} matchImg;}
+\DoxyCodeLine{817 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a3d8fde0cbd4604085b883f22cc606c01}} 
+\index{StereoCamera@{StereoCamera}!fromRectifiedToOriginal@{fromRectifiedToOriginal}}
+\index{fromRectifiedToOriginal@{fromRectifiedToOriginal}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{fromRectifiedToOriginal()}{fromRectifiedToOriginal()}}
+{\footnotesize\ttfamily Point2f Stereo\+Camera\+::from\+Rectified\+To\+Original (\begin{DoxyParamCaption}\item[{int}]{u,  }\item[{int}]{v,  }\item[{int}]{camera }\end{DoxyParamCaption})}
+
+
+
+Given the u,v pixel coordinates in the rectified image the method returns the position of the pixel in the non-\/rectified frame. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em u} & the x pixel coordinate in the rectified image. \\
+\hline
+{\em v} & the y pixel coordinate in the rectified image. \\
+\hline
+{\em cam} & cam=1 for left image, cam=2 for right image. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the pixel position in the non-\/rectified image. 
+\end{DoxyReturn}
+
+
+Definition at line 722 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{723 \{}
+\DoxyCodeLine{724     cv::Point2f originalPoint;}
+\DoxyCodeLine{725 }
+\DoxyCodeLine{726 }
+\DoxyCodeLine{727     \textcolor{keywordflow}{if}(u>=map11.rows || u<0 || v>=map12.cols || v< 0)}
+\DoxyCodeLine{728     \{}
+\DoxyCodeLine{729         originalPoint.x=0;}
+\DoxyCodeLine{730         originalPoint.y=0;}
+\DoxyCodeLine{731         \textcolor{keywordflow}{return} originalPoint;}
+\DoxyCodeLine{732     \}}
+\DoxyCodeLine{733     \textcolor{keywordflow}{if}(camera==LEFT)}
+\DoxyCodeLine{734     \{}
+\DoxyCodeLine{735         originalPoint.x=map11.ptr<\textcolor{keywordtype}{float}>(v)[u];}
+\DoxyCodeLine{736         originalPoint.y=map12.ptr<\textcolor{keywordtype}{float}>(v)[u];}
+\DoxyCodeLine{737     \}}
+\DoxyCodeLine{738     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{739     \{}
+\DoxyCodeLine{740         originalPoint.x=map21.ptr<\textcolor{keywordtype}{float}>(v)[u];}
+\DoxyCodeLine{741         originalPoint.y=map22.ptr<\textcolor{keywordtype}{float}>(v)[u];}
+\DoxyCodeLine{742     \}}
+\DoxyCodeLine{743 }
+\DoxyCodeLine{744 }
+\DoxyCodeLine{745     \textcolor{keywordflow}{return} originalPoint;}
+\DoxyCodeLine{746 }
+\DoxyCodeLine{747 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a74adec3c305b13df4757e105cd72a7db}} 
+\index{StereoCamera@{StereoCamera}!getDisparity@{getDisparity}}
+\index{getDisparity@{getDisparity}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getDisparity()}{getDisparity()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Disparity (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the disparity image. 
+
+\begin{DoxyReturn}{Returns}
+the disparity image computed via \mbox{\hyperlink{classStereoCamera_a79e986f2970bb2c5b5acd1ede65984aa}{compute\+Disparity()}}. The image is 8 bit unsigned. 
+\end{DoxyReturn}
+
+
+Definition at line 533 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{533                                             \{}
+\DoxyCodeLine{534     \textcolor{keywordflow}{return} this-\/>Disparity;}
+\DoxyCodeLine{535 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a4a6e408446750224499ed9ecdc51629e}} 
+\index{StereoCamera@{StereoCamera}!getDisparity16@{getDisparity16}}
+\index{getDisparity16@{getDisparity16}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getDisparity16()}{getDisparity16()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Disparity16 (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the disparity image. 
+
+\begin{DoxyReturn}{Returns}
+the disparity image computed via \mbox{\hyperlink{classStereoCamera_a79e986f2970bb2c5b5acd1ede65984aa}{compute\+Disparity()}}. The image is 16 bit signed. 
+\end{DoxyReturn}
+
+
+Definition at line 538 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{538                                               \{}
+\DoxyCodeLine{539     \textcolor{keywordflow}{return} this-\/>Disparity16;}
+\DoxyCodeLine{540 \}}
+
+\end{DoxyCode}
+
+
+Referenced by metric\+Triangulation().
+
+\mbox{\label{classStereoCamera_af9e52f941837f0db26d150d0ca4ff3bc}} 
+\index{StereoCamera@{StereoCamera}!getDistCoeffLeft@{getDistCoeffLeft}}
+\index{getDistCoeffLeft@{getDistCoeffLeft}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getDistCoeffLeft()}{getDistCoeffLeft()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Dist\+Coeff\+Left (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the 5x1 left distortion coefficients. 
+
+\begin{DoxyReturn}{Returns}
+5x1 left distortion coefficients. 
+\end{DoxyReturn}
+
+
+Definition at line 2283 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2284 \{}
+\DoxyCodeLine{2285     \textcolor{keywordflow}{return} this-\/>DistL;}
+\DoxyCodeLine{2286 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a589ca8eb4ebfc4377589a77bb15b85b7}} 
+\index{StereoCamera@{StereoCamera}!getDistCoeffRight@{getDistCoeffRight}}
+\index{getDistCoeffRight@{getDistCoeffRight}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getDistCoeffRight()}{getDistCoeffRight()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Dist\+Coeff\+Right (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the 5x1 right distortion coefficients. 
+
+\begin{DoxyReturn}{Returns}
+5x1 right distortion coefficients. 
+\end{DoxyReturn}
+
+
+Definition at line 2289 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2290 \{}
+\DoxyCodeLine{2291     \textcolor{keywordflow}{return} this-\/>DistR;}
+\DoxyCodeLine{2292 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_af64550bb8a7a665930dee5eea87b7e47}} 
+\index{StereoCamera@{StereoCamera}!getDistortedPixel@{getDistortedPixel}}
+\index{getDistortedPixel@{getDistortedPixel}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getDistortedPixel()}{getDistortedPixel()}}
+{\footnotesize\ttfamily Point2f Stereo\+Camera\+::get\+Distorted\+Pixel (\begin{DoxyParamCaption}\item[{int}]{u,  }\item[{int}]{v,  }\item[{int}]{cam = {\ttfamily 1} }\end{DoxyParamCaption})}
+
+
+
+Given the u,v pixel coordinates in the undistorted image the method returns the original position of the pixel in the distorted frame. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em u} & the x pixel coordinate in the undistorted image. \\
+\hline
+{\em v} & the y pixel coordinate in the undistorted image. \\
+\hline
+{\em cam} & cam=1 for left image, cam=2 for right image. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the pixel position in the distorted image. 
+\end{DoxyReturn}
+
+
+Definition at line 2305 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2306 \{}
+\DoxyCodeLine{2307     Point2f distortedPixel;}
+\DoxyCodeLine{2308     Mat MapperX,MapperY;}
+\DoxyCodeLine{2309 }
+\DoxyCodeLine{2310     \textcolor{keywordflow}{if}(cam==LEFT)}
+\DoxyCodeLine{2311     \{}
+\DoxyCodeLine{2312         MapperX=mapxL;}
+\DoxyCodeLine{2313         MapperY=mapyL;}
+\DoxyCodeLine{2314     \}}
+\DoxyCodeLine{2315     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{2316     \{}
+\DoxyCodeLine{2317         MapperX=mapxR;}
+\DoxyCodeLine{2318         MapperY=mapyR;}
+\DoxyCodeLine{2319     \}}
+\DoxyCodeLine{2320     distortedPixel.x=MapperX.ptr<\textcolor{keywordtype}{float}>(v)[u];}
+\DoxyCodeLine{2321     distortedPixel.y=MapperY.ptr<\textcolor{keywordtype}{float}>(v)[u];}
+\DoxyCodeLine{2322 }
+\DoxyCodeLine{2323     \textcolor{keywordflow}{return} distortedPixel;}
+\DoxyCodeLine{2324 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ab02e0869a054fe23d2b56def81a1a947}} 
+\index{StereoCamera@{StereoCamera}!getFundamental@{getFundamental}}
+\index{getFundamental@{getFundamental}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getFundamental()}{getFundamental()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Fundamental (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the 3x3 fundamental matrix. 
+
+\begin{DoxyReturn}{Returns}
+3x3 fundamental matrix. 
+\end{DoxyReturn}
+
+
+Definition at line 1495 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1495                                               \{}
+\DoxyCodeLine{1496     \textcolor{keywordflow}{return} this-\/>F;}
+\DoxyCodeLine{1497 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ac0cb76a6994bd7ab915cb02d83cf8f8e}} 
+\index{StereoCamera@{StereoCamera}!getImLeft@{getImLeft}}
+\index{getImLeft@{getImLeft}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getImLeft()}{getImLeft()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Im\+Left (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the left (first) image. 
+
+\begin{DoxyReturn}{Returns}
+the left (first) image. 
+\end{DoxyReturn}
+
+
+Definition at line 523 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{523                                          \{}
+\DoxyCodeLine{524     \textcolor{keywordflow}{return} this-\/>imleft;}
+\DoxyCodeLine{525 \}}
+
+\end{DoxyCode}
+
+
+Referenced by update\+Mappings().
+
+\mbox{\label{classStereoCamera_a52ba4f0331f3690ca0f983b10bd0c783}} 
+\index{StereoCamera@{StereoCamera}!getImLeftUnd@{getImLeftUnd}}
+\index{getImLeftUnd@{getImLeftUnd}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getImLeftUnd()}{getImLeftUnd()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Im\+Left\+Und (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the left undistorted image. 
+
+\begin{DoxyReturn}{Returns}
+the left undistorted image. 
+\end{DoxyReturn}
+
+
+Definition at line 1490 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1490                                             \{}
+\DoxyCodeLine{1491     \textcolor{keywordflow}{return} this-\/>imleftund;}
+\DoxyCodeLine{1492 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ac7930aa4fa0681246e74c08cf4b1079b}} 
+\index{StereoCamera@{StereoCamera}!getImRight@{getImRight}}
+\index{getImRight@{getImRight}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getImRight()}{getImRight()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Im\+Right (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the right (second) image. 
+
+\begin{DoxyReturn}{Returns}
+the right (second) image. 
+\end{DoxyReturn}
+
+
+Definition at line 528 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{528                                           \{}
+\DoxyCodeLine{529     \textcolor{keywordflow}{return} this-\/>imright;}
+\DoxyCodeLine{530 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a19009c20003a5c7e957a4b3c34913fe9}} 
+\index{StereoCamera@{StereoCamera}!getImRightUnd@{getImRightUnd}}
+\index{getImRightUnd@{getImRightUnd}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getImRightUnd()}{getImRightUnd()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Im\+Right\+Und (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the right undistorted image. 
+
+\begin{DoxyReturn}{Returns}
+the right undistorted image. 
+\end{DoxyReturn}
+
+
+Definition at line 1500 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1500                                              \{}
+\DoxyCodeLine{1501     \textcolor{keywordflow}{return} this-\/>imrightund;}
+\DoxyCodeLine{1502 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a932e0ebd63c3e9a93b33c1846459aadc}} 
+\index{StereoCamera@{StereoCamera}!getKleft@{getKleft}}
+\index{getKleft@{getKleft}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getKleft()}{getKleft()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Kleft (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the 3x3 left camera matrix. 
+
+\begin{DoxyReturn}{Returns}
+3x3 left camera matrix. 
+\end{DoxyReturn}
+
+
+Definition at line 96 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{96                                         \{}
+\DoxyCodeLine{97     \textcolor{keywordflow}{return} this-\/>Kleft;}
+\DoxyCodeLine{98 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a6f9e53e949b77cd19e28a4ec92034a3d}} 
+\index{StereoCamera@{StereoCamera}!getKright@{getKright}}
+\index{getKright@{getKright}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getKright()}{getKright()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Kright (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the 3x3 right camera matrix. 
+
+\begin{DoxyReturn}{Returns}
+3x3 right camera matrix. 
+\end{DoxyReturn}
+
+
+Definition at line 101 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{101                                          \{}
+\DoxyCodeLine{102     \textcolor{keywordflow}{return} this-\/>Kright;}
+\DoxyCodeLine{103 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ad81c9f7f4f15ef3f1e61d34fd8df9856}} 
+\index{StereoCamera@{StereoCamera}!getLRectified@{getLRectified}}
+\index{getLRectified@{getLRectified}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getLRectified()}{getLRectified()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+LRectified (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+The method returns the first rectified image. 
+
+\begin{DoxyReturn}{Returns}
+The first rectified image. 
+\end{DoxyReturn}
+
+
+Definition at line 2161 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2162 \{}
+\DoxyCodeLine{2163     \textcolor{keywordflow}{return} this-\/>imgLeftRect;}
+\DoxyCodeLine{2164 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ae1c7ef2cc1a3de5d10c6bb39fbb78719}} 
+\index{StereoCamera@{StereoCamera}!getMapperL@{getMapperL}}
+\index{getMapperL@{getMapperL}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getMapperL()}{getMapperL()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+MapperL (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the mapping between the original left camera and the rectified left camera. 
+
+\begin{DoxyReturn}{Returns}
+a 16 bit signed 2 channel image containing the mapping from the original left camera to the rectified left camera. 
+\end{DoxyReturn}
+
+
+Definition at line 1915 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1915                                           \{}
+\DoxyCodeLine{1916     \textcolor{keywordflow}{return} this-\/>MapperL;}
+\DoxyCodeLine{1917 \}}
+
+\end{DoxyCode}
+
+
+Referenced by metric\+Triangulation().
+
+\mbox{\label{classStereoCamera_ac3f7763fdb6ed57f96924bb0b32b4ea7}} 
+\index{StereoCamera@{StereoCamera}!getMapperR@{getMapperR}}
+\index{getMapperR@{getMapperR}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getMapperR()}{getMapperR()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+MapperR (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the mapping between the original right camera and the rectified right camera. 
+
+\begin{DoxyReturn}{Returns}
+a 16 bit signed 2 channel image containing the mapping from the original right camera to the rectified right camera. 
+\end{DoxyReturn}
+
+
+Definition at line 1920 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1920                                           \{}
+\DoxyCodeLine{1921     \textcolor{keywordflow}{return} this-\/>MapperR;}
+\DoxyCodeLine{1922 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_aa50cb648f92d099e1ffbb7bab57c3fc3}} 
+\index{StereoCamera@{StereoCamera}!getMatchLeft@{getMatchLeft}}
+\index{getMatchLeft@{getMatchLeft}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getMatchLeft()}{getMatchLeft()}}
+{\footnotesize\ttfamily const vector$<$ Point2f $>$ \& Stereo\+Camera\+::get\+Match\+Left (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the pixel coordinates of the matches in the left image. 
+
+\begin{DoxyReturn}{Returns}
+pixel coordinates of the matches in the left image. 
+\end{DoxyReturn}
+
+
+Definition at line 106 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{106                                                         \{}
+\DoxyCodeLine{107     \textcolor{keywordflow}{return} this-\/>InliersL;}
+\DoxyCodeLine{108 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ac8b01bc577cc3de8e7e8bc246d5c50f0}} 
+\index{StereoCamera@{StereoCamera}!getMatchRight@{getMatchRight}}
+\index{getMatchRight@{getMatchRight}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getMatchRight()}{getMatchRight()}}
+{\footnotesize\ttfamily const vector$<$ Point2f $>$ \& Stereo\+Camera\+::get\+Match\+Right (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the pixel coordinates of the matches in the right image. 
+
+\begin{DoxyReturn}{Returns}
+pixel coordinates of the matches in the right image. 
+\end{DoxyReturn}
+
+
+Definition at line 111 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{111                                                          \{}
+\DoxyCodeLine{112     \textcolor{keywordflow}{return} this-\/>InliersR;}
+\DoxyCodeLine{113 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a9f10e66261a0211e5d786abc3df8a70b}} 
+\index{StereoCamera@{StereoCamera}!getQ@{getQ}}
+\index{getQ@{getQ}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getQ()}{getQ()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::getQ (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the 4x4 disparity-\/to-\/depth mapping matrix. 
+
+\begin{DoxyReturn}{Returns}
+4x4 disparity-\/to-\/depth mapping matrix. 
+\end{DoxyReturn}
+
+
+Definition at line 543 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{543                                     \{}
+\DoxyCodeLine{544     \textcolor{keywordflow}{return} this-\/>Q;}
+\DoxyCodeLine{545 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ab3adb747963c617fd2fe1a919b0c59c7}} 
+\index{StereoCamera@{StereoCamera}!getRLrect@{getRLrect}}
+\index{getRLrect@{getRLrect}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getRLrect()}{getRLrect()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+RLrect (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the rotation matrix between the original left camera and the rectified left camera. 
+
+\begin{DoxyReturn}{Returns}
+3x3 rotation matrix between the original left camera and the rectified left camera. 
+\end{DoxyReturn}
+
+
+Definition at line 1905 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1905                                          \{}
+\DoxyCodeLine{1906     \textcolor{keywordflow}{return} this-\/>RLrect;}
+\DoxyCodeLine{1907 \}}
+
+\end{DoxyCode}
+
+
+Referenced by compute\+World\+Image(), metric\+Triangulation(), and triangulate\+Known\+Disparity().
+
+\mbox{\label{classStereoCamera_a08b520f9976fc3213047844fedc02a54}} 
+\index{StereoCamera@{StereoCamera}!getRotation@{getRotation}}
+\index{getRotation@{getRotation}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getRotation()}{getRotation()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Rotation (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the rotation matrix between the two cameras. 
+
+\begin{DoxyReturn}{Returns}
+3x3 rotation matrix between the first and the second camera. 
+\end{DoxyReturn}
+
+
+Definition at line 1596 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1596                                            \{}
+\DoxyCodeLine{1597     \textcolor{keywordflow}{return} this-\/>R;}
+\DoxyCodeLine{1598 \}}
+
+\end{DoxyCode}
+
+
+Referenced by horn().
+
+\mbox{\label{classStereoCamera_aff19b07a766c01d04ed623a05ef4d67d}} 
+\index{StereoCamera@{StereoCamera}!getRRectified@{getRRectified}}
+\index{getRRectified@{getRRectified}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getRRectified()}{getRRectified()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+RRectified (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+The method returns the second rectified image. 
+
+\begin{DoxyReturn}{Returns}
+The second rectified image. 
+\end{DoxyReturn}
+
+
+Definition at line 2167 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2168 \{}
+\DoxyCodeLine{2169     \textcolor{keywordflow}{return} this-\/>imgRightRect;}
+\DoxyCodeLine{2170 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a44e111911af89a299b134fd91b4bc7d6}} 
+\index{StereoCamera@{StereoCamera}!getRRrect@{getRRrect}}
+\index{getRRrect@{getRRrect}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getRRrect()}{getRRrect()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+RRrect (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the rotation matrix between the original right camera and the rectified right camera. 
+
+\begin{DoxyReturn}{Returns}
+3x3 rotation matrix between the original right camera and the rectified right camera. 
+\end{DoxyReturn}
+
+
+Definition at line 1910 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1910                                          \{}
+\DoxyCodeLine{1911     \textcolor{keywordflow}{return} this-\/>RRrect;}
+\DoxyCodeLine{1912 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a3ca6d46fc45835bff5fa0a5753ca40c0}} 
+\index{StereoCamera@{StereoCamera}!getTranslation@{getTranslation}}
+\index{getTranslation@{getTranslation}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{getTranslation()}{getTranslation()}}
+{\footnotesize\ttfamily const Mat \& Stereo\+Camera\+::get\+Translation (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+It returns the translation vector between the two cameras. 
+
+\begin{DoxyReturn}{Returns}
+3x1 translation matrix between the first and the second camera. 
+\end{DoxyReturn}
+
+
+Definition at line 1591 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1591                                               \{}
+\DoxyCodeLine{1592     \textcolor{keywordflow}{return} this-\/>T;}
+\DoxyCodeLine{1593 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_adf155975709fdbf09d3133899d074a02}} 
+\index{StereoCamera@{StereoCamera}!horn@{horn}}
+\index{horn@{horn}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{horn()}{horn()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::horn (\begin{DoxyParamCaption}\item[{Mat \&}]{K1,  }\item[{Mat \&}]{K2,  }\item[{vector$<$ Point2f $>$ \&}]{Points1,  }\item[{vector$<$ Point2f $>$ \&}]{Points2,  }\item[{Mat \&}]{Rot,  }\item[{Mat \&}]{Tras }\end{DoxyParamCaption})}
+
+
+
+It performs the horn relative orientations algorithm i.\+e. 
+
+it estimates the motion from one camera to another one using a initial guess. A good initial guess can be obtained using the essential\+Decomposition method. 
+\begin{DoxyParams}{Parameters}
+{\em K1} & 3x3 matrix with intrinsic parameters of the first camera \\
+\hline
+{\em K2} & 3x3 matrix with intrinsic parameters of the second camera \\
+\hline
+{\em Points1} & matches in the first image \\
+\hline
+{\em Points2} & matches in the second image \\
+\hline
+{\em Rot} & initial rotation (3x3 matrix) guess. The new output rotation is stored here \\
+\hline
+{\em Tras} & initial translation (3x1 matrix) guess. The new output translation is stored here \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1697 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1697                                                                                                                    \{}
+\DoxyCodeLine{1698     \textcolor{keywordtype}{double} prevres = 1E40;}
+\DoxyCodeLine{1699     \textcolor{keywordtype}{double} res = 1E39;}
+\DoxyCodeLine{1700     \textcolor{keywordtype}{double} vanishing = 1E-\/16;}
+\DoxyCodeLine{1701     Tras=Tras/norm(Tras);}
+\DoxyCodeLine{1702 }
+\DoxyCodeLine{1703     normalizePoints(K1,K2,PointsL,PointsR);}
+\DoxyCodeLine{1704     \textcolor{keywordtype}{int} iters=0;}
+\DoxyCodeLine{1705     Mat B(3,3,CV\_64FC1);}
+\DoxyCodeLine{1706     Mat C(3,3,CV\_64FC1);}
+\DoxyCodeLine{1707     Mat D(3,3,CV\_64FC1);}
+\DoxyCodeLine{1708     Mat cs(3,1,CV\_64FC1);}
+\DoxyCodeLine{1709     Mat ds(3,1,CV\_64FC1);}
+\DoxyCodeLine{1710     Mat r1(3,1,CV\_64FC1);}
+\DoxyCodeLine{1711     Mat r2(3,1,CV\_64FC1);}
+\DoxyCodeLine{1712 }
+\DoxyCodeLine{1713     \textcolor{keywordflow}{while} ( (prevres  -\/ res  >  vanishing) ) \{}
+\DoxyCodeLine{1714         iters = iters+1;}
+\DoxyCodeLine{1715 }
+\DoxyCodeLine{1716         B.setTo(0);}
+\DoxyCodeLine{1717         C.setTo(0);}
+\DoxyCodeLine{1718         D.setTo(0);}
+\DoxyCodeLine{1719         cs.setTo(0);}
+\DoxyCodeLine{1720         ds.setTo(0);}
+\DoxyCodeLine{1721 }
+\DoxyCodeLine{1722         prevres=res;}
+\DoxyCodeLine{1723         res=0;}
+\DoxyCodeLine{1724         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=0; i<(int) PointsL.size(); i++) \{}
+\DoxyCodeLine{1725 }
+\DoxyCodeLine{1726             r1.at<\textcolor{keywordtype}{double}>(0,0)=PointsL[i].x;}
+\DoxyCodeLine{1727             r1.at<\textcolor{keywordtype}{double}>(1,0)=PointsL[i].y;}
+\DoxyCodeLine{1728             r1.at<\textcolor{keywordtype}{double}>(2,0)=1;}
+\DoxyCodeLine{1729             r1=r1/norm(r1);}
+\DoxyCodeLine{1730 }
+\DoxyCodeLine{1731             r2.at<\textcolor{keywordtype}{double}>(0,0)=PointsR[i].x;}
+\DoxyCodeLine{1732             r2.at<\textcolor{keywordtype}{double}>(1,0)=PointsR[i].y;}
+\DoxyCodeLine{1733             r2.at<\textcolor{keywordtype}{double}>(2,0)=1;}
+\DoxyCodeLine{1734             r2=r2/norm(r2);}
+\DoxyCodeLine{1735 }
+\DoxyCodeLine{1736 }
+\DoxyCodeLine{1737             Mat r1p= Rot*r1;}
+\DoxyCodeLine{1738 }
+\DoxyCodeLine{1739             Mat ci=r1p.cross(r2);}
+\DoxyCodeLine{1740             Mat di=r1p.cross(r2.cross(Tras));}
+\DoxyCodeLine{1741             Mat si=Tras.t()*ci;}
+\DoxyCodeLine{1742 }
+\DoxyCodeLine{1743 }
+\DoxyCodeLine{1744             B=B+(ci*di.t());}
+\DoxyCodeLine{1745             D=D+(di*di.t());}
+\DoxyCodeLine{1746             C=C+(ci*ci.t());}
+\DoxyCodeLine{1747 }
+\DoxyCodeLine{1748             cs=cs+ (si.at<\textcolor{keywordtype}{double}>(0,0)*ci);}
+\DoxyCodeLine{1749             ds=ds+ (si.at<\textcolor{keywordtype}{double}>(0,0)*di);}
+\DoxyCodeLine{1750 }
+\DoxyCodeLine{1751             Mat residual=Tras.t()*ci*ci.t()*Tras;}
+\DoxyCodeLine{1752             res=res+residual.at<\textcolor{keywordtype}{double}>(0,0);}
+\DoxyCodeLine{1753 }
+\DoxyCodeLine{1754         \}}
+\DoxyCodeLine{1755 }
+\DoxyCodeLine{1756         Mat L(7,7,CV\_64FC1);}
+\DoxyCodeLine{1757         L.setTo(0);}
+\DoxyCodeLine{1758 }
+\DoxyCodeLine{1759         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=0; i<3; i++)}
+\DoxyCodeLine{1760             \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<3; j++)}
+\DoxyCodeLine{1761                 L.at<\textcolor{keywordtype}{double}>(i,j)=C.at<\textcolor{keywordtype}{double}>(i,j);}
+\DoxyCodeLine{1762 }
+\DoxyCodeLine{1763         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=0; i<3; i++)}
+\DoxyCodeLine{1764             \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=3; j<6; j++)}
+\DoxyCodeLine{1765                 L.at<\textcolor{keywordtype}{double}>(i,j)=B.at<\textcolor{keywordtype}{double}>(i,j-\/3);}
+\DoxyCodeLine{1766 }
+\DoxyCodeLine{1767         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=0; i<3; i++)}
+\DoxyCodeLine{1768             L.at<\textcolor{keywordtype}{double}>(i,6)=Tras.at<\textcolor{keywordtype}{double}>(i,0);}
+\DoxyCodeLine{1769 }
+\DoxyCodeLine{1770 }
+\DoxyCodeLine{1771         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=3; i<6; i++)}
+\DoxyCodeLine{1772             \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<3; j++) \{}
+\DoxyCodeLine{1773                 Mat Bt=B.t();}
+\DoxyCodeLine{1774                 L.at<\textcolor{keywordtype}{double}>(i,j)=Bt.at<\textcolor{keywordtype}{double}>(i-\/3,j);}
+\DoxyCodeLine{1775 }
+\DoxyCodeLine{1776             \}}
+\DoxyCodeLine{1777 }
+\DoxyCodeLine{1778 }
+\DoxyCodeLine{1779         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i=3; i<6; i++)}
+\DoxyCodeLine{1780             \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=3; j<6; j++)}
+\DoxyCodeLine{1781                 L.at<\textcolor{keywordtype}{double}>(i,j)=D.at<\textcolor{keywordtype}{double}>(i-\/3,j-\/3);}
+\DoxyCodeLine{1782 }
+\DoxyCodeLine{1783         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<3; j++) \{}
+\DoxyCodeLine{1784             Mat Trast=Tras.t();}
+\DoxyCodeLine{1785             L.at<\textcolor{keywordtype}{double}>(6,j)=Trast.at<\textcolor{keywordtype}{double}>(0,j);}
+\DoxyCodeLine{1786         \}}
+\DoxyCodeLine{1787 }
+\DoxyCodeLine{1788 }
+\DoxyCodeLine{1789         Mat Y(7,1,CV\_64FC1);}
+\DoxyCodeLine{1790         Y.setTo(0);}
+\DoxyCodeLine{1791 }
+\DoxyCodeLine{1792         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<3; j++)}
+\DoxyCodeLine{1793             Y.at<\textcolor{keywordtype}{double}>(j,0)=-\/cs.at<\textcolor{keywordtype}{double}>(j,0);}
+\DoxyCodeLine{1794 }
+\DoxyCodeLine{1795         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=3; j<6; j++)}
+\DoxyCodeLine{1796             Y.at<\textcolor{keywordtype}{double}>(j,0)=-\/ds.at<\textcolor{keywordtype}{double}>(j-\/3,0);}
+\DoxyCodeLine{1797 }
+\DoxyCodeLine{1798         Mat Linv=L.inv();}
+\DoxyCodeLine{1799         Mat result=Linv*Y;}
+\DoxyCodeLine{1800         Tras=Tras+result(Range(0,3),Range(0,1));}
+\DoxyCodeLine{1801         Tras=Tras/norm(Tras);}
+\DoxyCodeLine{1802 }
+\DoxyCodeLine{1803         Mat q(4,1,CV\_64FC1);}
+\DoxyCodeLine{1804 }
+\DoxyCodeLine{1805         Mat temp=result(Range(3,6),Range(0,1));}
+\DoxyCodeLine{1806         q.at<\textcolor{keywordtype}{double}>(0,0)= sqrt(1-\/(0.25* norm(temp)*norm(temp)));}
+\DoxyCodeLine{1807         q.at<\textcolor{keywordtype}{double}>(1,0)= 0.5*result.at<\textcolor{keywordtype}{double}>(3,0);}
+\DoxyCodeLine{1808         q.at<\textcolor{keywordtype}{double}>(2,0)= 0.5*result.at<\textcolor{keywordtype}{double}>(4,0);}
+\DoxyCodeLine{1809         q.at<\textcolor{keywordtype}{double}>(3,0)= 0.5*result.at<\textcolor{keywordtype}{double}>(5,0);}
+\DoxyCodeLine{1810 }
+\DoxyCodeLine{1811 }
+\DoxyCodeLine{1812         Mat deltaR(3,3,CV\_64FC1);}
+\DoxyCodeLine{1813         getRotation(q,deltaR);}
+\DoxyCodeLine{1814 }
+\DoxyCodeLine{1815         Rot=deltaR*Rot;}
+\DoxyCodeLine{1816 }
+\DoxyCodeLine{1817         SVD dec(Rot);}
+\DoxyCodeLine{1818 }
+\DoxyCodeLine{1819         Mat Id = Mat::eye(3, 3, CV\_64F);}
+\DoxyCodeLine{1820 }
+\DoxyCodeLine{1821         Mat Vt=dec.vt;}
+\DoxyCodeLine{1822         Mat U=dec.u;}
+\DoxyCodeLine{1823 }
+\DoxyCodeLine{1824         Rot=U*Id*Vt;}
+\DoxyCodeLine{1825     \}}
+\DoxyCodeLine{1826 }
+\DoxyCodeLine{1827 }
+\DoxyCodeLine{1828 }
+\DoxyCodeLine{1829 \}}
+
+\end{DoxyCode}
+
+
+References get\+Rotation().
+
+
+
+Referenced by horn\+Relative\+Orientations().
+
+\mbox{\label{classStereoCamera_a36dae897d07544e8faca8c90216173a6}} 
+\index{StereoCamera@{StereoCamera}!hornRelativeOrientations@{hornRelativeOrientations}}
+\index{hornRelativeOrientations@{hornRelativeOrientations}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{hornRelativeOrientations()}{hornRelativeOrientations()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::horn\+Relative\+Orientations (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+It performs the horn relative orientations, all the parameters are assumed initialized in the \mbox{\hyperlink{classStereoCamera}{Stereo\+Camera}} object. 
+
+The new output Rotation and Translation matrices are stored in the R and T members. 
+
+Definition at line 1635 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1635                                             \{}
+\DoxyCodeLine{1636 }
+\DoxyCodeLine{1637     \textcolor{keywordflow}{if}(this-\/>PointsL.size()<10 || this-\/>PointsR.size()<10) \{}
+\DoxyCodeLine{1638         cout << \textcolor{stringliteral}{"{}No matches found! Run findMatch fist!"{}} << endl;}
+\DoxyCodeLine{1639         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1640     \}}
+\DoxyCodeLine{1641 }
+\DoxyCodeLine{1642 }
+\DoxyCodeLine{1643     \textcolor{keywordflow}{if}(this-\/>Kleft.empty() || this-\/>Kright.empty() || this-\/>R.empty() || this-\/>T.empty()) \{}
+\DoxyCodeLine{1644         cout << \textcolor{stringliteral}{"{}Cameras are empty, run Calibration first"{}} << endl;}
+\DoxyCodeLine{1645         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1646     \}}
+\DoxyCodeLine{1647 }
+\DoxyCodeLine{1648     \textcolor{keywordflow}{if}(InliersL.empty()) \{}
+\DoxyCodeLine{1649         InliersL=PointsL;}
+\DoxyCodeLine{1650         InliersR=PointsR;}
+\DoxyCodeLine{1651     \}}
+\DoxyCodeLine{1652 }
+\DoxyCodeLine{1653     Mat Rot=this-\/>R.clone();}
+\DoxyCodeLine{1654     Mat Tras=this-\/>T.clone();}
+\DoxyCodeLine{1655     horn(this-\/>Kleft,this-\/>Kright,this-\/>InliersL,this-\/>InliersR,Rot,Tras);}
+\DoxyCodeLine{1656 }
+\DoxyCodeLine{1657 }
+\DoxyCodeLine{1658     this-\/>R=Rot.clone();}
+\DoxyCodeLine{1659     this-\/>Rinit=Rot.clone();}
+\DoxyCodeLine{1660 }
+\DoxyCodeLine{1661     this-\/>T=Tras/norm(Tras)*norm(T);}
+\DoxyCodeLine{1662     this-\/>Tinit=Tras/norm(Tras)*norm(Tinit);}
+\DoxyCodeLine{1663 }
+\DoxyCodeLine{1664     this-\/>updatePMatrix();}
+\DoxyCodeLine{1665 \}}
+
+\end{DoxyCode}
+
+
+References horn().
+
+\mbox{\label{classStereoCamera_a067e1e94a48cb390491fea0f6748dda8}} 
+\index{StereoCamera@{StereoCamera}!initELAS@{initELAS}}
+\index{initELAS@{initELAS}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{initELAS()}{initELAS()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::init\+ELAS (\begin{DoxyParamCaption}\item[{yarp\+::os\+::\+Resource\+Finder \&}]{rf }\end{DoxyParamCaption})}
+
+
+
+Initialization of ELAS parameters. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em rf} & The Resource\+Finder mechanism is used to set the parameters either to the default value or to the value passed by the user via command line. See the documentation of the \mbox{\hyperlink{group__SFM}{SFM}} module to get the list of parameters that are processed by this initialization function. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 164 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{165 \{}
+\DoxyCodeLine{166     use\_elas = \textcolor{keyword}{true};}
+\DoxyCodeLine{167 }
+\DoxyCodeLine{168     \textcolor{keywordtype}{string} elas\_string = rf.check(\textcolor{stringliteral}{"{}elas\_setting"{}},Value(\textcolor{stringliteral}{"{}ROBOTICS"{}})).asString();}
+\DoxyCodeLine{169 }
+\DoxyCodeLine{170     \textcolor{keywordtype}{double} disp\_scaling\_factor = rf.check(\textcolor{stringliteral}{"{}disp\_scaling\_factor"{}},Value(1.0)).asFloat64();}
+\DoxyCodeLine{171 }
+\DoxyCodeLine{172     elaswrap = \textcolor{keyword}{new} elasWrapper(disp\_scaling\_factor, elas\_string);}
+\DoxyCodeLine{173 }
+\DoxyCodeLine{174 }
+\DoxyCodeLine{175     \textcolor{keywordflow}{if} (rf.check(\textcolor{stringliteral}{"{}elas\_subsampling"{}}))}
+\DoxyCodeLine{176         elaswrap-\/>set\_subsampling(\textcolor{keyword}{true});}
+\DoxyCodeLine{177 }
+\DoxyCodeLine{178     \textcolor{keywordflow}{if} (rf.check(\textcolor{stringliteral}{"{}elas\_add\_corners"{}}))}
+\DoxyCodeLine{179         elaswrap-\/>set\_add\_corners(\textcolor{keyword}{true});}
+\DoxyCodeLine{180 }
+\DoxyCodeLine{181 }
+\DoxyCodeLine{182     elaswrap-\/>set\_ipol\_gap\_width(40);}
+\DoxyCodeLine{183     \textcolor{keywordflow}{if} (rf.check(\textcolor{stringliteral}{"{}elas\_ipol\_gap\_width"{}}))}
+\DoxyCodeLine{184         elaswrap-\/>set\_ipol\_gap\_width(rf.find(\textcolor{stringliteral}{"{}elas\_ipol\_gap\_width"{}}).asInt32());}
+\DoxyCodeLine{185 }
+\DoxyCodeLine{186 }
+\DoxyCodeLine{187     \textcolor{keywordflow}{if} (rf.check(\textcolor{stringliteral}{"{}elas\_support\_threshold"{}}))}
+\DoxyCodeLine{188         elaswrap-\/>set\_support\_threshold(rf.find(\textcolor{stringliteral}{"{}elas\_support\_threshold"{}}).asFloat64());}
+\DoxyCodeLine{189 }
+\DoxyCodeLine{190     \textcolor{keywordflow}{if}(rf.check(\textcolor{stringliteral}{"{}elas\_gamma"{}}))}
+\DoxyCodeLine{191         elaswrap-\/>set\_gamma(rf.find(\textcolor{stringliteral}{"{}elas\_gamma"{}}).asFloat64());}
+\DoxyCodeLine{192 }
+\DoxyCodeLine{193     \textcolor{keywordflow}{if} (rf.check(\textcolor{stringliteral}{"{}elas\_sradius"{}}))}
+\DoxyCodeLine{194         elaswrap-\/>set\_sradius(rf.find(\textcolor{stringliteral}{"{}elas\_sradius"{}}).asFloat64());}
+\DoxyCodeLine{195 }
+\DoxyCodeLine{196     \textcolor{keywordflow}{if} (rf.check(\textcolor{stringliteral}{"{}elas\_match\_texture"{}}))}
+\DoxyCodeLine{197         elaswrap-\/>set\_match\_texture(rf.find(\textcolor{stringliteral}{"{}elas\_match\_texture"{}}).asInt32());}
+\DoxyCodeLine{198 }
+\DoxyCodeLine{199     \textcolor{keywordflow}{if} (rf.check(\textcolor{stringliteral}{"{}elas\_filter\_median"{}}))}
+\DoxyCodeLine{200         elaswrap-\/>set\_filter\_median(rf.find(\textcolor{stringliteral}{"{}elas\_filter\_median"{}}).asBool());}
+\DoxyCodeLine{201 }
+\DoxyCodeLine{202     \textcolor{keywordflow}{if} (rf.check(\textcolor{stringliteral}{"{}elas\_filter\_adaptive\_mean"{}}))}
+\DoxyCodeLine{203         elaswrap-\/>set\_filter\_adaptive\_mean(rf.find(\textcolor{stringliteral}{"{}elas\_filter\_adaptive\_mean"{}}).asBool());}
+\DoxyCodeLine{204 }
+\DoxyCodeLine{205     cout << endl << \textcolor{stringliteral}{"{}ELAS parameters:"{}} << endl << endl;}
+\DoxyCodeLine{206 }
+\DoxyCodeLine{207     cout << \textcolor{stringliteral}{"{}disp\_scaling\_factor: "{}} << disp\_scaling\_factor << endl;}
+\DoxyCodeLine{208 }
+\DoxyCodeLine{209     cout << \textcolor{stringliteral}{"{}setting: "{}} << elas\_string << endl;}
+\DoxyCodeLine{210 }
+\DoxyCodeLine{211     cout << \textcolor{stringliteral}{"{}postprocess\_only\_left: "{}} << elaswrap-\/>get\_postprocess\_only\_left() << endl;}
+\DoxyCodeLine{212     cout << \textcolor{stringliteral}{"{}subsampling: "{}} << elaswrap-\/>get\_subsampling() << endl;}
+\DoxyCodeLine{213 }
+\DoxyCodeLine{214     cout << \textcolor{stringliteral}{"{}add\_corners: "{}} << elaswrap-\/>get\_add\_corners() << endl;}
+\DoxyCodeLine{215 }
+\DoxyCodeLine{216     cout << \textcolor{stringliteral}{"{}ipol\_gap\_width: "{}} << elaswrap-\/>get\_ipol\_gap\_width() << endl;}
+\DoxyCodeLine{217 }
+\DoxyCodeLine{218     cout << \textcolor{stringliteral}{"{}support\_threshold: "{}} << elaswrap-\/>get\_support\_threshold() << endl;}
+\DoxyCodeLine{219     cout << \textcolor{stringliteral}{"{}gamma: "{}} << elaswrap-\/>get\_gamma() << endl;}
+\DoxyCodeLine{220     cout << \textcolor{stringliteral}{"{}sradius: "{}} << elaswrap-\/>get\_sradius() << endl;}
+\DoxyCodeLine{221 }
+\DoxyCodeLine{222     cout << \textcolor{stringliteral}{"{}match\_texture: "{}} << elaswrap-\/>get\_match\_texture() << endl;}
+\DoxyCodeLine{223 }
+\DoxyCodeLine{224     cout << \textcolor{stringliteral}{"{}filter\_median: "{}} << elaswrap-\/>get\_filter\_median() << endl;}
+\DoxyCodeLine{225     cout << \textcolor{stringliteral}{"{}filter\_adaptive\_mean: "{}} << elaswrap-\/>get\_filter\_adaptive\_mean() << endl;}
+\DoxyCodeLine{226 }
+\DoxyCodeLine{227     cout << endl;}
+\DoxyCodeLine{228 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a2fcd3e1767bcf04716b0e2ac76098430}} 
+\index{StereoCamera@{StereoCamera}!metricTriangulation@{metricTriangulation}}
+\index{metricTriangulation@{metricTriangulation}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{metricTriangulation()}{metricTriangulation()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Point3f Stereo\+Camera\+::metric\+Triangulation (\begin{DoxyParamCaption}\item[{Point2f \&}]{point1,  }\item[{double}]{th\+Meters = {\ttfamily 10} }\end{DoxyParamCaption})}
+
+
+
+It performs the metric triangulation given the pixel coordinates on the first image. 
+
+Run compute disparity before using this method. 
+\begin{DoxyParams}{Parameters}
+{\em point1} & the pixel coordinates in the first image. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a metric 3D point w.\+r.\+t. the first camera reference system. 
+\end{DoxyReturn}
+
+
+Definition at line 1954 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1954                                                                           \{}
+\DoxyCodeLine{1955     lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{1956 }
+\DoxyCodeLine{1957     \textcolor{keywordflow}{if}(Q.empty() || Disparity16.empty()) \{}
+\DoxyCodeLine{1958         cout << \textcolor{stringliteral}{"{}Run computeDisparity() method first!"{}} << endl;}
+\DoxyCodeLine{1959         Point3f point;}
+\DoxyCodeLine{1960         point.x=0.0;}
+\DoxyCodeLine{1961         point.y=0.0;}
+\DoxyCodeLine{1962         point.z=0.0;}
+\DoxyCodeLine{1963         \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{1964     \}}
+\DoxyCodeLine{1965 }
+\DoxyCodeLine{1966     \textcolor{keywordtype}{int} u=(int) point1.x;}
+\DoxyCodeLine{1967     \textcolor{keywordtype}{int} v=(\textcolor{keywordtype}{int}) point1.y;}
+\DoxyCodeLine{1968     Point3f point;}
+\DoxyCodeLine{1969 }
+\DoxyCodeLine{1970     \textcolor{comment}{// Mapping from Rectified Cameras to Original Cameras}}
+\DoxyCodeLine{1971     Mat Mapper=this-\/>getMapperL();}
+\DoxyCodeLine{1972 }
+\DoxyCodeLine{1973     \textcolor{keywordflow}{if}(Mapper.empty()) \{}
+\DoxyCodeLine{1974         point.x=0.0;}
+\DoxyCodeLine{1975         point.y=0.0;}
+\DoxyCodeLine{1976         point.z=0.0;}
+\DoxyCodeLine{1977         \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{1978     \}}
+\DoxyCodeLine{1979 }
+\DoxyCodeLine{1980     \textcolor{keywordtype}{float} usign=Mapper.ptr<\textcolor{keywordtype}{float}>(v)[2*u];}
+\DoxyCodeLine{1981     \textcolor{keywordtype}{float} vsign=Mapper.ptr<\textcolor{keywordtype}{float}>(v)[2*u+1];}
+\DoxyCodeLine{1982 }
+\DoxyCodeLine{1983     u=cvRound(usign);}
+\DoxyCodeLine{1984     v=cvRound(vsign);}
+\DoxyCodeLine{1985 }
+\DoxyCodeLine{1986     \textcolor{keyword}{const} cv::Mat\& disp16=this-\/>getDisparity16();}
+\DoxyCodeLine{1987 }
+\DoxyCodeLine{1988     \textcolor{keywordflow}{if}(u<0 || u>=disp16.size().width || v<0 || v>=disp16.size().height) \{}
+\DoxyCodeLine{1989         point.x=0.0;}
+\DoxyCodeLine{1990         point.y=0.0;}
+\DoxyCodeLine{1991         point.z=0.0;}
+\DoxyCodeLine{1992         \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{1993     \}}
+\DoxyCodeLine{1994 }
+\DoxyCodeLine{1995     CvScalar scal=cvGet2D(\&disp16,v,u);}
+\DoxyCodeLine{1996     \textcolor{keywordtype}{double} disparity=scal.val[0]/16.0;}
+\DoxyCodeLine{1997     \textcolor{keywordtype}{float} w= (float) ((\textcolor{keywordtype}{float}) disparity*Q.at<\textcolor{keywordtype}{double}>(3,2)) + ((float)Q.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{1998     point.x= (float)((\textcolor{keywordtype}{float}) (usign+1)*Q.at<\textcolor{keywordtype}{double}>(0,0)) + ((\textcolor{keywordtype}{float}) Q.at<\textcolor{keywordtype}{double}>(0,3));}
+\DoxyCodeLine{1999     point.y=(float)((\textcolor{keywordtype}{float}) (vsign+1)*Q.at<\textcolor{keywordtype}{double}>(1,1)) + ((\textcolor{keywordtype}{float}) Q.at<\textcolor{keywordtype}{double}>(1,3));}
+\DoxyCodeLine{2000     point.z=(float) Q.at<\textcolor{keywordtype}{double}>(2,3);}
+\DoxyCodeLine{2001 }
+\DoxyCodeLine{2002     point.x=point.x/w;}
+\DoxyCodeLine{2003     point.y=point.y/w;}
+\DoxyCodeLine{2004     point.z=point.z/w;}
+\DoxyCodeLine{2005 }
+\DoxyCodeLine{2006     \textcolor{comment}{// discard points far more than thMeters meters or with not valid disparity (<0)}}
+\DoxyCodeLine{2007     \textcolor{keywordflow}{if}(point.z>thMeters || point.z<0) \{}
+\DoxyCodeLine{2008         point.x=0.0;}
+\DoxyCodeLine{2009         point.y=0.0;}
+\DoxyCodeLine{2010         point.z=0.0;}
+\DoxyCodeLine{2011     \}}
+\DoxyCodeLine{2012     \textcolor{keywordflow}{else} \{}
+\DoxyCodeLine{2013         Mat P(3,1,CV\_64FC1);}
+\DoxyCodeLine{2014         P.at<\textcolor{keywordtype}{double}>(0,0)=point.x;}
+\DoxyCodeLine{2015         P.at<\textcolor{keywordtype}{double}>(1,0)=point.y;}
+\DoxyCodeLine{2016         P.at<\textcolor{keywordtype}{double}>(2,0)=point.z;}
+\DoxyCodeLine{2017 }
+\DoxyCodeLine{2018         \textcolor{comment}{// Rototranslation from rectified camera to original camera}}
+\DoxyCodeLine{2019         P=this-\/>getRLrect().t()*P;}
+\DoxyCodeLine{2020 }
+\DoxyCodeLine{2021         point.x=(float) P.at<\textcolor{keywordtype}{double}>(0,0);}
+\DoxyCodeLine{2022         point.y=(float) P.at<\textcolor{keywordtype}{double}>(1,0);}
+\DoxyCodeLine{2023         point.z=(float) P.at<\textcolor{keywordtype}{double}>(2,0);}
+\DoxyCodeLine{2024     \}}
+\DoxyCodeLine{2025 }
+\DoxyCodeLine{2026     \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{2027 \}}
+
+\end{DoxyCode}
+
+
+References get\+Disparity16(), and get\+Mapper\+L().
+
+\mbox{\label{classStereoCamera_a3cf53fac6336eea107a26bd5cdbbdd03}} 
+\index{StereoCamera@{StereoCamera}!metricTriangulation@{metricTriangulation}}
+\index{metricTriangulation@{metricTriangulation}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{metricTriangulation()}{metricTriangulation()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily Point3f Stereo\+Camera\+::metric\+Triangulation (\begin{DoxyParamCaption}\item[{Point2f \&}]{point1,  }\item[{Mat \&}]{H,  }\item[{double}]{th\+Meters = {\ttfamily 10} }\end{DoxyParamCaption})}
+
+
+
+It performs the metric triangulation given the pixel coordinates on the first image. 
+
+The 3D Point is w.\+r.\+t the system defined by the parameter H. Run compute disparity before using this method. 
+\begin{DoxyParams}{Parameters}
+{\em point1} & the pixel coordinates in the first image. \\
+\hline
+{\em H} & the 4x4 rototranslation matrix of the system. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a metric 3D point w.\+r.\+t. the reference system defined by H. 
+\end{DoxyReturn}
+
+
+Definition at line 2030 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2030                                                                                   \{}
+\DoxyCodeLine{2031     lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{2032 }
+\DoxyCodeLine{2033     \textcolor{keywordflow}{if}(H.empty())}
+\DoxyCodeLine{2034         H=H.eye(4,4,CV\_64FC1);}
+\DoxyCodeLine{2035 }
+\DoxyCodeLine{2036     \textcolor{keywordflow}{if}(Q.empty() || Disparity16.empty()) \{}
+\DoxyCodeLine{2037         cout << \textcolor{stringliteral}{"{}Run computeDisparity() method first!"{}} << endl;}
+\DoxyCodeLine{2038         Point3f point;}
+\DoxyCodeLine{2039         point.x=0.0;}
+\DoxyCodeLine{2040         point.y=0.0;}
+\DoxyCodeLine{2041         point.z=0.0;}
+\DoxyCodeLine{2042         \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{2043     \}}
+\DoxyCodeLine{2044 }
+\DoxyCodeLine{2045     \textcolor{keywordtype}{int} u=(int) point1.x; \textcolor{comment}{// matrix starts from (0,0), pixels from (1,1)}}
+\DoxyCodeLine{2046     \textcolor{keywordtype}{int} v=(\textcolor{keywordtype}{int}) point1.y;}
+\DoxyCodeLine{2047     Point3f point;}
+\DoxyCodeLine{2048 }
+\DoxyCodeLine{2049 }
+\DoxyCodeLine{2050     \textcolor{comment}{// Mapping from Rectified Cameras to Original Cameras}}
+\DoxyCodeLine{2051     Mat Mapper=this-\/>getMapperL();}
+\DoxyCodeLine{2052 }
+\DoxyCodeLine{2053     \textcolor{keywordflow}{if}(Mapper.empty()) \{}
+\DoxyCodeLine{2054         point.x=0.0;}
+\DoxyCodeLine{2055         point.y=0.0;}
+\DoxyCodeLine{2056         point.z=0.0;}
+\DoxyCodeLine{2057         \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{2058     \}}
+\DoxyCodeLine{2059 }
+\DoxyCodeLine{2060     \textcolor{keywordtype}{float} usign=Mapper.ptr<\textcolor{keywordtype}{float}>(v)[2*u];}
+\DoxyCodeLine{2061     \textcolor{keywordtype}{float} vsign=Mapper.ptr<\textcolor{keywordtype}{float}>(v)[2*u+1];}
+\DoxyCodeLine{2062 }
+\DoxyCodeLine{2063     u=cvRound(usign);}
+\DoxyCodeLine{2064     v=cvRound(vsign);}
+\DoxyCodeLine{2065 }
+\DoxyCodeLine{2066     \textcolor{keyword}{const} cv::Mat\& disp16=this-\/>getDisparity16();}
+\DoxyCodeLine{2067 }
+\DoxyCodeLine{2068     \textcolor{keywordflow}{if}(u<0 || u>=disp16.size().width || v<0 || v>=disp16.size().height) \{}
+\DoxyCodeLine{2069         point.x=0.0;}
+\DoxyCodeLine{2070         point.y=0.0;}
+\DoxyCodeLine{2071         point.z=0.0;}
+\DoxyCodeLine{2072         \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{2073     \}}
+\DoxyCodeLine{2074 }
+\DoxyCodeLine{2075     CvScalar scal=cvGet2D(\&disp16,v,u);}
+\DoxyCodeLine{2076     \textcolor{keywordtype}{double} disparity=scal.val[0]/16.0;}
+\DoxyCodeLine{2077     \textcolor{keywordtype}{float} w= (float) ((\textcolor{keywordtype}{float}) disparity*Q.at<\textcolor{keywordtype}{double}>(3,2)) + ((float)Q.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{2078     point.x= (float)((\textcolor{keywordtype}{float}) (usign+1)*Q.at<\textcolor{keywordtype}{double}>(0,0)) + ((\textcolor{keywordtype}{float}) Q.at<\textcolor{keywordtype}{double}>(0,3));}
+\DoxyCodeLine{2079     point.y=(float)((\textcolor{keywordtype}{float}) (vsign+1)*Q.at<\textcolor{keywordtype}{double}>(1,1)) + ((\textcolor{keywordtype}{float}) Q.at<\textcolor{keywordtype}{double}>(1,3));}
+\DoxyCodeLine{2080     point.z=(float) Q.at<\textcolor{keywordtype}{double}>(2,3);}
+\DoxyCodeLine{2081 }
+\DoxyCodeLine{2082     point.x=point.x/w;}
+\DoxyCodeLine{2083     point.y=point.y/w;}
+\DoxyCodeLine{2084     point.z=point.z/w;}
+\DoxyCodeLine{2085 }
+\DoxyCodeLine{2086     \textcolor{comment}{// discard points far more than thMeters meters or with not valid disparity (<0)}}
+\DoxyCodeLine{2087     \textcolor{keywordflow}{if}(point.z>thMeters || point.z<0) \{}
+\DoxyCodeLine{2088         point.x=0.0;}
+\DoxyCodeLine{2089         point.y=0.0;}
+\DoxyCodeLine{2090         point.z=0.0;}
+\DoxyCodeLine{2091         \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{2092     \}}
+\DoxyCodeLine{2093 }
+\DoxyCodeLine{2094     Mat RLrectTmp=this-\/>getRLrect().t();}
+\DoxyCodeLine{2095     Mat Tfake = Mat::zeros(0,3,CV\_64F);}
+\DoxyCodeLine{2096     Mat P(4,1,CV\_64FC1);}
+\DoxyCodeLine{2097     P.at<\textcolor{keywordtype}{double}>(0,0)=point.x;}
+\DoxyCodeLine{2098     P.at<\textcolor{keywordtype}{double}>(1,0)=point.y;}
+\DoxyCodeLine{2099     P.at<\textcolor{keywordtype}{double}>(2,0)=point.z;}
+\DoxyCodeLine{2100     P.at<\textcolor{keywordtype}{double}>(3,0)=1;}
+\DoxyCodeLine{2101 }
+\DoxyCodeLine{2102     Mat Hrect=buildRotTras(RLrectTmp,Tfake);}
+\DoxyCodeLine{2103     P=H*Hrect*P;}
+\DoxyCodeLine{2104 }
+\DoxyCodeLine{2105     point.x=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(0,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2106     point.y=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(1,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2107     point.z=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(2,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2108 }
+\DoxyCodeLine{2109     \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{2110 \}}
+
+\end{DoxyCode}
+
+
+References get\+Disparity16(), get\+Mapper\+L(), and get\+RLrect().
+
+\mbox{\label{classStereoCamera_a03406c9d31c1b765a8d6ef9641222309}} 
+\index{StereoCamera@{StereoCamera}!projectPoints3D@{projectPoints3D}}
+\index{projectPoints3D@{projectPoints3D}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{projectPoints3D()}{projectPoints3D()}}
+{\footnotesize\ttfamily vector$<$ Point2f $>$ Stereo\+Camera\+::project\+Points3D (\begin{DoxyParamCaption}\item[{string}]{camera,  }\item[{vector$<$ Point3f $>$ \&}]{points3D,  }\item[{Mat \&}]{H }\end{DoxyParamCaption})}
+
+
+
+The method returns the 2D projection of a set of 3D points in the cartesian space to the specified camera. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em camera} & \char`\"{}left\char`\"{} or \char`\"{}right\char`\"{} camera \\
+\hline
+{\em point3D} & the list of the 3D position in the reference frame H \\
+\hline
+{\em H} & the transformation from the camera reference system to the H reference system \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The 2D positions. 
+\end{DoxyReturn}
+
+
+Definition at line 2173 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2174 \{}
+\DoxyCodeLine{2175     vector<Point2f> points2D;}
+\DoxyCodeLine{2176 }
+\DoxyCodeLine{2177     \textcolor{keywordflow}{if}(this-\/>Kleft.empty() || this-\/>DistL.empty() || this-\/>Kright.empty() || this-\/>DistR.empty()) \{}
+\DoxyCodeLine{2178         cout <<\textcolor{stringliteral}{"{} Cameras are not calibrated! Run the Calibration first!"{}} << endl;}
+\DoxyCodeLine{2179         \textcolor{keywordflow}{return} points2D;}
+\DoxyCodeLine{2180     \}}
+\DoxyCodeLine{2181 }
+\DoxyCodeLine{2182     \textcolor{keywordflow}{if}(H.empty())}
+\DoxyCodeLine{2183         H=H.eye(4,4,CV\_64FC1);}
+\DoxyCodeLine{2184 }
+\DoxyCodeLine{2185     lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{2186     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i=0; i<points3D.size(); i++)}
+\DoxyCodeLine{2187     \{}
+\DoxyCodeLine{2188         \textcolor{comment}{// Apply inverse Trasformation for each point}}
+\DoxyCodeLine{2189         Point3f point=points3D[i];}
+\DoxyCodeLine{2190         Mat P(4,1,CV\_64FC1);}
+\DoxyCodeLine{2191         P.at<\textcolor{keywordtype}{double}>(0,0)=point.x;}
+\DoxyCodeLine{2192         P.at<\textcolor{keywordtype}{double}>(1,0)=point.y;}
+\DoxyCodeLine{2193         P.at<\textcolor{keywordtype}{double}>(2,0)=point.z;}
+\DoxyCodeLine{2194         P.at<\textcolor{keywordtype}{double}>(3,0)=1;}
+\DoxyCodeLine{2195 }
+\DoxyCodeLine{2196         P=H.inv()*P;}
+\DoxyCodeLine{2197 }
+\DoxyCodeLine{2198         point.x=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(0,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2199         point.y=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(1,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2200         point.z=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(2,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2201 }
+\DoxyCodeLine{2202         points3D[i]=point;}
+\DoxyCodeLine{2203     \}}
+\DoxyCodeLine{2204 }
+\DoxyCodeLine{2205     Mat cameraMatrix, distCoeff, rvec, tvec;}
+\DoxyCodeLine{2206     rvec=Mat::zeros(3,1,CV\_64FC1);}
+\DoxyCodeLine{2207 }
+\DoxyCodeLine{2208     \textcolor{keywordflow}{if}(camera==\textcolor{stringliteral}{"{}left"{}})}
+\DoxyCodeLine{2209     \{}
+\DoxyCodeLine{2210         cameraMatrix=this-\/>Kleft;}
+\DoxyCodeLine{2211         distCoeff=this-\/>DistL;}
+\DoxyCodeLine{2212         Mat R2= Mat::eye(3,3,CV\_64FC1);}
+\DoxyCodeLine{2213         Rodrigues(R2,rvec);}
+\DoxyCodeLine{2214         tvec=Mat::zeros(3,1,CV\_64FC1);}
+\DoxyCodeLine{2215     \}}
+\DoxyCodeLine{2216     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{2217     \{}
+\DoxyCodeLine{2218         cameraMatrix=this-\/>Kright;}
+\DoxyCodeLine{2219         distCoeff=this-\/>DistR;}
+\DoxyCodeLine{2220         Mat R2= this-\/>R;}
+\DoxyCodeLine{2221         Rodrigues(R2,rvec);}
+\DoxyCodeLine{2222         tvec=this-\/>T;}
+\DoxyCodeLine{2223     \}}
+\DoxyCodeLine{2224 }
+\DoxyCodeLine{2225     Mat points3Mat(points3D);}
+\DoxyCodeLine{2226     projectPoints(points3Mat,rvec,tvec,cameraMatrix,distCoeff,points2D);}
+\DoxyCodeLine{2227     \textcolor{keywordflow}{return} points2D;}
+\DoxyCodeLine{2228 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ae5ac866c6d4b6c4819b01a918e7b61e0}} 
+\index{StereoCamera@{StereoCamera}!rectifyImages@{rectifyImages}}
+\index{rectifyImages@{rectifyImages}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{rectifyImages()}{rectifyImages()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::rectify\+Images (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+The method rectifies the two images\+: it transform each image plane such that pairs conjugate epipolar lines become collinear and parallel to one of the image axes (i.\+e. 
+
+there is 0 disparity on the Y axis). 
+
+Definition at line 548 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{549 \{}
+\DoxyCodeLine{550     \textcolor{keywordflow}{if}(this-\/>Kleft.empty() || this-\/>DistL.empty() || this-\/>Kright.empty() || this-\/>DistR.empty()) \{}
+\DoxyCodeLine{551         cout <<\textcolor{stringliteral}{"{} Cameras are not calibrated! Run the Calibration first!"{}} << endl;}
+\DoxyCodeLine{552         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{553     \}}
+\DoxyCodeLine{554     \textcolor{keywordflow}{if}(this-\/>imleft.empty() || this-\/>imright.empty()) \{}
+\DoxyCodeLine{555         cout << \textcolor{stringliteral}{"{}Images are not set! set the images first!"{}} << endl;}
+\DoxyCodeLine{556         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{557     \}}
+\DoxyCodeLine{558 }
+\DoxyCodeLine{559     Size img\_size = this-\/>imleft.size();}
+\DoxyCodeLine{560 }
+\DoxyCodeLine{561     \textcolor{keywordflow}{if}(cameraChanged)}
+\DoxyCodeLine{562     \{}
+\DoxyCodeLine{563         lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{564         stereoRectify(this-\/>Kleft, this-\/>DistL, this-\/>Kright, this-\/>DistR, img\_size, this-\/>R, this-\/>T, this-\/>RLrect, this-\/>RRrect, this-\/>PLrect, this-\/>PRrect, this-\/>Q, -\/1);}
+\DoxyCodeLine{565     \}}
+\DoxyCodeLine{566 }
+\DoxyCodeLine{567     \textcolor{keywordflow}{if}(cameraChanged)}
+\DoxyCodeLine{568     \{}
+\DoxyCodeLine{569         initUndistortRectifyMap(this-\/>Kleft, this-\/>DistL, this-\/>RLrect, this-\/>PLrect, img\_size, CV\_32FC1, this-\/>map11, this-\/>map12);}
+\DoxyCodeLine{570         initUndistortRectifyMap(this-\/>Kright,  this-\/>DistR, this-\/>RRrect, this-\/>PRrect, img\_size, CV\_32FC1, this-\/>map21, this-\/>map22);}
+\DoxyCodeLine{571     \}}
+\DoxyCodeLine{572 }
+\DoxyCodeLine{573     remap(this-\/>imleft, this-\/>imgLeftRect, this-\/>map11, this-\/>map12, cv::INTER\_LINEAR);}
+\DoxyCodeLine{574     remap(this-\/>imright, this-\/>imgRightRect, this-\/>map21,this-\/>map22, cv::INTER\_LINEAR);}
+\DoxyCodeLine{575 }
+\DoxyCodeLine{576     cameraChanged = \textcolor{keyword}{false};}
+\DoxyCodeLine{577 }
+\DoxyCodeLine{578 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_ac92ce0b90b69773284be5825b0199bda}} 
+\index{StereoCamera@{StereoCamera}!remapDisparity@{remapDisparity}}
+\index{remapDisparity@{remapDisparity}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{remapDisparity()}{remapDisparity()}}
+{\footnotesize\ttfamily cv\+::\+Mat Stereo\+Camera\+::remap\+Disparity (\begin{DoxyParamCaption}\item[{cv\+::\+Mat}]{disp }\end{DoxyParamCaption})}
+
+
+
+Remaps the disparity map on the basis of the mapping previously computed. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em disp} & the disparity map to be remapped \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the remapped disparity map 
+\end{DoxyReturn}
+
+
+Definition at line 2423 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2424 \{}
+\DoxyCodeLine{2425 }
+\DoxyCodeLine{2426     cv::Mat remapped;}
+\DoxyCodeLine{2427 }
+\DoxyCodeLine{2428     Mat x;}
+\DoxyCodeLine{2429     remap(disp,remapped,this-\/>MapperL,x,cv::INTER\_LINEAR);}
+\DoxyCodeLine{2430     remapped.convertTo(remapped,CV\_8U);}
+\DoxyCodeLine{2431 }
+\DoxyCodeLine{2432     \textcolor{keywordflow}{return} remapped;}
+\DoxyCodeLine{2433 }
+\DoxyCodeLine{2434 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a9f06cd4b170ad0ba45b681ee93d64851}} 
+\index{StereoCamera@{StereoCamera}!saveCalibration@{saveCalibration}}
+\index{saveCalibration@{saveCalibration}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{saveCalibration()}{saveCalibration()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::save\+Calibration (\begin{DoxyParamCaption}\item[{string}]{extrinsic\+File\+Path,  }\item[{string}]{intrinsic\+File\+Path }\end{DoxyParamCaption})}
+
+
+
+It saves the calibration. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em extrinsic\+File\+Path} & the path of the extrinsic parameters file \\
+\hline
+{\em intrinsic\+File\+Path} & the path of the intrinsic parameters file \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 470 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{470                                                                                      \{}
+\DoxyCodeLine{471 }
+\DoxyCodeLine{472     \textcolor{keywordflow}{if}( Kleft.empty() || Kright.empty() || DistL.empty() || DistR.empty() || R.empty() || T.empty()) \{}
+\DoxyCodeLine{473         std::cout << \textcolor{stringliteral}{"{}Error: cameras are not calibrated! Run the calibration or set intrinsic and extrinsic parameters"{}} << std::endl;}
+\DoxyCodeLine{474         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{475     \}}
+\DoxyCodeLine{476 }
+\DoxyCodeLine{477     FileStorage fs(intrinsicFilePath+\textcolor{stringliteral}{"{}.yml"{}}, FileStorage::WRITE);}
+\DoxyCodeLine{478     \textcolor{keywordflow}{if}( fs.isOpened() )}
+\DoxyCodeLine{479     \{}
+\DoxyCodeLine{480         fs << \textcolor{stringliteral}{"{}M1"{}} << Kleft << \textcolor{stringliteral}{"{}D1"{}} << DistL << \textcolor{stringliteral}{"{}M2"{}} << Kright << \textcolor{stringliteral}{"{}D2"{}} << DistR;}
+\DoxyCodeLine{481         fs.release();}
+\DoxyCodeLine{482     \}}
+\DoxyCodeLine{483     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{484         cout << \textcolor{stringliteral}{"{}Error: can not save the intrinsic parameters\(\backslash\)n"{}};}
+\DoxyCodeLine{485 }
+\DoxyCodeLine{486     fs.open(extrinsicFilePath+\textcolor{stringliteral}{"{}.yml"{}}, FileStorage::WRITE);}
+\DoxyCodeLine{487     \textcolor{keywordflow}{if}( fs.isOpened() )}
+\DoxyCodeLine{488     \{}
+\DoxyCodeLine{489         fs << \textcolor{stringliteral}{"{}R"{}} << R << \textcolor{stringliteral}{"{}T"{}} << T <<\textcolor{stringliteral}{"{}Q"{}} << Q;}
+\DoxyCodeLine{490         fs.release();}
+\DoxyCodeLine{491     \}}
+\DoxyCodeLine{492     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{493         std::cout << \textcolor{stringliteral}{"{}Error: can not save the intrinsic parameters"{}} << std::endl;}
+\DoxyCodeLine{494 }
+\DoxyCodeLine{495     ofstream fout((intrinsicFilePath+\textcolor{stringliteral}{"{}.ini"{}}).c\_str());}
+\DoxyCodeLine{496 }
+\DoxyCodeLine{497     \textcolor{comment}{// Left Eye}}
+\DoxyCodeLine{498     fout << \textcolor{stringliteral}{"{}[left]"{}} << endl;}
+\DoxyCodeLine{499     fout << \textcolor{stringliteral}{"{}fx "{}} << Kleft.at<\textcolor{keywordtype}{double}>(0,0) << endl;}
+\DoxyCodeLine{500     fout << \textcolor{stringliteral}{"{}fy "{}} << Kleft.at<\textcolor{keywordtype}{double}>(1,1) << endl;}
+\DoxyCodeLine{501     fout << \textcolor{stringliteral}{"{}cx "{}} << Kleft.at<\textcolor{keywordtype}{double}>(0,2) << endl;}
+\DoxyCodeLine{502     fout << \textcolor{stringliteral}{"{}cy "{}} << Kleft.at<\textcolor{keywordtype}{double}>(1,2) << endl;}
+\DoxyCodeLine{503     fout << \textcolor{stringliteral}{"{}k1 "{}} << DistL.at<\textcolor{keywordtype}{double}>(0,0) << endl;}
+\DoxyCodeLine{504     fout << \textcolor{stringliteral}{"{}k2 "{}} << DistL.at<\textcolor{keywordtype}{double}>(1,0) << endl;}
+\DoxyCodeLine{505     fout << \textcolor{stringliteral}{"{}p1 "{}} << DistL.at<\textcolor{keywordtype}{double}>(2,0) << endl;}
+\DoxyCodeLine{506     fout << \textcolor{stringliteral}{"{}p2 "{}} << DistL.at<\textcolor{keywordtype}{double}>(3,0) << endl;}
+\DoxyCodeLine{507 }
+\DoxyCodeLine{508     \textcolor{comment}{// Right Eye}}
+\DoxyCodeLine{509     fout << \textcolor{stringliteral}{"{}[right]"{}} << endl;}
+\DoxyCodeLine{510     fout << \textcolor{stringliteral}{"{}fx "{}} << Kright.at<\textcolor{keywordtype}{double}>(0,0) << endl;}
+\DoxyCodeLine{511     fout << \textcolor{stringliteral}{"{}fy "{}} << Kright.at<\textcolor{keywordtype}{double}>(1,1) << endl;}
+\DoxyCodeLine{512     fout << \textcolor{stringliteral}{"{}cx "{}} << Kright.at<\textcolor{keywordtype}{double}>(0,2) << endl;}
+\DoxyCodeLine{513     fout << \textcolor{stringliteral}{"{}cy "{}} << Kright.at<\textcolor{keywordtype}{double}>(1,2) << endl;}
+\DoxyCodeLine{514     fout << \textcolor{stringliteral}{"{}k1 "{}} << DistR.at<\textcolor{keywordtype}{double}>(0,0) << endl;}
+\DoxyCodeLine{515     fout << \textcolor{stringliteral}{"{}k2 "{}} << DistR.at<\textcolor{keywordtype}{double}>(1,0) << endl;}
+\DoxyCodeLine{516     fout << \textcolor{stringliteral}{"{}p1 "{}} << DistR.at<\textcolor{keywordtype}{double}>(2,0) << endl;}
+\DoxyCodeLine{517     fout << \textcolor{stringliteral}{"{}p2 "{}} << DistR.at<\textcolor{keywordtype}{double}>(3,0) << endl;}
+\DoxyCodeLine{518 }
+\DoxyCodeLine{519     fout.close();}
+\DoxyCodeLine{520 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a9ecb303d7b36eaf5f086d8ddebd29b95}} 
+\index{StereoCamera@{StereoCamera}!setExpectedPosition@{setExpectedPosition}}
+\index{setExpectedPosition@{setExpectedPosition}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{setExpectedPosition()}{setExpectedPosition()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::set\+Expected\+Position (\begin{DoxyParamCaption}\item[{Mat \&}]{Rot,  }\item[{Mat \&}]{Tran }\end{DoxyParamCaption})}
+
+
+
+The function set the expected Rotation and Translation parameters for the current image pair. 
+
+They can be computed using the Kinematics. 
+\begin{DoxyParams}{Parameters}
+{\em Rot} & 3x3 matrix representing the rotation between the left and the right camera. \\
+\hline
+{\em Tran} & 3x1 vector representing the translation between the left and the right camera. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 2416 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2417 \{}
+\DoxyCodeLine{2418     R\_exp=Rot;}
+\DoxyCodeLine{2419     T\_exp=Tran;}
+\DoxyCodeLine{2420 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_adc36a2585c583219bddbb1c7fb0725df}} 
+\index{StereoCamera@{StereoCamera}!setImages@{setImages}}
+\index{setImages@{setImages}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{setImages()}{setImages()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::set\+Images (\begin{DoxyParamCaption}\item[{const Mat \&}]{first\+Img,  }\item[{const Mat \&}]{second\+Img }\end{DoxyParamCaption})}
+
+
+
+It stores in memory a couple of images. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em first\+Img} & the images acquired from the first (main) camera \\
+\hline
+{\em second\+Img} & the images acquired from the second (secondary) camera \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 231 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{231                                                               \{}
+\DoxyCodeLine{232     this-\/>imleft=left;}
+\DoxyCodeLine{233     this-\/>imright=right;}
+\DoxyCodeLine{234 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a54754623497c8dddb61f520e17f465f8}} 
+\index{StereoCamera@{StereoCamera}!setIntrinsics@{setIntrinsics}}
+\index{setIntrinsics@{setIntrinsics}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{setIntrinsics()}{setIntrinsics()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::set\+Intrinsics (\begin{DoxyParamCaption}\item[{Mat \&}]{K1,  }\item[{Mat \&}]{K2,  }\item[{Mat \&}]{Dist1,  }\item[{Mat \&}]{Dist2 }\end{DoxyParamCaption})}
+
+
+
+It sets the intrinsic parameters. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em K1} & 3x3 camera matrix of the first camera. \\
+\hline
+{\em K2} & 3x3 camera matrix of the second camera. \\
+\hline
+{\em Dist1} & 4x1 distortion coefficients vector of the first camera. \\
+\hline
+{\em Dist2} & 4x1 distortion coefficients vector of the second camera. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1940 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1940                                                                          \{}
+\DoxyCodeLine{1941     lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{1942     this-\/>Kleft=KL;}
+\DoxyCodeLine{1943     this-\/>Kright=KR;}
+\DoxyCodeLine{1944     this-\/>DistL=DistL;}
+\DoxyCodeLine{1945     this-\/>DistR=DistR;}
+\DoxyCodeLine{1946 }
+\DoxyCodeLine{1947     \textcolor{keywordflow}{if}(!this-\/>R.empty() \&\& !this-\/>T.empty())}
+\DoxyCodeLine{1948         updatePMatrix();}
+\DoxyCodeLine{1949     this-\/>cameraChanged=\textcolor{keyword}{true};}
+\DoxyCodeLine{1950     buildUndistortRemap();}
+\DoxyCodeLine{1951 \}}
+
+\end{DoxyCode}
+
+
+Referenced by Stereo\+Camera().
+
+\mbox{\label{classStereoCamera_ae683fafa11ea73e4b4c278402be259b6}} 
+\index{StereoCamera@{StereoCamera}!setMatches@{setMatches}}
+\index{setMatches@{setMatches}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{setMatches()}{setMatches()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::set\+Matches (\begin{DoxyParamCaption}\item[{std\+::vector$<$ cv\+::\+Point2f $>$ \&}]{pointsL,  }\item[{std\+::vector$<$ cv\+::\+Point2f $>$ \&}]{pointsR }\end{DoxyParamCaption})}
+
+
+
+The function initialize the matches of the current image pair. 
+
+For example matches can be computed in GPU with higher framerate. 
+\begin{DoxyParams}{Parameters}
+{\em pointsL} & vector of Point2f representing the keypoints on the left image. \\
+\hline
+{\em pointsR} & vector of Point2f representing the keypoints on the right image. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 2408 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2409 \{}
+\DoxyCodeLine{2410     PointsL=pointsL;}
+\DoxyCodeLine{2411     PointsR=pointsR;}
+\DoxyCodeLine{2412 }
+\DoxyCodeLine{2413 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a1329b3894d527e1505618f57a1304624}} 
+\index{StereoCamera@{StereoCamera}!setRotation@{setRotation}}
+\index{setRotation@{setRotation}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{setRotation()}{setRotation()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::set\+Rotation (\begin{DoxyParamCaption}\item[{Mat \&}]{Rot,  }\item[{int}]{mode = {\ttfamily 0} }\end{DoxyParamCaption})}
+
+
+
+It sets the rotation matrix (if known) between the first and the second camera. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Rot} & the 3x3 rotation matrix. \\
+\hline
+{\em mode} & the following values are allowed\+: {\bfseries{mode=0}} the rotation matrix R is set equal to Rot. {\bfseries{mode=1}} the rotation matrix R is set equal to Rot$\ast$R. {\bfseries{mode=2}} the rotation matrix R is set equal to Rot$\ast$\+Rinit. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1505 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1505                                                 \{}
+\DoxyCodeLine{1506     lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{1507     \textcolor{keywordflow}{if}(mul==0)}
+\DoxyCodeLine{1508         this-\/>R=Rot;}
+\DoxyCodeLine{1509     \textcolor{keywordflow}{if}(mul==1)}
+\DoxyCodeLine{1510         this-\/>R=Rot*R;}
+\DoxyCodeLine{1511     \textcolor{keywordflow}{if}(mul==2)}
+\DoxyCodeLine{1512         this-\/>R=Rot*Rinit;}
+\DoxyCodeLine{1513 }
+\DoxyCodeLine{1514     \textcolor{keywordflow}{if}(R\_exp.empty())}
+\DoxyCodeLine{1515         R\_exp=R;}
+\DoxyCodeLine{1516     this-\/>updatePMatrix();}
+\DoxyCodeLine{1517     this-\/>cameraChanged=\textcolor{keyword}{true};}
+\DoxyCodeLine{1518 \}}
+
+\end{DoxyCode}
+
+
+Referenced by Stereo\+Camera().
+
+\mbox{\label{classStereoCamera_a7b10f1218e8e70f47b22080ba1820d39}} 
+\index{StereoCamera@{StereoCamera}!setTranslation@{setTranslation}}
+\index{setTranslation@{setTranslation}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{setTranslation()}{setTranslation()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::set\+Translation (\begin{DoxyParamCaption}\item[{Mat \&}]{Tras,  }\item[{int}]{mul = {\ttfamily 0} }\end{DoxyParamCaption})}
+
+
+
+It sets the translation vector (if known) between the first and the second camera. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Tras} & the 3x1 translation matrix. \\
+\hline
+{\em mode} & the following values are allowed\+: {\bfseries{mode=0}} the translation vector T is set equal to Tras. {\bfseries{mode=1}} the translation vector T is set equal to Tras+T. {\bfseries{mode=2}} the translation vector T is set equal to Tras+\+Tinit. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1521 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1521                                                     \{}
+\DoxyCodeLine{1522     lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{1523     \textcolor{keywordflow}{if}(mul==0)}
+\DoxyCodeLine{1524         this-\/>T=Tras;}
+\DoxyCodeLine{1525     \textcolor{keywordflow}{if}(mul==1)}
+\DoxyCodeLine{1526         this-\/>T=Tras+T;}
+\DoxyCodeLine{1527     \textcolor{keywordflow}{if}(mul==2)}
+\DoxyCodeLine{1528         this-\/>T=Tras+Tinit;}
+\DoxyCodeLine{1529 }
+\DoxyCodeLine{1530     \textcolor{keywordflow}{if}(T\_exp.empty())}
+\DoxyCodeLine{1531         T\_exp=T;}
+\DoxyCodeLine{1532 }
+\DoxyCodeLine{1533     \textcolor{keywordflow}{if}(!this-\/>Kleft.empty() \&\& !this-\/>Kright.empty())}
+\DoxyCodeLine{1534         this-\/>updatePMatrix();}
+\DoxyCodeLine{1535     this-\/>cameraChanged=\textcolor{keyword}{true};}
+\DoxyCodeLine{1536 \}}
+
+\end{DoxyCode}
+
+
+Referenced by Stereo\+Camera().
+
+\mbox{\label{classStereoCamera_a398f45eeefe7979a834659cfbb7a6961}} 
+\index{StereoCamera@{StereoCamera}!stereoCalibration@{stereoCalibration}}
+\index{stereoCalibration@{stereoCalibration}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{stereoCalibration()}{stereoCalibration()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::stereo\+Calibration (\begin{DoxyParamCaption}\item[{vector$<$ string $>$}]{image\+List,  }\item[{int}]{board\+Width,  }\item[{int}]{board\+Height,  }\item[{float}]{sqsize = {\ttfamily 1.0} }\end{DoxyParamCaption})}
+
+
+
+It performs the stereo camera calibration. 
+
+(see stereo\+Calibration module) 
+\begin{DoxyParams}{Parameters}
+{\em image\+List} & is the list containing the paths of the images with the chessboard patterns. even indices refer to Left camera images (i.\+e. main camera images), while odd indices refer to Right camera images. \\
+\hline
+{\em board\+Width} & the number of inner corners in the width direction of the chess board pattern (see stereo\+Calibration module) \\
+\hline
+{\em board\+Height} & the number of inner corners in the height direction of the chess board pattern (see stereo\+Calibration module) \\
+\hline
+{\em sqsize} & the size of the square of the chess board pattern. It is needed for a metric reconstruction. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 250 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{250                                                                                                            \{}
+\DoxyCodeLine{251     Size boardSize;}
+\DoxyCodeLine{252     boardSize.width=boardWidth;}
+\DoxyCodeLine{253     boardSize.height=boardHeight;}
+\DoxyCodeLine{254     runStereoCalib(imagelist, boardSize,sqsize);}
+\DoxyCodeLine{255 }
+\DoxyCodeLine{256 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a761ea623c4cde38b4fa1d798ef09b7ae}} 
+\index{StereoCamera@{StereoCamera}!triangulateKnownDisparity@{triangulateKnownDisparity}}
+\index{triangulateKnownDisparity@{triangulateKnownDisparity}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{triangulateKnownDisparity()}{triangulateKnownDisparity()}}
+{\footnotesize\ttfamily Point3f Stereo\+Camera\+::triangulate\+Known\+Disparity (\begin{DoxyParamCaption}\item[{float}]{u,  }\item[{float}]{v,  }\item[{float}]{d,  }\item[{Mat \&}]{H }\end{DoxyParamCaption})}
+
+
+
+It performs the metric triangulation given the pixel coordinates on the first image and the disparity between the two RECTIFIED images. 
+
+The 3D Point is w.\+r.\+t the system defined by the parameter H. 
+\begin{DoxyParams}{Parameters}
+{\em u} & the pixel x coordinate in the first image. \\
+\hline
+{\em v} & the pixel y coordinate in the first image. \\
+\hline
+{\em d} & the disparity on the x coordinate between the two rectified images. \\
+\hline
+{\em H} & the 4x4 rototranslation matrix of the system can be an empty matrix. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a metric 3D point w.\+r.\+t. the reference system defined by H. 
+\end{DoxyReturn}
+
+
+Definition at line 2113 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2114 \{}
+\DoxyCodeLine{2115     lock\_guard<mutex> lg(mtx);}
+\DoxyCodeLine{2116     \textcolor{keywordflow}{if}(Q.empty())}
+\DoxyCodeLine{2117     \{}
+\DoxyCodeLine{2118         cout << \textcolor{stringliteral}{"{}Run rectifyImages() method first!"{}} << endl;}
+\DoxyCodeLine{2119         Point3f point;}
+\DoxyCodeLine{2120         point.x=0.0;}
+\DoxyCodeLine{2121         point.y=0.0;}
+\DoxyCodeLine{2122         point.z=0.0;}
+\DoxyCodeLine{2123         \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{2124     \}}
+\DoxyCodeLine{2125 }
+\DoxyCodeLine{2126     \textcolor{keywordflow}{if}(H.empty())}
+\DoxyCodeLine{2127         H=H.eye(4,4,CV\_64FC1);}
+\DoxyCodeLine{2128 }
+\DoxyCodeLine{2129     Point3f point;}
+\DoxyCodeLine{2130 }
+\DoxyCodeLine{2131     \textcolor{keywordtype}{float} w= (float) ((\textcolor{keywordtype}{float}) d*Q.at<\textcolor{keywordtype}{double}>(3,2)) + ((float)Q.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{2132     point.x= (float)((\textcolor{keywordtype}{float}) (u)*Q.at<\textcolor{keywordtype}{double}>(0,0)) + ((\textcolor{keywordtype}{float}) Q.at<\textcolor{keywordtype}{double}>(0,3));}
+\DoxyCodeLine{2133     point.y=(float)((\textcolor{keywordtype}{float}) (v)*Q.at<\textcolor{keywordtype}{double}>(1,1)) + ((\textcolor{keywordtype}{float}) Q.at<\textcolor{keywordtype}{double}>(1,3));}
+\DoxyCodeLine{2134     point.z=(float) Q.at<\textcolor{keywordtype}{double}>(2,3);}
+\DoxyCodeLine{2135 }
+\DoxyCodeLine{2136     \textcolor{comment}{// Rectified Camera System}}
+\DoxyCodeLine{2137     point.x=point.x/w;}
+\DoxyCodeLine{2138     point.y=point.y/w;}
+\DoxyCodeLine{2139     point.z=point.z/w;}
+\DoxyCodeLine{2140 }
+\DoxyCodeLine{2141     \textcolor{comment}{// We transform to H Coordinate System}}
+\DoxyCodeLine{2142     Mat RLrectTmp=this-\/>getRLrect().t(); \textcolor{comment}{// First it transform the point to the unrectified camera reference system}}
+\DoxyCodeLine{2143     Mat Tfake = Mat::zeros(0,3,CV\_64F);}
+\DoxyCodeLine{2144     Mat P(4,1,CV\_64FC1);}
+\DoxyCodeLine{2145     P.at<\textcolor{keywordtype}{double}>(0,0)=point.x;}
+\DoxyCodeLine{2146     P.at<\textcolor{keywordtype}{double}>(1,0)=point.y;}
+\DoxyCodeLine{2147     P.at<\textcolor{keywordtype}{double}>(2,0)=point.z;}
+\DoxyCodeLine{2148     P.at<\textcolor{keywordtype}{double}>(3,0)=1;}
+\DoxyCodeLine{2149 }
+\DoxyCodeLine{2150     Mat Hrect=buildRotTras(RLrectTmp,Tfake);}
+\DoxyCodeLine{2151     P=H*Hrect*P;}
+\DoxyCodeLine{2152 }
+\DoxyCodeLine{2153     point.x=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(0,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2154     point.y=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(1,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2155     point.z=(float) ((\textcolor{keywordtype}{float}) P.at<\textcolor{keywordtype}{double}>(2,0)/P.at<\textcolor{keywordtype}{double}>(3,0));}
+\DoxyCodeLine{2156 }
+\DoxyCodeLine{2157     \textcolor{keywordflow}{return} point;}
+\DoxyCodeLine{2158 \}}
+
+\end{DoxyCode}
+
+
+References get\+RLrect().
+
+\mbox{\label{classStereoCamera_a3c8ef84424fa111c63437a3db8f04333}} 
+\index{StereoCamera@{StereoCamera}!triangulation@{triangulation}}
+\index{triangulation@{triangulation}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{triangulation()}{triangulation()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Point3f Stereo\+Camera\+::triangulation (\begin{DoxyParamCaption}\item[{Point2f \&}]{point1,  }\item[{Point2f \&}]{point2 }\end{DoxyParamCaption})}
+
+
+
+It performs the triangulation using the stored in the internal P1 and P2 3x4 \mbox{\hyperlink{classCamera}{Camera}} Matrices. 
+
+The triangulation obtained is not metric! Use the method metric\+Triangulation if you want a metric triangulation. 
+\begin{DoxyParams}{Parameters}
+{\em point1} & the 2D point coordinates in the first image. \\
+\hline
+{\em point2} & the 2D point coordinates in the second image. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a 3D point wrt the first camera reference system. 
+\end{DoxyReturn}
+
+
+Definition at line 861 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{861                                                                            \{}
+\DoxyCodeLine{862 }
+\DoxyCodeLine{863     Point3f point3D;}
+\DoxyCodeLine{864     Mat J=Mat(4,4,CV\_64FC1);}
+\DoxyCodeLine{865     J.setTo(0);}
+\DoxyCodeLine{866     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<4; j++) \{}
+\DoxyCodeLine{867 }
+\DoxyCodeLine{868         \textcolor{keywordtype}{int} rowA=0;}
+\DoxyCodeLine{869         \textcolor{keywordtype}{int} rowB=2;}
+\DoxyCodeLine{870 }
+\DoxyCodeLine{871         J.at<\textcolor{keywordtype}{double}>(0,j)=(pointleft.x*this-\/>Pleft.at<\textcolor{keywordtype}{double}>(rowB,j))-\/ (this-\/>Pleft.at<\textcolor{keywordtype}{double}>(rowA,j));}
+\DoxyCodeLine{872         J.at<\textcolor{keywordtype}{double}>(2,j)=(pointRight.x*this-\/>Pright.at<\textcolor{keywordtype}{double}>(rowB,j))-\/ (this-\/>Pright.at<\textcolor{keywordtype}{double}>(rowA,j));}
+\DoxyCodeLine{873 }
+\DoxyCodeLine{874         rowA=1;}
+\DoxyCodeLine{875 }
+\DoxyCodeLine{876         J.at<\textcolor{keywordtype}{double}>(1,j)=(pointleft.y*this-\/>Pleft.at<\textcolor{keywordtype}{double}>(rowB,j))-\/ (this-\/>Pleft.at<\textcolor{keywordtype}{double}>(rowA,j));}
+\DoxyCodeLine{877         J.at<\textcolor{keywordtype}{double}>(3,j)=(pointRight.y*this-\/>Pright.at<\textcolor{keywordtype}{double}>(rowB,j))-\/ (this-\/>Pright.at<\textcolor{keywordtype}{double}>(rowA,j));}
+\DoxyCodeLine{878     \}}
+\DoxyCodeLine{879     SVD decom(J);}
+\DoxyCodeLine{880     Mat V= decom.vt;}
+\DoxyCodeLine{881 }
+\DoxyCodeLine{882     point3D.x=(float) ((\textcolor{keywordtype}{float}) V.at<\textcolor{keywordtype}{double}>(3,0))/((float) V.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{883     point3D.y=(float) ((\textcolor{keywordtype}{float}) V.at<\textcolor{keywordtype}{double}>(3,1))/((float) V.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{884     point3D.z=(float) ((\textcolor{keywordtype}{float}) V.at<\textcolor{keywordtype}{double}>(3,2))/((float) V.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{885     \textcolor{keywordflow}{return} point3D;}
+\DoxyCodeLine{886 }
+\DoxyCodeLine{887 \}}
+
+\end{DoxyCode}
+
+
+Referenced by chierality().
+
+\mbox{\label{classStereoCamera_ab68c8d3bd07f542243d681fbe8c8c6b7}} 
+\index{StereoCamera@{StereoCamera}!triangulation@{triangulation}}
+\index{triangulation@{triangulation}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{triangulation()}{triangulation()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily Point3f Stereo\+Camera\+::triangulation (\begin{DoxyParamCaption}\item[{Point2f \&}]{point1,  }\item[{Point2f \&}]{point2,  }\item[{Mat}]{Camera1,  }\item[{Mat}]{Camera2 }\end{DoxyParamCaption})}
+
+
+
+It performs the triangulation (HZ Chap 12.\+2 homogenous solution). 
+
+The triangulation obtained is not metric! Use the method metric\+Triangulation if you want a metric triangulation. 
+\begin{DoxyParams}{Parameters}
+{\em point1} & the 2D point coordinates in the first image. \\
+\hline
+{\em point2} & the 2D point coordinates in the second image. \\
+\hline
+{\em Camera1} & the 3x4 camera matrix of the first image. \\
+\hline
+{\em Camera2} & the 3x4 camera matrix of the second image. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a 3D point wrt the first camera reference system. 
+\end{DoxyReturn}
+
+
+Definition at line 1370 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1370                                                                                                      \{}
+\DoxyCodeLine{1371 }
+\DoxyCodeLine{1372     Point3f point3D;}
+\DoxyCodeLine{1373     Mat J=Mat(4,4,CV\_64FC1);}
+\DoxyCodeLine{1374     J.setTo(0);}
+\DoxyCodeLine{1375 }
+\DoxyCodeLine{1376     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} j=0; j<4; j++) \{}
+\DoxyCodeLine{1377 }
+\DoxyCodeLine{1378         \textcolor{keywordtype}{int} rowA=0;}
+\DoxyCodeLine{1379         \textcolor{keywordtype}{int} rowB=2;}
+\DoxyCodeLine{1380 }
+\DoxyCodeLine{1381         J.at<\textcolor{keywordtype}{double}>(0,j)=(pointleft.x*Camera1.at<\textcolor{keywordtype}{double}>(rowB,j))-\/ (Camera1.at<\textcolor{keywordtype}{double}>(rowA,j));}
+\DoxyCodeLine{1382         J.at<\textcolor{keywordtype}{double}>(2,j)=(pointRight.x*Camera2.at<\textcolor{keywordtype}{double}>(rowB,j))-\/ (Camera2.at<\textcolor{keywordtype}{double}>(rowA,j));}
+\DoxyCodeLine{1383 }
+\DoxyCodeLine{1384         rowA=1;}
+\DoxyCodeLine{1385 }
+\DoxyCodeLine{1386         J.at<\textcolor{keywordtype}{double}>(1,j)=(pointleft.y*Camera1.at<\textcolor{keywordtype}{double}>(rowB,j))-\/ (Camera1.at<\textcolor{keywordtype}{double}>(rowA,j));}
+\DoxyCodeLine{1387         J.at<\textcolor{keywordtype}{double}>(3,j)=(pointRight.y*Camera2.at<\textcolor{keywordtype}{double}>(rowB,j))-\/ (Camera2.at<\textcolor{keywordtype}{double}>(rowA,j));}
+\DoxyCodeLine{1388     \}}
+\DoxyCodeLine{1389     SVD decom(J);}
+\DoxyCodeLine{1390     Mat V= decom.vt;}
+\DoxyCodeLine{1391 }
+\DoxyCodeLine{1392     \textcolor{comment}{// printMatrix(V);}}
+\DoxyCodeLine{1393 }
+\DoxyCodeLine{1394     \textcolor{comment}{/*Mat sol=Mat(4,1,CV\_64FC1);}}
+\DoxyCodeLine{1395 \textcolor{comment}{        sol.at<double>(0,0)=V.at<double>(0,0);}}
+\DoxyCodeLine{1396 \textcolor{comment}{        sol.at<double>(1,0)=V.at<double>(1,1);}}
+\DoxyCodeLine{1397 \textcolor{comment}{        sol.at<double>(2,0)=V.at<double>(2,2);}}
+\DoxyCodeLine{1398 \textcolor{comment}{        sol.at<double>(3,0)=V.at<double>(3,3);}}
+\DoxyCodeLine{1399 \textcolor{comment}{}}
+\DoxyCodeLine{1400 \textcolor{comment}{        Mat test=J*sol;}}
+\DoxyCodeLine{1401 \textcolor{comment}{}}
+\DoxyCodeLine{1402 \textcolor{comment}{        printMatrix(test);*/}}
+\DoxyCodeLine{1403     point3D.x=(float) ((\textcolor{keywordtype}{float}) V.at<\textcolor{keywordtype}{double}>(3,0))/((float) V.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{1404     point3D.y=(float) ((\textcolor{keywordtype}{float}) V.at<\textcolor{keywordtype}{double}>(3,1))/((float) V.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{1405     point3D.z=(float) ((\textcolor{keywordtype}{float}) V.at<\textcolor{keywordtype}{double}>(3,2))/((float) V.at<\textcolor{keywordtype}{double}>(3,3));}
+\DoxyCodeLine{1406     \textcolor{keywordflow}{return} point3D;}
+\DoxyCodeLine{1407 }
+\DoxyCodeLine{1408 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_aaef25d8723eefdbab6e27c348492126b}} 
+\index{StereoCamera@{StereoCamera}!triangulationLS@{triangulationLS}}
+\index{triangulationLS@{triangulationLS}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{triangulationLS()}{triangulationLS()}}
+{\footnotesize\ttfamily Point3f Stereo\+Camera\+::triangulation\+LS (\begin{DoxyParamCaption}\item[{Point2f \&}]{point1,  }\item[{Point2f \&}]{point2,  }\item[{Mat}]{Camera1,  }\item[{Mat}]{Camera2 }\end{DoxyParamCaption})}
+
+
+
+It performs the least square triangulation (HZ Chap 12.\+2 Inhomogenous solution). 
+
+The triangulation obtained is not metric! Use the method metric\+Triangulation if you want a metric triangulation. 
+\begin{DoxyParams}{Parameters}
+{\em point1} & the 2D point coordinates in the first image. \\
+\hline
+{\em point2} & the 2D point coordinates in the second image. \\
+\hline
+{\em Camera1} & the 3x4 camera matrix of the first image. \\
+\hline
+{\em Camera2} & the 3x4 camera matrix of the second image. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a 3D point wrt the first camera reference system. 
+\end{DoxyReturn}
+\mbox{\label{classStereoCamera_a2751f357e5fabc7099303d45425208d7}} 
+\index{StereoCamera@{StereoCamera}!undistortImages@{undistortImages}}
+\index{undistortImages@{undistortImages}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{undistortImages()}{undistortImages()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::undistort\+Images (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+It undistorts the images. 
+
+\begin{DoxyNote}{Note}
+Set undistortion coefficients before using this method. 
+\end{DoxyNote}
+
+
+Definition at line 1475 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1475                                    \{}
+\DoxyCodeLine{1476     \textcolor{keywordflow}{if}(this-\/>Kleft.empty() || this-\/>DistL.empty() || this-\/>Kright.empty() || this-\/>DistR.empty()) \{}
+\DoxyCodeLine{1477         cout <<\textcolor{stringliteral}{"{} Cameras are not calibrated! Run the Calibration first!"{}} << endl;}
+\DoxyCodeLine{1478         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1479     \}}
+\DoxyCodeLine{1480     \textcolor{keywordflow}{if}(this-\/>imleft.empty() || this-\/>imright.empty()) \{}
+\DoxyCodeLine{1481         cout << \textcolor{stringliteral}{"{}Images are not set! set the images first!"{}} << endl;}
+\DoxyCodeLine{1482         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{1483     \}}
+\DoxyCodeLine{1484 }
+\DoxyCodeLine{1485     undistort(this-\/>imleft,this-\/>imleftund,this-\/>Kleft,this-\/>DistL);}
+\DoxyCodeLine{1486     undistort(this-\/>imright,this-\/>imrightund,this-\/>Kright,this-\/>DistR);}
+\DoxyCodeLine{1487 \}}
+
+\end{DoxyCode}
+\mbox{\label{classStereoCamera_a5b15c07def1c09f53bfc6141f303fa09}} 
+\index{StereoCamera@{StereoCamera}!updateMappings@{updateMappings}}
+\index{updateMappings@{updateMappings}!StereoCamera@{StereoCamera}}
+\doxysubsubsection{\texorpdfstring{updateMappings()}{updateMappings()}}
+{\footnotesize\ttfamily void Stereo\+Camera\+::update\+Mappings (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+XXXXXXXXXXXXXXXXXXXX. 
+
+\begin{DoxyReturn}{Returns}
+XXXXXXXXXXXXXXXXXXXX 
+\end{DoxyReturn}
+
+
+Definition at line 2437 of file stereo\+Camera.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{2438 \{}
+\DoxyCodeLine{2439 }
+\DoxyCodeLine{2440     \textcolor{keywordtype}{int} rows = this-\/>getImLeft().rows;}
+\DoxyCodeLine{2441     \textcolor{keywordtype}{int} cols = this-\/>getImLeft().cols;}
+\DoxyCodeLine{2442 }
+\DoxyCodeLine{2443     \textcolor{keywordflow}{if} (cameraChanged)}
+\DoxyCodeLine{2444     \{}
+\DoxyCodeLine{2445 }
+\DoxyCodeLine{2446         std::lock\_guard<std::mutex> lock(mtx);}
+\DoxyCodeLine{2447 }
+\DoxyCodeLine{2448         Mat inverseMapL(rows*cols,1,CV\_32FC2);}
+\DoxyCodeLine{2449         Mat inverseMapR(rows*cols,1,CV\_32FC2);}
+\DoxyCodeLine{2450 }
+\DoxyCodeLine{2451         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} y=0; y<rows; y++)}
+\DoxyCodeLine{2452         \{}
+\DoxyCodeLine{2453             \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} x=0; x<cols; x++)}
+\DoxyCodeLine{2454             \{}
+\DoxyCodeLine{2455                 inverseMapL.ptr<\textcolor{keywordtype}{float}>(y*cols+x)[0]=(\textcolor{keywordtype}{float})x;}
+\DoxyCodeLine{2456                 inverseMapL.ptr<\textcolor{keywordtype}{float}>(y*cols+x)[1]=(\textcolor{keywordtype}{float})y;}
+\DoxyCodeLine{2457                 inverseMapR.ptr<\textcolor{keywordtype}{float}>(y*cols+x)[0]=(\textcolor{keywordtype}{float})x;}
+\DoxyCodeLine{2458                 inverseMapR.ptr<\textcolor{keywordtype}{float}>(y*cols+x)[1]=(\textcolor{keywordtype}{float})y;}
+\DoxyCodeLine{2459             \}}
+\DoxyCodeLine{2460         \}}
+\DoxyCodeLine{2461 }
+\DoxyCodeLine{2462         undistortPoints(inverseMapL,inverseMapL,this-\/>Kleft,this-\/>DistL,this-\/>RLrect,this-\/>PLrect);}
+\DoxyCodeLine{2463         undistortPoints(inverseMapR,inverseMapR,this-\/>Kright,this-\/>DistR,this-\/>RRrect,this-\/>PRrect);}
+\DoxyCodeLine{2464 }
+\DoxyCodeLine{2465         Mat mapperL=inverseMapL.reshape(2,rows);}
+\DoxyCodeLine{2466         Mat mapperR=inverseMapR.reshape(2,rows);}
+\DoxyCodeLine{2467         this-\/>MapperL=mapperL;}
+\DoxyCodeLine{2468         this-\/>MapperR=mapperR;}
+\DoxyCodeLine{2469 }
+\DoxyCodeLine{2470     \}}
+\DoxyCodeLine{2471 }
+\DoxyCodeLine{2472 \}}
+
+\end{DoxyCode}
+
+
+References get\+Im\+Left().
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/runner/work/stereo-\/vision/stereo-\/vision/gh-\/pages/lib/include/i\+Cub/stereo\+Vision/stereo\+Camera.\+h\item 
+/home/runner/work/stereo-\/vision/stereo-\/vision/gh-\/pages/lib/src/stereo\+Camera.\+cpp\end{DoxyCompactItemize}

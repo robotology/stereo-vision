@@ -1,0 +1,13 @@
+Opencv does not implement the gpu version of the sgbm algorithm, this project is based on the opencv sgbm algorithm. After my test, it is 3-\/4 times faster than the cpu version of the opencv sgbm algorithm, and the effect is exactly the same as opencv sgbm. The maximum disparity can be set to an integer multiple of 32, the maximum is 256.
+
+After other people’s tests, the input image size is recommended to be 640$\ast$480. I don\textquotesingle{}t limit the size of the image in the program, but I don\textquotesingle{}t know why other sizes can\textquotesingle{}t work.
+
+{\bfseries How to compile and use} mkdir build cd build cmake .. make Regarding the use of the program, you can look at the program logic in the main function, which is very simple.
+
+{\bfseries Finally} The program is based on opencv3.\+4 and cuda9.\+0, and the program assumes that the left and right images have been corrected.
+
+{\bfseries Program performance display} If you want to watch the recorded demo video, click \href{https://v.youku.com/v_show/id_XMzk0NjE1MDEwNA==.html?spm=a2hzp.8253869.0.0}{\tt Road effect} .This video is not subject to any post processing, such as acceleration
+
+or  
+
+If you find this program useful, please give me a star, thank you. 

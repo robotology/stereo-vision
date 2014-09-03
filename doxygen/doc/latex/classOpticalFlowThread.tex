@@ -1,0 +1,60 @@
+\section{Optical\+Flow\+Thread Class Reference}
+\label{classOpticalFlowThread}\index{Optical\+Flow\+Thread@{Optical\+Flow\+Thread}}
+
+
+The base class defining the 2D optical flow.  
+
+
+
+
+{\ttfamily \#include $<$optical\+Flow\+Thread.\+h$>$}
+
+
+
+Inherits Periodic\+Thread.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\label{classOpticalFlowThread_a2d90f6c196cc33c7d81ec35468896c8c}} 
+{\bfseries Optical\+Flow\+Thread} (yarp\+::os\+::\+Resource\+Finder \&rf)
+\item 
+\mbox{\label{classOpticalFlowThread_a6c04e7a9e28e792ff5d81f65ae11d67a}} 
+void {\bfseries set\+Images} (cv\+::\+Mat \&\+\_\+left\+Prev, cv\+::\+Mat \&\+\_\+left\+Next)
+\item 
+\mbox{\label{classOpticalFlowThread_ab052e551a0ad2f625b72661d9e8a2289}} 
+void {\bfseries get\+Opt\+Flow} (cv\+::\+Mat \&\+\_\+opt\+Flow)
+\item 
+\mbox{\label{classOpticalFlowThread_a2819e22da7950422f51f6331485468cf}} 
+void {\bfseries set\+Flow} (int flow\+Type)
+\item 
+\mbox{\label{classOpticalFlowThread_a8b201fe043a596728a9925bce91b2846}} 
+bool {\bfseries check\+Done} ()
+\item 
+\mbox{\label{classOpticalFlowThread_aecc4312f7a794c9668dd2e8bb6099939}} 
+bool {\bfseries thread\+Init} ()
+\item 
+\mbox{\label{classOpticalFlowThread_a90234a9a3f4aa898413cfb36aac4a979}} 
+void {\bfseries thread\+Release} ()
+\item 
+\mbox{\label{classOpticalFlowThread_a0329bf989f05e6715bbaccde904fe88f}} 
+void {\bfseries run} ()
+\item 
+\mbox{\label{classOpticalFlowThread_ac30f26065348c602f160421aa69a7ed3}} 
+void {\bfseries on\+Stop} (void)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The base class defining the 2D optical flow. 
+
+It computes the 2D motion field in the image. 
+
+Definition at line 33 of file optical\+Flow\+Thread.\+h.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/runner/work/stereo-\/vision/stereo-\/vision/gh-\/pages/lib/include/i\+Cub/stereo\+Vision/optical\+Flow\+Thread.\+h\item 
+/home/runner/work/stereo-\/vision/stereo-\/vision/gh-\/pages/lib/src/optical\+Flow\+Thread.\+cpp\end{DoxyCompactItemize}

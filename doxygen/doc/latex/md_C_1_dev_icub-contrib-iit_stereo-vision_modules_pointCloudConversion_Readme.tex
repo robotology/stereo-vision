@@ -1,0 +1,35 @@
+Required parameters\+:
+
+remote\+Image\+Port\+: input source port for rgb color image remote\+Depth\+Port\+: input source port for depth image
+
+Note\+: the 2 source images needs to be of the same size!!
+
+optional parameters\+:
+
+scale\+: scale factor for depth values -\/$>$ 1 for data coming from gazebo depth plugins, 0.\+001 for data coming from A\+S\+US xtion device through Open\+N\+I2\+Device\+Server device driver. (if missing is set to 1)
+
+--roll -\/-\/$>$ adds a custom rotation on x axis between base\+\_\+link and camera\+\_\+link --pitch -\/-\/$>$ adds a custom rotation on y axis between base\+\_\+link and camera\+\_\+link --yaw -\/-\/$>$ adds a custom rotation on z axis between base\+\_\+link and camera\+\_\+link
+
+--frame\+\_\+id -\/-\/$>$ name of the frame to use in R\+OS point\+Cloud2 message
+
+How to run\+:
+
+F\+R\+OM X\+T\+I\+ON D\+E\+V\+I\+CE\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{roscore}
+\DoxyCodeLine{yarpserver --ros}
+\DoxyCodeLine{yarpdev --device OpenNI2DeviceServer}
+\DoxyCodeLine{./RGBD2pointCloud --remoteImagePort /camera/rgb/image\_rect\_color  --remoteDepthPort /camera/depth/image --pitch 1.5 --scale 0.001}
+\DoxyCodeLine{rviz  --> add pointCloud2; topic /RGBS2PointCloud/pcloud\_out, fixed frame camera\_link}
+\end{DoxyCode}
+
+
+F\+R\+OM G\+A\+Z\+E\+BO\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{roscore}
+\DoxyCodeLine{yarpserver --ros}
+\DoxyCodeLine{gazebo  --> insert model with depthCamera sensor}
+\DoxyCodeLine{./RGBD2pointCloud  --remoteImagePort /iCub/colorCamera  --remoteDepthPort /iCub/depthCamera --pitch 1.5 --scale 1}
+\DoxyCodeLine{rviz  --> add pointCloud2; topic /RGBS2PointCloud/pcloud\_out, fixed frame camera\_link}
+\end{DoxyCode}
+ 

@@ -1,0 +1,78 @@
+\section{Scene\+Flow Class Reference}
+\label{classSceneFlow}\index{Scene\+Flow@{Scene\+Flow}}
+
+
+The base class defining the scene flow (optical flow in the 3D space).  
+
+
+
+
+{\ttfamily \#include $<$scene\+Flow.\+h$>$}
+
+
+
+Inherits Periodic\+Thread.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\label{classSceneFlow_a09a89df061b9ec7a6964f7d82d8272eb}} 
+{\bfseries Scene\+Flow} (yarp\+::os\+::\+Resource\+Finder \&rf)
+\item 
+\mbox{\label{classSceneFlow_a360b8be98c1c11f3543b6c0744f4da82}} 
+bool {\bfseries is\+Open} ()
+\item 
+\mbox{\label{classSceneFlow_a8603d1225367313e78d74d5453afc647}} 
+bool {\bfseries thread\+Init} (void)
+\item 
+\mbox{\label{classSceneFlow_a88ebf1f92e8d45073ac603dac1073c38}} 
+void {\bfseries run} (void)
+\item 
+\mbox{\label{classSceneFlow_a87be5bb61cff579f919a496748d33b0b}} 
+void {\bfseries on\+Stop} (void)
+\item 
+\mbox{\label{classSceneFlow_a3c734406548b2f720c22302ded2233cd}} 
+void {\bfseries close} ()
+\item 
+\mbox{\label{classSceneFlow_abff8df2a30a081071c27c86c680d9c91}} 
+Point3f {\bfseries get\+Scene\+Flow\+Pixel} (int u, int v)
+\item 
+\mbox{\label{classSceneFlow_a0aeea0c038e4b684961e87654035524c}} 
+Mat {\bfseries draw2\+D\+Motion\+Field} ()
+\item 
+\mbox{\label{classSceneFlow_a8514161cfcf8227c695ae72fd125af86}} 
+void {\bfseries draw\+Flow\+Module} (Mat \&img\+Motion)
+\item 
+\mbox{\label{classSceneFlow_a0844d30b0f1c10828f2144eb446e99fb}} 
+int {\bfseries get\+Img\+Width} ()
+\item 
+\mbox{\label{classSceneFlow_a3c0fbe6df132fba94a0b24a8d1e90661}} 
+int {\bfseries get\+Img\+Height} ()
+\item 
+\mbox{\label{classSceneFlow_a8920f6b49c46d524fa543ac1e55c18e8}} 
+void {\bfseries get\+Scene\+Flow} (Mat \&flow3D)
+\item 
+\mbox{\label{classSceneFlow_a82e1c079533882d4662fa29853d02f76}} 
+void {\bfseries get\+Scene\+Flow} (Mat \&flow3D, int U1, int V1, int U2, int V2)
+\item 
+\mbox{\label{classSceneFlow_a999d87ea72266a0fc258b94a95fa48ec}} 
+void {\bfseries thread\+Release} ()
+\item 
+\mbox{\label{classSceneFlow_aecfc668fbb7d6800010abfe424a37aae}} 
+void {\bfseries recalibrate} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The base class defining the scene flow (optical flow in the 3D space). 
+
+It computes the 3D motion field of a stereo pairs. 
+
+Definition at line 44 of file scene\+Flow.\+h.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/runner/work/stereo-\/vision/stereo-\/vision/gh-\/pages/lib/include/i\+Cub/stereo\+Vision/scene\+Flow.\+h\item 
+/home/runner/work/stereo-\/vision/stereo-\/vision/gh-\/pages/lib/src/scene\+Flow.\+cpp\end{DoxyCompactItemize}
