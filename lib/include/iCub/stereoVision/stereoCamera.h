@@ -148,11 +148,11 @@ private:
     bool readStringList( const string& filename, vector<string>& l );
     void runStereoCalib(const vector<string>& imagelist, Size boardSize,float sqsize);
     double* reprojectionError(Mat& Rot, Mat& Tras);
-    #ifdef USE_NEWFEATURES
-        void crossCheckMatching(  cv::BFMatcher &descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius, int knn=1);
-    #else
-        void crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius, int knn=1);
-    #endif
+#ifdef USE_NEWFEATURES
+    void crossCheckMatching(  cv::BFMatcher &descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius);
+#else
+    void crossCheckMatching( Ptr<DescriptorMatcher>& descriptorMatcher, const Mat& descriptors1, const Mat& descriptors2, vector<DMatch>& filteredMatches12, double radius);
+#endif
     void updatePMatrix();
     void stereoCalibration(string imagesFilePath, int boardWidth, int boardHeight,float sqsize);
     void normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR);
@@ -225,7 +225,7 @@ public:
     * @param displacement maximum pixel displacement between first and second camera
     * @param radius maximum radius between the first candidate match and the second one
     */
-    cv::Mat findMatch(bool visualize=false,double displacement=15, double radius=0.25); 
+    cv::Mat findMatch(bool visualize=false, double displacement=20.0, double radius=100.0);
 
     /** It computes the Disparity Map using H. Hirschmuller Algorithm (CVPR 2006) (see \ref stereoDisparity).
     * @param best set equal true for better accuracy, equal false for save computation.

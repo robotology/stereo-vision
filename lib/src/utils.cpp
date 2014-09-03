@@ -76,20 +76,20 @@ void Utilities::initSIFT_GPU()
 
     matcher->VerifyContextGL();
     writeS=false;
-
 }
+
 /************************************************************************/
-
-void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat, Mat &matMatches)
+void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat, Mat &matMatches,
+                                 double displacement)
 {
     sift->RunSIFT( leftMat.cols, leftMat.rows, leftMat.data, GL_RGB, GL_UNSIGNED_BYTE );
     num1 = sift->GetFeatureNum();
-    keys1.resize(num1);    descriptors1.resize(128*num1);
+    keys1.resize(num1); descriptors1.resize(128*num1);
     sift->GetFeatureVector(&keys1[0], &descriptors1[0]);
 
     sift->RunSIFT( rightMat.cols, rightMat.rows, rightMat.data, GL_RGB, GL_UNSIGNED_BYTE );
     num2 = sift->GetFeatureNum();
-    keys2.resize(num2);    descriptors2.resize(128*num2);
+    keys2.resize(num2); descriptors2.resize(128*num2);
     sift->GetFeatureVector(&keys2[0], &descriptors2[0]);
 
     matcher->SetDescriptors(0, num1, &descriptors1[0]);
@@ -98,61 +98,46 @@ void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat, Mat &matMatches)
     int (*match_buf)[2] = new int[num1][2];
     int num_match = matcher->GetSiftMatch(num1, match_buf);
     //fprintf(stdout, "%d SIFT matches were found ", num_match); 
-    
 
-
-    double temp = 0.0;
-    int cnt = 0;
     pointsL.clear();
     pointsR.clear();
     //enumerate all the feature matches
-    for(int i  = 0; i < num_match; ++i)
+    for (int i=0; i<num_match; i++)
     {
-
-
         SiftGPU::SiftKeypoint & key1 = keys1[match_buf[i][0]];
         SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
         //key1 in the first image matches with key2 in the second image
-        if( abs(key1.y-key2.y) < 15 )//displacement 10 320x240 
+        if (fabs(key1.y-key2.y)<displacement)
         {
-            //if( abs(key1.x-key2.x)<50 )
-            //{
-                temp = key1.y - key2.y;
-                if ( (temp < 15.0) && (temp > -15.0) )
-                {
-                    double x = (key1.x);
-                    double y = (key1.y);
-                    circle(matMatches,cvPoint(x,y),2,cvScalar(255,0,0),2);
+	    double x=key1.x;
+	    double y=key1.y;
+	    circle(matMatches,cvPoint(x,y),2,cvScalar(255,0,0),2);
 
-                    double x2 = (leftMat.cols + key2.x);
-                    double y2 = (key2.y);
-                    circle(matMatches,cvPoint(x2,y2),2,cvScalar(255,0,0),2);
-                    line(matMatches, cvPoint(x,y), cvPoint(x2,y2), cvScalar(255,255,255) );
-                    cnt++;
-                    
-                    Point2f p1(x,y);
-                    Point2f p2(x2- leftMat.cols,y2);
-                    
-                    pointsL.push_back(p1);
-                    pointsR.push_back(p2);
-                }
-            //}
+	    double x2=leftMat.cols+key2.x;
+	    double y2=key2.y;
+	    circle(matMatches,cvPoint(x2,y2),2,cvScalar(255,0,0),2);
+	    line(matMatches, cvPoint(x,y),cvPoint(x2,y2),cvScalar(255,255,255));
+	    
+	    Point2f p1(x,y);
+	    Point2f p2(x2-leftMat.cols,y2);
+	    
+	    pointsL.push_back(p1);
+	    pointsR.push_back(p2);
         }
-    }
-    //fprintf(stdout, "using only %d \n", cnt);  
+    } 
 }
 
-
-void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat)
+/************************************************************************/
+void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat, double displacement)
 {
     sift->RunSIFT( leftMat.cols, leftMat.rows, leftMat.data, GL_RGB, GL_UNSIGNED_BYTE );
     num1 = sift->GetFeatureNum();
-    keys1.resize(num1);    descriptors1.resize(128*num1);
+    keys1.resize(num1); descriptors1.resize(128*num1);
     sift->GetFeatureVector(&keys1[0], &descriptors1[0]);
 
     sift->RunSIFT( rightMat.cols, rightMat.rows, rightMat.data, GL_RGB, GL_UNSIGNED_BYTE );
     num2 = sift->GetFeatureNum();
-    keys2.resize(num2);    descriptors2.resize(128*num2);
+    keys2.resize(num2); descriptors2.resize(128*num2);
     sift->GetFeatureVector(&keys2[0], &descriptors2[0]);
 
     matcher->SetDescriptors(0, num1, &descriptors1[0]);
@@ -161,46 +146,30 @@ void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat)
     int (*match_buf)[2] = new int[num1][2];
     int num_match = matcher->GetSiftMatch(num1, match_buf);
     //fprintf(stdout, "%d SIFT matches were found ", num_match); 
-    
-
-
-    double temp = 0.0;
-    int cnt = 0;
+   
     pointsL.clear();
     pointsR.clear();
     //enumerate all the feature matches
     for(int i  = 0; i < num_match; ++i)
     {
-
-
         SiftGPU::SiftKeypoint & key1 = keys1[match_buf[i][0]];
         SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
         //key1 in the first image matches with key2 in the second image
-        if( abs(key1.y-key2.y) < 15 )//displacement 10 320x240 
+        if(fabs(key1.y-key2.y)<displacement)
         {
-            //if( abs(key1.x-key2.x)<50 )
-            //{
-                temp = key1.y - key2.y;
-                if ( (temp < 15.0) && (temp > -15.0) )
-                {
-                    double x = (key1.x);
-                    double y = (key1.y);
+            double x=key1.x;
+            double y=key1.y;
 
-
-                    double x2 = (leftMat.cols + key2.x);
-                    double y2 = (key2.y);
-                    cnt++;
+            double x2=leftMat.cols+key2.x;
+            double y2=key2.y;
                     
-                    Point2f p1(x,y);
-                    Point2f p2(x2- leftMat.cols,y2);
+            Point2f p1(x,y);
+            Point2f p2(x2-leftMat.cols,y2);
                     
-                    pointsL.push_back(p1);
-                    pointsR.push_back(p2);
-                }
-            //}
+            pointsL.push_back(p1);
+            pointsR.push_back(p2);
         }
-    }
-    //fprintf(stdout, "using only %d \n", cnt);  
+    } 
 }
 
 void Utilities::getMatches(std::vector<cv::Point2f> & points1, std::vector<cv::Point2f>  & points2)

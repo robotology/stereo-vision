@@ -312,7 +312,7 @@ bool SFM::updateModule()
         mutexDisp.lock();
         this->stereo->setMatches(leftM,rightM);
     #else
-        this->stereo->findMatch(false,15);
+        this->stereo->findMatch(false);
     #endif
         this->stereo->estimateEssential();
         bool ok=this->stereo->essentialDecomposition();

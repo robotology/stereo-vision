@@ -73,11 +73,11 @@ public:
      /**
      *   function to extract sifts using GPU
      */
-    void extractMatch_GPU( cv::Mat &leftMat, cv::Mat &rightMat);
-    void getMatches(std::vector<cv::Point2f> & points1, std::vector<cv::Point2f>  & points2);
+    void extractMatch_GPU(cv::Mat &leftMat, cv::Mat &rightMat, double displacement=20.0);
+    void extractMatch_GPU(cv::Mat &leftMat, cv::Mat &rightMat, cv::Mat &matMatches, double displacement=20.0);
+    void getMatches(std::vector<cv::Point2f> & points1, std::vector<cv::Point2f>  &points2);
     void writeSIFTs(std::string filePath, std::vector<float> &des, std::vector<SiftGPU::SiftKeypoint>&points); 
     void writeMatch(std::string filePath,std::vector<cv::Point2f>  &pointsL, std::vector<cv::Point2f>  &pointsR);
-    void extractMatch_GPU(cv::Mat &leftMat, cv::Mat &rightMat, cv::Mat &matMatches);
 };
 
 #endif

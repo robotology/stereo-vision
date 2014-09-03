@@ -16,15 +16,12 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
 
-if(OpenCV_VERSION_MINOR GREATER 2)
-	add_definitions(-DUSE_NEWFEATURES)
-	message(STATUS "OpenCV Minor is " ${OpenCV_VERSION_MINOR}", Using new Feature Structures")
-endif()
+add_definitions(-DUSE_NEWFEATURES)
 
-if (USE_SIFT_GPU)
+if(USE_SIFT_GPU)
     find_package(SIFTGPU)
     if(SIFTGPU_FOUND)
-        include_directories( ${SIFTGPU_INCLUDE_DIRS})
+        include_directories(${SIFTGPU_INCLUDE_DIRS})
     endif()
 endif()
 
