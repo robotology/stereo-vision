@@ -51,7 +51,7 @@ value (0,0,0). In addition, a rpc port supports requests for
 3D/2D points computation (see below). 
 
 \section lib_sec Libraries 
-YARP libraries and OpenCV 2.2 (at least). \n
+YARP libraries and OpenCV 2.4 (at least). \n
 For better performance, we suggest you to run the module on a 
 machine equipped with GPU functionality along with the 
 <a href="http://cs.unc.edu/~ccwu/siftgpu">SiftGPU</a> library 
@@ -90,9 +90,10 @@ installed.
 - <i> /SFM/disp:o </i> outputs the disparity map in grayscale values.
 - <i> /SFM/world:o</i> outputs the world image (3-channel float with X Y Z values). 
 - <i> /SFM/match:o</i> outputs the match image.
-- <i> /SFM/rpc </i> for terminal commands comunication. 
+- <i> /SFM/rpc </i> for terminal commands communication. 
     - [calibrate]: It recomputes the camera positions once.
     - [save]: It saves the current camera positions and uses it when the module starts.
+    - [getH]: It returns the calibrated stereo matrix.
     - [setNumDisp NumOfDisparities]: It sets the expected number of disparity (in pixel). Values must be divisible by 32. Good values are 64 for 320x240 images and 128 for 640x480 images.
     - [Point x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
     - [x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z d computed using the depth map wrt the the ROOT reference system, d is the disparity (in pixel) between the left pixel x and the right pixel x+d. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
@@ -110,7 +111,7 @@ None.
  
 \section tested_os_sec Tested OS
 Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7. Tested 
-against OpenCV versions: 2.2, 2.3, 2.4. 
+against OpenCV versions: 2.4. 
 
 \author Sean Ryan Fanello
 */ 

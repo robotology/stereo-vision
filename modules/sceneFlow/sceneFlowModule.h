@@ -33,7 +33,7 @@ CopyPolicy: Released under the terms of the GNU GPL v2.0.
 This is an example module for the SceneFlow computation.
 
 \section lib_sec Libraries 
-YARP libraries and OpenCV 2.2
+YARP libraries and OpenCV 2.4 (or gretear)
 
 \section parameters_sec Parameters
 --configDisparity \e file.ini 

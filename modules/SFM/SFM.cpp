@@ -999,7 +999,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         return false;
     }
 
-    if(command.get(0).asString()=="calibrate")
+    if (command.get(0).asString()=="calibrate")
     {
         mutexRecalibration.lock();
         numberOfTrials=0;
@@ -1023,13 +1023,23 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         return true;
     }
 
-    if(command.get(0).asString()=="save")
+    if (command.get(0).asString()=="save")
     {
         updateExtrinsics(R0,T0,eyes0,"STEREO_DISPARITY"); 
         reply.addString("ACK");
         return true;               
     }
-    if(command.get(0).asString()=="setNumDisp")
+
+    if (command.get(0).asString()=="getH")
+    {        
+        Mat RT0=buildRotTras(R0,T0);
+        Matrix H0; convert(RT0,H0);
+
+        reply.write(H0);
+        return true;               
+    }
+
+    if (command.get(0).asString()=="setNumDisp")
     {
         int dispNum=command.get(1).asInt();
         if(dispNum%32==0)
@@ -1045,15 +1055,19 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             return true;          
         }
     }
-    if(command.get(0).asString()=="setMinDisp")
+
+    if (command.get(0).asString()=="setMinDisp")
     {
         int dispNum=command.get(1).asInt();
         this->minDisparity=dispNum;
-        this->setDispParameters(useBestDisp,uniquenessRatio,speckleWindowSize,speckleRange,numberOfDisparities,SADWindowSize,minDisparity,preFilterCap,disp12MaxDiff);
+        this->setDispParameters(useBestDisp,uniquenessRatio,speckleWindowSize,
+                                speckleRange,numberOfDisparities,SADWindowSize,
+                                minDisparity,preFilterCap,disp12MaxDiff);
         reply.addString("ACK");
         return true;  
     }
-    if(command.get(0).asString()=="set" && command.size()==10)
+
+    if (command.get(0).asString()=="set" && command.size()==10)
     {
         bool bestDisp=command.get(1).asInt() ? true : false;
         int uniquenessRatio=command.get(2).asInt();
@@ -1067,7 +1081,8 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
         this->setDispParameters(bestDisp,uniquenessRatio,speckleWindowSize,speckleRange,numberOfDisparities,SADWindowSize,minDisparity,preFilterCap,disp12MaxDiff);
     }
-    else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" ) {
+    else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" )
+    {
         int u = command.get(1).asInt();
         int v = command.get(2).asInt(); 
         Point3f point = this->get3DPoints(u,v);
@@ -1075,7 +1090,8 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.y);
         reply.addDouble(point.z);
     }
-    else if (!command.get(0).isString() && command.size()==2) {
+    else if (!command.get(0).isString() && command.size()==2)
+    {
         int u = command.get(0).asInt();
         int v = command.get(1).asInt(); 
         int uR,vR;
@@ -1086,7 +1102,8 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addInt(uR);
         reply.addInt(vR);
     }
-    else if (command.get(0).asString()=="Right") {
+    else if (command.get(0).asString()=="Right")
+    {
         int u = command.get(1).asInt();
         int v = command.get(2).asInt();
         Point3f point = this->get3DPoints(u,v,"RIGHT");
@@ -1094,8 +1111,8 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.y);
         reply.addDouble(point.z);
     }
-
-    else if (command.get(0).asString()=="Root") {
+    else if (command.get(0).asString()=="Root")
+    {
         int u = command.get(1).asInt();
         int v = command.get(2).asInt();
         Point3f point = this->get3DPoints(u,v,"ROOT");
@@ -1103,8 +1120,8 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.y);
         reply.addDouble(point.z);
     }
-
-    else if (command.get(0).asString()=="cart2stereo") {
+    else if (command.get(0).asString()=="cart2stereo")
+    {
         double x = command.get(1).asDouble();
         double y = command.get(2).asDouble();
         double z = command.get(3).asDouble();
@@ -1117,10 +1134,9 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(pointR.x);
         reply.addDouble(pointR.y);
     }
-
     else if(command.size()>0 && command.size()%4==0)
     {
-        for(int i=0; i<command.size(); i+=4)
+        for (int i=0; i<command.size(); i+=4)
         {
             double ul = command.get(i).asDouble();
             double vl = command.get(i+1).asDouble();
@@ -1132,7 +1148,6 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addDouble(point.y);
             reply.addDouble(point.z);
         }
-
     }
     else
         reply.addString("NACK");

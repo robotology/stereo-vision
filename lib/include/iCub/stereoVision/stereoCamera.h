@@ -30,7 +30,8 @@
  *
  * \section intro_sec Description
  *
- * The library relies on OpenCV 2.2 or greater. It implements the Camera and StereoCamera classes.
+ * The library relies on OpenCV 2.4 or greater. It implements 
+ * the Camera and StereoCamera classes. 
  *  
  */ 
 #include <iostream>
