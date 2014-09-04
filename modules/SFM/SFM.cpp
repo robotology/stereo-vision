@@ -1035,7 +1035,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         Mat RT0=buildRotTras(R0,T0);
         Matrix H0; convert(RT0,H0);
 
-        reply.write(H0);
+        reply.read(H0);
         return true;               
     }
 
