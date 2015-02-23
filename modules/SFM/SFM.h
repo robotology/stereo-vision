@@ -193,6 +193,7 @@ class SFM: public yarp::os::RFModule
     IEncoders* iencs;
     IGazeControl* igaze;
     yarp::sig::Vector eyes0,eyes;
+    int nHeadAxes;
     Mat HL_root;
     Mat HR_root;
     Mat R0,T0;

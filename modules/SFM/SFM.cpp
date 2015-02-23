@@ -107,7 +107,10 @@ bool SFM::configure(ResourceFinder &rf)
     optionHead.put("remote",("/"+robot+"/head").c_str());
     optionHead.put("local",(sname+"/headClient").c_str());
     if (headCtrl.open(optionHead))
+    {
         headCtrl.view(iencs);
+        iencs->getAxes(&nHeadAxes);
+    }
     else
     {
         cout<<"Devices not available"<<endl;
@@ -277,9 +280,9 @@ bool SFM::updateModule()
         return true;
 
     // read encoders
-    iencs->getEncoder(3,&eyes[0]);
-    iencs->getEncoder(4,&eyes[1]);
-    iencs->getEncoder(5,&eyes[2]);
+    iencs->getEncoder(nHeadAxes-3,&eyes[0]);
+    iencs->getEncoder(nHeadAxes-2,&eyes[1]);
+    iencs->getEncoder(nHeadAxes-1,&eyes[2]);
 
     updateViaKinematics(eyes-eyes0);
     updateViaGazeCtrl(false);
