@@ -85,6 +85,7 @@ private:
     yarp::dev::PolyDriver polyHead;
     yarp::dev::IEncoders *posHead;
     yarp::dev::IControlLimits *HctrlLim;
+    int nHeadAxis;
 
     yarp::dev::PolyDriver polyTorso;
     yarp::dev::IEncoders *posTorso;

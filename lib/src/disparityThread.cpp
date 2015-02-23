@@ -215,9 +215,9 @@ void DisparityThread::run()
     if (work)
     {
         // read encoders
-        posHead->getEncoder(3,&eyes[0]);
-        posHead->getEncoder(4,&eyes[1]);
-        posHead->getEncoder(5,&eyes[2]);
+        posHead->getEncoder(nHeadAxis-3,&eyes[0]);
+        posHead->getEncoder(nHeadAxis-2,&eyes[1]);
+        posHead->getEncoder(nHeadAxis-1,&eyes[2]);
 
         updateViaKinematics(eyes-eyes0);
         updateViaGazeCtrl(false);
@@ -356,6 +356,7 @@ bool DisparityThread::threadInit()
     {
         polyHead.view(posHead);
         polyHead.view(HctrlLim);
+        posHead->getAxes(&nHeadAxis);
     }
     else
     {
