@@ -17,6 +17,9 @@
  */
 
 #include "iCub/stereoVision/stereoCamera.h"
+#ifndef USING_GPU
+    #include <opencv2/nonfree/nonfree.hpp>
+#endif 
 
 Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
     Mat A = Mat::eye(4, 4, CV_64F);
@@ -51,6 +54,16 @@ const vector<Point2f>  StereoCamera::getMatchRight() {
     return this->InliersR;
 }
 
+StereoCamera::StereoCamera(bool rectify) {
+    this->mutex=new Semaphore(1);
+    this->rectify=rectify;
+    this->epipolarTh=0.01;
+
+#ifndef USING_GPU
+    cv::initModule_nonfree();
+#endif 
+}
+
 StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
         Mat KL, KR, DistL, DistR, R, T;
         loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
@@ -63,6 +76,10 @@ StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
         this->epipolarTh=0.01;
         this->rectify=rectify;
         buildUndistortRemap();
+
+    #ifndef USING_GPU
+        cv::initModule_nonfree();
+    #endif 
 }
 
 StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
@@ -76,6 +93,10 @@ StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
     this->rectify=rectify;
     this->epipolarTh=0.01;
     buildUndistortRemap();
+
+#ifndef USING_GPU
+    cv::initModule_nonfree();
+#endif 
 }
 
 void StereoCamera::setImages(IplImage * left, IplImage * right) {
@@ -580,6 +601,9 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius)
     Ptr<cv::FeatureDetector> detector=cv::FeatureDetector::create("SIFT");
     Ptr<cv::DescriptorExtractor> descriptorExtractor=cv::DescriptorExtractor::create("SIFT");
     cv::BFMatcher descriptorMatcher;
+
+    yAssert(detector!=NULL);
+    yAssert(descriptorExtractor!=NULL);
 
     detector->detect(grayleft,keypoints1);
     descriptorExtractor->compute(grayleft,keypoints1,descriptors1);
