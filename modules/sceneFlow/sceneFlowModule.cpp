@@ -105,8 +105,6 @@ int main(int argc, char *argv[])
     if (!yarp.checkNetwork())
         return -1;
 
-    YARP_REGISTER_DEVICES(icubmod)
-
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("sceneFlowModule");

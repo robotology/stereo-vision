@@ -22,7 +22,7 @@ source_group("Source Files" FILES ${source})
 source_group("Header Files" FILES ${header})
 
 add_executable(SFM ${source} ${header})
-target_link_libraries(SFM stereoVision iKin icubmod ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(SFM stereoVision iKin ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
 
 if(USE_SIFT_GPU)
 	target_link_libraries(SFM ${SIFTGPU_LIBRARIES})

@@ -85,8 +85,6 @@ Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7.
 #include <iCub/ctrl/math.h>
 #include <iCub/stereoVision/sceneFlow.h>
 
-YARP_DECLARE_DEVICES(icubmod)
-
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;

@@ -63,9 +63,9 @@ source_group("Header Files" FILES ${folder_header})
 
 add_library(${PROJECTNAME} ${folder_source} ${folder_header})
 if(USE_SIFT_GPU)
-    target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin icubmod ${YARP_LIBRARIES} ${SIFTGPU_LIBRARIES}  )
+    target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES} ${SIFTGPU_LIBRARIES}  )
 else()
-    target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin icubmod ${YARP_LIBRARIES})
+    target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES})
 endif()
 
 if(USE_SIFT_GPU)

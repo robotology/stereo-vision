@@ -133,9 +133,6 @@ against OpenCV versions: 2.4.
     #include <iCub/stereoVision/utils.h>
 #endif
 
-
-YARP_DECLARE_DEVICES(icubmod)
-
 #define LEFT    0
 #define RIGHT   1
 
