@@ -1,7 +1,7 @@
 /* 
- * Copyright (C) 2013 RobotCub Consortium
- * Author: Sean Ryan Fanello
- * email:   sean.fanello@iit.it
+ * Copyright (C) 2015 RobotCub Consortium
+ * Author: Sean Ryan Fanello, Giulia Pasquale
+ * email:   sean.fanello@iit.it giulia.pasquale@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -37,6 +37,9 @@ bool SFM::configure(ResourceFinder &rf)
     string outDispName=rf.check("outDispPort",Value("/disp:o")).asString().c_str();
     string outMatchName=rf.check("outMatchPort",Value("/match:o")).asString().c_str();
 
+    string outLeftRectImgPortName=rf.check("outLeftRectImgPort",Value("/rect_left:o")).asString().c_str();
+    string outRightRectImgPortName=rf.check("outRightRectImgPort",Value("/rect_right:o")).asString().c_str();
+
     ResourceFinder localCalibration;
     localCalibration.setContext("cameraCalibration");
     localCalibration.setDefaultConfigFile(SFMFile.c_str());
@@ -48,6 +51,9 @@ bool SFM::configure(ResourceFinder &rf)
     outMatchName=sname+outMatchName;
     outDispName=sname+outDispName;
     
+    outLeftRectImgPortName=sname+outLeftRectImgPortName;
+    outRightRectImgPortName=sname+outRightRectImgPortName;
+
     string rpc_name=sname+"/rpc";
     string world_name=sname+rf.check("outWorldPort",Value("/world:o")).asString().c_str();
 
@@ -62,7 +68,42 @@ bool SFM::configure(ResourceFinder &rf)
     worldPort.open(world_name.c_str());
     attach(handlerPort);
 
-    this->stereo=new StereoCamera(true);
+    outLeftRectImgPort.open(outLeftRectImgPortName.c_str());
+    outRightRectImgPort.open(outRightRectImgPortName.c_str());
+
+    this->stereo = new StereoCamera(true);
+
+    use_sgbm = false;
+    if (rf.check("use_sgbm"))
+    {
+        use_sgbm = true;
+    }
+
+    if (!use_sgbm)
+    {
+        
+        string elas_setting = rf.check("elas_setting",Value("MIDDLEBURY")).asString().c_str();
+
+        double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asDouble();
+
+        bool elas_subsampling = false;
+        if (rf.check("elas_subsampling"))
+        {
+            elas_subsampling = true;
+        }
+
+        bool add_corners = false;
+        if (rf.check("add_corners"))
+        {
+            add_corners = true;
+        }
+
+        int ipol_gap_width = rf.check("ipol_gap_width",Value(40)).asInt();
+
+        stereo->initELAS(elas_setting, disp_scaling_factor, elas_subsampling, add_corners, ipol_gap_width);
+
+    }
+
     Mat KL, KR, DistL, DistR;
     
     loadIntrinsics(rf,KL,KR,DistL,DistR);
@@ -217,16 +258,15 @@ void SFM::updateViaGazeCtrl(const bool update)
 bool SFM::interruptModule()
 {
     leftImgPort.interrupt();
-    leftImgPort.close();
     rightImgPort.interrupt();
-    rightImgPort.close();
-    outDisp.close();
     outDisp.interrupt();
-    
     handlerPort.interrupt();
-    outMatch.close();
     outMatch.interrupt();
     worldPort.interrupt();
+
+    outLeftRectImgPort.interrupt();
+    outRightRectImgPort.interrupt();
+
     return true;
 }
 
@@ -234,23 +274,11 @@ bool SFM::interruptModule()
 /******************************************************************************/
 bool SFM::close()
 {
-    leftImgPort.interrupt();
     leftImgPort.close();
-
-    rightImgPort.interrupt();
     rightImgPort.close();
-
-    outDisp.interrupt();
     outDisp.close();
-    
-
-    outMatch.interrupt();
-    outMatch.close();
-    
-    handlerPort.interrupt();    
+    outMatch.close();  
     handlerPort.close();
-    
-    worldPort.interrupt();
     worldPort.close();
 
     if (output_match!=NULL)
@@ -258,6 +286,12 @@ bool SFM::close()
 
     if (outputD!=NULL)
         cvReleaseImage(&outputD);
+
+    outLeftRectImgPort.close();
+    outRightRectImgPort.close();
+
+    if (!use_sgbm)
+        stereo->releaseELAS();
 
     headCtrl.close();
     gazeCtrl.close();
@@ -275,6 +309,10 @@ bool SFM::updateModule()
 {
     ImageOf<PixelRgb> *yarp_imgL=leftImgPort.read(true);
     ImageOf<PixelRgb> *yarp_imgR=rightImgPort.read(true);
+
+    Stamp stamp_left, stamp_right;
+    leftImgPort.getEnvelope(stamp_left);
+    rightImgPort.getEnvelope(stamp_right);
 
     if ((yarp_imgL==NULL) || (yarp_imgR==NULL))
         return true;
@@ -351,6 +389,32 @@ bool SFM::updateModule()
     circle(leftMat,cvPoint(160,120),2,cvScalar(255,0,0),2);
     circle(rightMat,cvPoint(uR,vR),2,cvScalar(0,255,0),2);
     */
+
+    if (outLeftRectImgPort.getOutputCount()>0)
+    {
+        Mat rectLeft = this->stereo->getLRectified();
+
+        ImageOf<PixelBgr>& rectLeftImage = outLeftRectImgPort.prepare();
+        rectLeftImage.resize(rectLeft.cols,rectLeft.rows);
+
+        rectLeft.copyTo( cv::Mat( (IplImage*)rectLeftImage.getIplImage() ) );
+
+        outLeftRectImgPort.setEnvelope(stamp_left);
+        outLeftRectImgPort.write();
+    }
+
+    if (outRightRectImgPort.getOutputCount()>0)
+    {
+        Mat rectRight = this->stereo->getRRectified();
+
+        ImageOf<PixelBgr>& rectRightImage = outRightRectImgPort.prepare();
+        rectRightImage.resize(rectRight.cols,rectRight.rows);
+
+        rectRight.copyTo( cv::Mat( (IplImage*)rectRightImage.getIplImage() ) );
+
+        outRightRectImgPort.setEnvelope(stamp_right);
+        outRightRectImgPort.write();
+    }
 
     if (outMatch.getOutputCount()>0)
     {

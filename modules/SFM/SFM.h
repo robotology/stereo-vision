@@ -1,7 +1,7 @@
 /* 
- * Copyright (C) 2013 RobotCub Consortium
- * Author: Sean Ryan Fanello
- * email:   sean.fanello@iit.it
+ * Copyright (C) 2015 RobotCub Consortium
+ * Author: Sean Ryan Fanello, Giulia Pasquale
+ * email:   sean.fanello@iit.it giulia.pasquale@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -22,9 +22,9 @@
 Structure From Motion (SFM) module for estimation of estrinsics
 parameter and computation of depth map. 
 
-Copyright (C) 2013 RobotCub Consortium
+Copyright (C) 2015 RobotCub Consortium
  
-Author: Sean Ryan Fanello
+Author: Sean Ryan Fanello, Giulia Pasquale
  
 Date: first release around 24/07/2013
 
@@ -34,20 +34,23 @@ CopyPolicy: Released under the terms of the GNU GPL v2.0.
 The module uses a complete Structure From Motion (SFM) pipeline 
 for the computation of the extrinsics parameters between two 
 different views. These parameters are then used to rectify the 
-images and to compute a depth map using the H. Hirschmuller 
-Algorithm (CVPR 2006) implemented since Opencv 2.2. The 
-Kinematics of the iCub is used to guess the current camera 
-positions, then visual features are used to refine this model. 
+images and to compute a depth map using either the H. Hirschmuller 
+Algorithm (CVPR 2006), implemented since Opencv 2.2, or the ELAS library. 
+The Kinematics of the iCub is used to guess the current camera positions, 
+then visual features are used to refine this model.
 Before starting, make sure you have calibrated the intrinsics 
 parameters. For the stereo calibration see the module <a 
 href="http://wiki.icub.org/iCub/main/dox/html/group__icub__stereoCalib.html">stereoCalib</a>. 
-The module provides three output ports: the first one is the 
+The module provides five output ports: the first one is the 
 disparity map in grayscale values, the second port is the 
 WorldImage, that is a 3-channels float image, where in each 
 pixel are stored the three X Y Z coordinates with respect to 
 robot root reference frame. The third port outputs the current 
 keypoints match. Non valid points are handled with the special 
-value (0,0,0). In addition, a rpc port supports requests for 
+value (0,0,0). 
+The last two ports output the rectified images used to compute 
+the horizontal disparity map.
+In addition, a rpc port supports requests for 
 3D/2D points computation (see below). 
 
 \section lib_sec Libraries 
@@ -90,6 +93,10 @@ installed.
 - <i> /SFM/disp:o </i> outputs the disparity map in grayscale values.
 - <i> /SFM/world:o</i> outputs the world image (3-channel float with X Y Z values). 
 - <i> /SFM/match:o</i> outputs the match image.
+
+- <i> /SFM/rect_left:o</i> outputs the rectified left image.
+- <i> /SFM/rect_right:o</i> outputs the rectified right image.
+
 - <i> /SFM/rpc </i> for terminal commands communication. 
     - [calibrate]: It recomputes the camera positions once.
     - [save]: It saves the current camera positions and uses it when the module starts.
@@ -113,7 +120,7 @@ None.
 Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7. Tested 
 against OpenCV versions: 2.4. 
 
-\author Sean Ryan Fanello
+\author Sean Ryan Fanello, Giulia Pasquale
 */ 
 
 #include <string>
@@ -155,6 +162,8 @@ class SFM: public yarp::os::RFModule
 
     Mat leftMat, rightMat;
 
+    bool use_sgbm;
+
 #ifdef USING_GPU
     /* pointer to the utilities class */
     Utilities *utils;
@@ -169,6 +178,9 @@ class SFM: public yarp::os::RFModule
     BufferedPort<ImageOf<PixelBgr> > outDisp;
     BufferedPort<ImageOf<PixelBgr> > outMatch;
 
+    BufferedPort<ImageOf<PixelBgr> > outLeftRectImgPort;
+    BufferedPort<ImageOf<PixelBgr> > outRightRectImgPort;
+    
     int numberOfTrials;
     string camCalibFile;
     bool useBestDisp;
@@ -182,9 +194,9 @@ class SFM: public yarp::os::RFModule
     int disp12MaxDiff;
     bool doSFM;
     bool calibUpdated;
-    Mutex mutexRecalibration;
+    yarp::os::Mutex mutexRecalibration;
     Event calibEndEvent;
-    Mutex mutexDisp;
+    yarp::os::Mutex mutexDisp;
     
     PolyDriver headCtrl,gazeCtrl;
     IEncoders* iencs;
