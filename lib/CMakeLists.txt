@@ -43,31 +43,34 @@ if(OPENMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
-  set (LIBELAS_SRC_DIR elas_src_omp)
+  set (folder_source_elas
+                  elas/src/elas_omp.cpp
+                  elas/src/descriptor.cpp
+                  elas/src/filter.cpp
+                  elas/src/matrix.cpp
+                  elas/src/triangle.cpp)
 
 else()
 
   message(STATUS "OPENMP NOT FOUND")
 
-  set (LIBELAS_SRC_DIR elas_src)
+  set (folder_source_elas
+                  elas/src/elas.cpp
+                  elas/src/descriptor.cpp
+                  elas/src/filter.cpp
+                  elas/src/matrix.cpp
+                  elas/src/triangle.cpp)
     
 endif()
 
 set (folder_header_elas 
-                  ${LIBELAS_SRC_DIR}/elas.h
-                  ${LIBELAS_SRC_DIR}/descriptor.h
-                  ${LIBELAS_SRC_DIR}/image.h
-                  ${LIBELAS_SRC_DIR}/filter.h
-                  ${LIBELAS_SRC_DIR}/timer.h
-                  ${LIBELAS_SRC_DIR}/matrix.h
-                  ${LIBELAS_SRC_DIR}/triangle.h)
-
-set (folder_source_elas
-                  ${LIBELAS_SRC_DIR}/elas.cpp
-                  ${LIBELAS_SRC_DIR}/descriptor.cpp
-                  ${LIBELAS_SRC_DIR}/filter.cpp
-                  ${LIBELAS_SRC_DIR}/matrix.cpp
-                  ${LIBELAS_SRC_DIR}/triangle.cpp)
+                  elas/include/elas.h
+                  elas/include/descriptor.h
+                  elas/include/image.h
+                  elas/include/filter.h
+                  elas/include/timer.h
+                  elas/include/matrix.h
+                  elas/include/triangle.h)
 
 ####################################
 
@@ -105,7 +108,7 @@ if(USE_SIFT_GPU)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/${LIBELAS_SRC_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/elas/include)
 
 source_group("Source Files" FILES ${folder_source})
 source_group("Header Files" FILES ${folder_header})
@@ -128,12 +131,12 @@ if(OPENMP_FOUND)
 endif()
 
 if(USE_SIFT_GPU)
-icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/${LIBELAS_SRC_DIR}
+icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/elas/include
                                           EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS}
                                           DESTINATION include/iCub/${PROJECTNAME}
                                           FILES ${folder_header})
 else()
-icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/${LIBELAS_SRC_DIR}
+icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/elas/include
                                           EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES}
                                           DESTINATION include/iCub/${PROJECTNAME}
                                           FILES ${folder_header})

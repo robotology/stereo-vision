@@ -1,7 +1,5 @@
 #include <iCub/stereoVision/elasWrapper.h>
 
-#include "elas.h"
-
 int64 elasWrapper::workBegin()
 {
 	return getTickCount();
