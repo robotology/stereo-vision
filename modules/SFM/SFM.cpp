@@ -73,36 +73,8 @@ bool SFM::configure(ResourceFinder &rf)
 
     this->stereo = new StereoCamera(true);
 
-    use_sgbm = false;
-    if (rf.check("use_sgbm"))
-    {
-        use_sgbm = true;
-    }
-
-    if (!use_sgbm)
-    {
-        
-        string elas_setting = rf.check("elas_setting",Value("MIDDLEBURY")).asString().c_str();
-
-        double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asDouble();
-
-        bool elas_subsampling = false;
-        if (rf.check("elas_subsampling"))
-        {
-            elas_subsampling = true;
-        }
-
-        bool add_corners = false;
-        if (rf.check("add_corners"))
-        {
-            add_corners = true;
-        }
-
-        int ipol_gap_width = rf.check("ipol_gap_width",Value(40)).asInt();
-
-        stereo->initELAS(elas_setting, disp_scaling_factor, elas_subsampling, add_corners, ipol_gap_width);
-
-    }
+    if (!rf.check("use_sgbm"))
+        stereo->initELAS(rf);
 
     Mat KL, KR, DistL, DistR;
     
@@ -116,12 +88,13 @@ bool SFM::configure(ResourceFinder &rf)
     this->uniquenessRatio=15;
     this->speckleWindowSize=50;
     this->speckleRange=16;
-    this->numberOfDisparities=96;
     this->SADWindowSize=7;
     this->minDisparity=0;
     this->preFilterCap=63;
     this->disp12MaxDiff=0;
     
+    this->numberOfDisparities = 96;
+
     this->HL_root=Mat::zeros(4,4,CV_64F);
     this->HR_root=Mat::zeros(4,4,CV_64F);
 
@@ -290,9 +263,6 @@ bool SFM::close()
     outLeftRectImgPort.close();
     outRightRectImgPort.close();
 
-    if (!use_sgbm)
-        stereo->releaseELAS();
-
     headCtrl.close();
     gazeCtrl.close();
 
@@ -332,7 +302,9 @@ bool SFM::updateModule()
     {
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
+
         this->numberOfDisparities=(left->width<=320)?96:128;
+
         init=false;
     }
 

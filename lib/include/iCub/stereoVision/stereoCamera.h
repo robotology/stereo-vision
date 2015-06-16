@@ -160,8 +160,8 @@ private:
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T);
     void updateExpectedCameraMatrices();
 
-    bool use_elas; // If true, use ELAS library, otherwise, OpenCV SGBM
-    elasWrapper*  elaswrap; // Wrapper for ELAS library
+    bool use_elas;
+    elasWrapper*  elaswrap;
 
 public:
 
@@ -189,14 +189,11 @@ public:
     StereoCamera(Camera First, Camera Second,bool rectify=true);
 
     /**
-    * Initialization of ELAS parameters
+    * Initialization of ELAS parameters.
+    * @param rf The ResourceFinder mechanism is used to set the parameters either to the default value or to the value passed by the user via command line.
+    * See the documentation of the \ref SFM module to get the list of parameters that are processed by this initialization function.
     */
-    void initELAS(string elas_setting, double disp_scaling_factor, bool elas_subsampling, bool add_corners, int ipol_gap_width);
-
-    /**
-    * Relase ELAS resources
-    */
-    void releaseELAS();
+    void initELAS(yarp::os::ResourceFinder &rf);
 
     /**
     * It performs the stereo camera calibration. (see \ref stereoCalibration module)

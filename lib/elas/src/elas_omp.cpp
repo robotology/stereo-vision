@@ -116,37 +116,33 @@ vector<triangle> tri_1, tri_2;
 #ifdef PROFILE
 	timer.start("Remove Small Segments");
 #endif
+	removeSmallSegments(D1);
 	if (!param.postprocess_only_left)
 		removeSmallSegments(D2);
-	else
-		removeSmallSegments(D1);
 
 #ifdef PROFILE
 	timer.start("Gap Interpolation");
 #endif
+	gapInterpolation(D1);
 	if (!param.postprocess_only_left)
 		gapInterpolation(D2);
-	else
-		gapInterpolation(D1);
 
 	if (param.filter_adaptive_mean) {
 #ifdef PROFILE
 		timer.start("Adaptive Mean");
 #endif
+		adaptiveMean(D1);
 		if (!param.postprocess_only_left)
 			adaptiveMean(D2);
-		else
-			adaptiveMean(D1);
 	}
 
 	if (param.filter_median) {
 #ifdef PROFILE
 		timer.start("Median");
 #endif
+		median(D1);
 		if (!param.postprocess_only_left)
 			median(D2);
-		else
-			median(D1);
 	}
 
 #ifdef PROFILE

@@ -221,9 +221,11 @@ private:
   void adaptiveMean (float* D);
   void median (float* D);
 
+protected:
   // parameter set
   parameters param;
 
+private:
   // memory aligned input images + dimensions
   uint8_t *I1,*I2;
   int32_t width,height,bpl;
