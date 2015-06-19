@@ -63,8 +63,6 @@ double elasWrapper::compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL
     Size im_size = imL.size();
     
     param.disp_max = num_disparities - 1;
-    
-    cout << "disp_max: " << param.disp_max  << endl;
 
     Mat imR_scaled, imL_scaled;
     if (io_scaling_factor!=1.0)
