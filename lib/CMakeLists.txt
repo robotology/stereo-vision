@@ -6,11 +6,6 @@ set(PROJECTNAME stereoVision)
 project(${PROJECTNAME})
 
 set(USE_SIFT_GPU ${IS_SIFT_GPU} CACHE BOOL "Select false to run without GPU, or true for GPU acceleration")
-
-include_directories(${YARP_INCLUDE_DIRS})
-include_directories(${ICUB_INCLUDE_DIRS})
-include_directories(${OpenCV_INCLUDE_DIRS})
-
 if(USE_SIFT_GPU)
     find_package(SIFTGPU)
     if(SIFTGPU_FOUND)
@@ -85,6 +80,9 @@ source_group("Header Files" FILES ${folder_header})
 source_group("ELAS Source Files" FILES ${folder_source_elas})
 source_group("ELAS Header Files" FILES ${folder_header_elas})
 
+include_directories(${YARP_INCLUDE_DIRS}
+                    ${ICUB_INCLUDE_DIRS}
+                    ${OpenCV_INCLUDE_DIRS})
 add_library(${PROJECTNAME} ${folder_source} ${folder_header} ${folder_source_elas} ${folder_header_elas})
 target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES})
 
