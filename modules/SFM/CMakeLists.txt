@@ -4,14 +4,6 @@
 
 project(SFM)
 
-if(USE_SIFT_GPU)
-    find_package(SIFTGPU)
-    if(SIFTGPU_FOUND)
-        include_directories(${SIFTGPU_INCLUDE_DIRS})
-        add_definitions(-DUSING_GPU)
-    endif()
-endif()
-
 set(source SFM.cpp)
 set(header SFM.h)
 
@@ -22,10 +14,16 @@ include_directories(${stereoVision_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS})
+
+if(USE_SIFT_GPU)
+    include_directories(${SIFTGPU_INCLUDE_DIRS})
+    add_definitions(-DUSING_GPU)
+endif()
+
 add_executable(SFM ${source} ${header})
 target_link_libraries(SFM stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
 
-if(SIFTGPU_FOUND)
+if(USE_SIFT_GPU)
 	target_link_libraries(SFM ${SIFTGPU_LIBRARIES})
 endif()
 

@@ -5,15 +5,6 @@
 set(PROJECTNAME stereoVision)
 project(${PROJECTNAME})
 
-set(USE_SIFT_GPU ${IS_SIFT_GPU} CACHE BOOL "Select false to run without GPU, or true for GPU acceleration")
-if(USE_SIFT_GPU)
-    find_package(SIFTGPU)
-    if(SIFTGPU_FOUND)
-        include_directories(${SIFTGPU_INCLUDE_DIRS})
-        add_definitions(-DUSING_GPU)
-    endif()
-endif()
-
 ############## LIBELAS ##############
 
 list(APPEND CMAKE_CXX_FLAGS "-msse3")
@@ -66,7 +57,7 @@ set(folder_header include/iCub/stereoVision/camera.h
                   include/iCub/stereoVision/sceneFlow.h
                   include/iCub/stereoVision/elasWrapper.h)
 
-if(SIFTGPU_FOUND)
+if(USE_SIFT_GPU)
     list(APPEND folder_source src/utils.cpp)
     list(APPEND folder_header include/iCub/stereoVision/utils.h)
 endif()
@@ -80,13 +71,17 @@ source_group("Header Files" FILES ${folder_header})
 source_group("ELAS Source Files" FILES ${folder_source_elas})
 source_group("ELAS Header Files" FILES ${folder_header_elas})
 
-include_directories(${YARP_INCLUDE_DIRS}
-                    ${ICUB_INCLUDE_DIRS}
-                    ${OpenCV_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
+
+if(USE_SIFT_GPU)
+    include_directories(${SIFTGPU_INCLUDE_DIRS})
+    add_definitions(-DUSING_GPU)
+endif()
+
 add_library(${PROJECTNAME} ${folder_source} ${folder_header} ${folder_source_elas} ${folder_header_elas})
 target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES})
 
-if(SIFTGPU_FOUND)
+if(USE_SIFT_GPU)
     target_link_libraries(${PROJECTNAME} ${SIFTGPU_LIBRARIES})
 endif()
 
@@ -94,7 +89,7 @@ if(OPENMP_FOUND)
    target_link_libraries(${PROJECTNAME} ${OpenMP_C_FLAGS} ${OpenMP_CXX_FLAGS})
 endif()
 
-if(SIFTGPU_FOUND)
+if(USE_SIFT_GPU)
    icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/elas/include
                                              EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS}
                                              DESTINATION include/iCub/${PROJECTNAME}

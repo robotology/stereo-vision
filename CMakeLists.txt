@@ -20,6 +20,11 @@ list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH}
 
 find_package(OpenCV REQUIRED)
 
+set(USE_SIFT_GPU FALSE CACHE BOOL "Select false to run without GPU, or true for GPU acceleration")
+if(USE_SIFT_GPU)
+    find_package(SIFTGPU REQUIRED)
+endif()
+
 include(YarpInstallationHelpers)
 include(ICUBcontribHelpers)
 include(ICUBcontribOptions)
