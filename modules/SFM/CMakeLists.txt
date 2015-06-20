@@ -25,7 +25,7 @@ include_directories(${stereoVision_INCLUDE_DIRS}
 add_executable(SFM ${source} ${header})
 target_link_libraries(SFM stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
 
-if(USE_SIFT_GPU)
+if(SIFTGPU_FOUND)
 	target_link_libraries(SFM ${SIFTGPU_LIBRARIES})
 endif()
 

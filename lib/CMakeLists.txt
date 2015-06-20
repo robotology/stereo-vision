@@ -71,8 +71,7 @@ set(folder_header include/iCub/stereoVision/camera.h
                   include/iCub/stereoVision/sceneFlow.h
                   include/iCub/stereoVision/elasWrapper.h)
 
-
-if(USE_SIFT_GPU)
+if(SIFTGPU_FOUND)
     list(APPEND folder_source src/utils.cpp)
     list(APPEND folder_header include/iCub/stereoVision/utils.h)
 endif()
@@ -89,7 +88,7 @@ source_group("ELAS Header Files" FILES ${folder_header_elas})
 add_library(${PROJECTNAME} ${folder_source} ${folder_header} ${folder_source_elas} ${folder_header_elas})
 target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES})
 
-if(USE_SIFT_GPU)
+if(SIFTGPU_FOUND)
     target_link_libraries(${PROJECTNAME} ${SIFTGPU_LIBRARIES})
 endif()
 
@@ -97,7 +96,7 @@ if(OPENMP_FOUND)
    target_link_libraries(${PROJECTNAME} ${OpenMP_C_FLAGS} ${OpenMP_CXX_FLAGS})
 endif()
 
-if(USE_SIFT_GPU)
+if(SIFTGPU_FOUND)
    icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/elas/include
                                              EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS}
                                              DESTINATION include/iCub/${PROJECTNAME}
