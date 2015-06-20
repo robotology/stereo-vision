@@ -1,7 +1,7 @@
 /* 
- * Copyright (C) 2013 RobotCub Consortium
- * Author: Sean Ryan Fanello
- * email:   sean.fanello@iit.it
+ * Copyright (C) 2015 RobotCub Consortium
+ * Author: Sean Ryan Fanello, Giulia Pasquale
+ * email:   sean.fanello@iit.it giulia.pasquale@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -37,6 +37,9 @@ bool SFM::configure(ResourceFinder &rf)
     string outDispName=rf.check("outDispPort",Value("/disp:o")).asString().c_str();
     string outMatchName=rf.check("outMatchPort",Value("/match:o")).asString().c_str();
 
+    string outLeftRectImgPortName=rf.check("outLeftRectImgPort",Value("/rect_left:o")).asString().c_str();
+    string outRightRectImgPortName=rf.check("outRightRectImgPort",Value("/rect_right:o")).asString().c_str();
+
     ResourceFinder localCalibration;
     localCalibration.setContext("cameraCalibration");
     localCalibration.setDefaultConfigFile(SFMFile.c_str());
@@ -48,6 +51,9 @@ bool SFM::configure(ResourceFinder &rf)
     outMatchName=sname+outMatchName;
     outDispName=sname+outDispName;
     
+    outLeftRectImgPortName=sname+outLeftRectImgPortName;
+    outRightRectImgPortName=sname+outRightRectImgPortName;
+
     string rpc_name=sname+"/rpc";
     string world_name=sname+rf.check("outWorldPort",Value("/world:o")).asString().c_str();
 
@@ -62,7 +68,14 @@ bool SFM::configure(ResourceFinder &rf)
     worldPort.open(world_name.c_str());
     attach(handlerPort);
 
-    this->stereo=new StereoCamera(true);
+    outLeftRectImgPort.open(outLeftRectImgPortName.c_str());
+    outRightRectImgPort.open(outRightRectImgPortName.c_str());
+
+    this->stereo = new StereoCamera(true);
+
+    if (!rf.check("use_sgbm"))
+        stereo->initELAS(rf);
+
     Mat KL, KR, DistL, DistR;
     
     loadIntrinsics(rf,KL,KR,DistL,DistR);
@@ -75,12 +88,13 @@ bool SFM::configure(ResourceFinder &rf)
     this->uniquenessRatio=15;
     this->speckleWindowSize=50;
     this->speckleRange=16;
-    this->numberOfDisparities=96;
     this->SADWindowSize=7;
     this->minDisparity=0;
     this->preFilterCap=63;
     this->disp12MaxDiff=0;
     
+    this->numberOfDisparities = 96;
+
     this->HL_root=Mat::zeros(4,4,CV_64F);
     this->HR_root=Mat::zeros(4,4,CV_64F);
 
@@ -217,16 +231,15 @@ void SFM::updateViaGazeCtrl(const bool update)
 bool SFM::interruptModule()
 {
     leftImgPort.interrupt();
-    leftImgPort.close();
     rightImgPort.interrupt();
-    rightImgPort.close();
-    outDisp.close();
     outDisp.interrupt();
-    
     handlerPort.interrupt();
-    outMatch.close();
     outMatch.interrupt();
     worldPort.interrupt();
+
+    outLeftRectImgPort.interrupt();
+    outRightRectImgPort.interrupt();
+
     return true;
 }
 
@@ -234,23 +247,11 @@ bool SFM::interruptModule()
 /******************************************************************************/
 bool SFM::close()
 {
-    leftImgPort.interrupt();
     leftImgPort.close();
-
-    rightImgPort.interrupt();
     rightImgPort.close();
-
-    outDisp.interrupt();
     outDisp.close();
-    
-
-    outMatch.interrupt();
-    outMatch.close();
-    
-    handlerPort.interrupt();    
+    outMatch.close();  
     handlerPort.close();
-    
-    worldPort.interrupt();
     worldPort.close();
 
     if (output_match!=NULL)
@@ -258,6 +259,9 @@ bool SFM::close()
 
     if (outputD!=NULL)
         cvReleaseImage(&outputD);
+
+    outLeftRectImgPort.close();
+    outRightRectImgPort.close();
 
     headCtrl.close();
     gazeCtrl.close();
@@ -275,6 +279,10 @@ bool SFM::updateModule()
 {
     ImageOf<PixelRgb> *yarp_imgL=leftImgPort.read(true);
     ImageOf<PixelRgb> *yarp_imgR=rightImgPort.read(true);
+
+    Stamp stamp_left, stamp_right;
+    leftImgPort.getEnvelope(stamp_left);
+    rightImgPort.getEnvelope(stamp_right);
 
     if ((yarp_imgL==NULL) || (yarp_imgR==NULL))
         return true;
@@ -294,7 +302,9 @@ bool SFM::updateModule()
     {
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
         outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
+
         this->numberOfDisparities=(left->width<=320)?96:128;
+
         init=false;
     }
 
@@ -351,6 +361,32 @@ bool SFM::updateModule()
     circle(leftMat,cvPoint(160,120),2,cvScalar(255,0,0),2);
     circle(rightMat,cvPoint(uR,vR),2,cvScalar(0,255,0),2);
     */
+
+    if (outLeftRectImgPort.getOutputCount()>0)
+    {
+        Mat rectLeft = this->stereo->getLRectified();
+
+        ImageOf<PixelBgr>& rectLeftImage = outLeftRectImgPort.prepare();
+        rectLeftImage.resize(rectLeft.cols,rectLeft.rows);
+
+        rectLeft.copyTo( cv::Mat( (IplImage*)rectLeftImage.getIplImage() ) );
+
+        outLeftRectImgPort.setEnvelope(stamp_left);
+        outLeftRectImgPort.write();
+    }
+
+    if (outRightRectImgPort.getOutputCount()>0)
+    {
+        Mat rectRight = this->stereo->getRRectified();
+
+        ImageOf<PixelBgr>& rectRightImage = outRightRectImgPort.prepare();
+        rectRightImage.resize(rectRight.cols,rectRight.rows);
+
+        rectRight.copyTo( cv::Mat( (IplImage*)rectRightImage.getIplImage() ) );
+
+        outRightRectImgPort.setEnvelope(stamp_right);
+        outRightRectImgPort.write();
+    }
 
     if (outMatch.getOutputCount()>0)
     {

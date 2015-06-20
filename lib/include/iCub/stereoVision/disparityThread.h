@@ -76,7 +76,7 @@ private:
 
     Matrix yarp_initLeft,yarp_initRight;
     Matrix yarp_H0;
-    Mutex mutexDisp;
+    yarp::os::Mutex mutexDisp;
     PolyDriver gazeCtrl;
     IGazeControl* igaze;
 

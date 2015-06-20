@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2011 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
- * Authors: Vadim Tikhanoff
- * email:   vadim.tikhanoff@iit.it
+ * Authors: Vadim Tikhanoff, Giulia Pasquale
+ * email:   vadim.tikhanoff@iit.it giulia.pasquale@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -62,6 +62,9 @@ StereoCamera::StereoCamera(bool rectify) {
 #ifndef USING_GPU
     cv::initModule_nonfree();
 #endif 
+
+    use_elas = false;
+
 }
 
 StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
@@ -80,6 +83,9 @@ StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
     #ifndef USING_GPU
         cv::initModule_nonfree();
     #endif 
+
+    use_elas = false;
+
 }
 
 StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
@@ -97,6 +103,77 @@ StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
 #ifndef USING_GPU
     cv::initModule_nonfree();
 #endif 
+
+    use_elas = false;
+
+}
+
+void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
+{
+    use_elas = true;
+
+    string elas_string = rf.check("elas_setting",Value("ROBOTICS")).asString().c_str();
+
+    double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asDouble();
+
+    elaswrap = new elasWrapper(disp_scaling_factor, elas_string);
+
+    
+    if (rf.check("elas_subsampling"))
+        elaswrap->set_subsampling(true);
+
+    if (rf.check("elas_add_corners"))
+    	elaswrap->set_add_corners(true);
+
+
+    elaswrap->set_ipol_gap_width(40);
+    if (rf.check("elas_ipol_gap_width"))
+    	elaswrap->set_ipol_gap_width(rf.find("elas_ipol_gap_width").asInt());
+
+
+    if (rf.check("elas_support_threshold"))
+    	elaswrap->set_support_threshold(rf.find("elas_support_threshold").asDouble());
+
+    if(rf.check("elas_gamma"))
+    	elaswrap->set_gamma(rf.find("elas_gamma").asDouble());
+
+    if (rf.check("elas_sradius"))
+    	elaswrap->set_sradius(rf.find("elas_sradius").asDouble());
+
+    if (rf.check("elas_match_texture"))
+    	elaswrap->set_match_texture(rf.find("elas_match_texture").asInt());
+
+    if (rf.check("elas_filter_median"))
+    	elaswrap->set_filter_median(rf.find("elas_filter_median").asBool());
+
+    if (rf.check("elas_filter_adaptive_mean"))
+    	elaswrap->set_filter_adaptive_mean(rf.find("elas_filter_adaptive_mean").asBool());
+
+
+    cout << endl << "ELAS parameters:" << endl << endl;
+
+    cout << "disp_scaling_factor: " << disp_scaling_factor << endl;
+
+    cout << "setting: " << elas_string << endl;
+
+    cout << "postprocess_only_left: " << elaswrap->get_postprocess_only_left() << endl;
+    cout << "subsampling: " << elaswrap->get_subsampling() << endl;
+
+    cout << "add_corners: " << elaswrap->get_add_corners() << endl;
+
+    cout << "ipol_gap_width: " << elaswrap->get_ipol_gap_width() << endl;
+
+    cout << "support_threshold: " << elaswrap->get_support_threshold() << endl;
+    cout << "gamma: " << elaswrap->get_gamma() << endl;
+    cout << "sradius: " << elaswrap->get_sradius() << endl;
+
+    cout << "match_texture: " << elaswrap->get_match_texture() << endl;
+
+    cout << "filter_median: " << elaswrap->get_filter_median() << endl;
+    cout << "filter_adaptive_mean: " << elaswrap->get_filter_adaptive_mean() << endl;
+
+    cout << endl;
+
 }
 
 void StereoCamera::setImages(IplImage * left, IplImage * right) {
@@ -457,8 +534,6 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
     Size img_size=this->imleft.size();
 
-    StereoSGBM sgbm;
-
     if (cameraChanged)
     {
         mutex->wait();
@@ -487,26 +562,43 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
     Mat img1r, img2r;
     remap(this->imleft, img1r, this->map11, this->map12, cv::INTER_LINEAR);
     remap(this->imright, img2r, this->map21,this->map22, cv::INTER_LINEAR);
-  
-    sgbm.preFilterCap=preFilterCap; //63
-    sgbm.SADWindowSize=SADWindowSize;
-    int cn=this->imleft.channels();
-    sgbm.P1=8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-    sgbm.P2=32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-    sgbm.minDisparity=minDisparity; //-15
-    sgbm.numberOfDisparities=numberOfDisparities;
-    sgbm.uniquenessRatio=uniquenessRatio; //22
-    sgbm.speckleWindowSize=speckleWindowSize; //100
-    sgbm.speckleRange=speckleRange; //32
-    sgbm.disp12MaxDiff=disp12MaxDiff;
-    sgbm.fullDP=best; // alg == STEREO_HH
-    
-    Mat disp,disp8,map,dispTemp;
-    sgbm(img1r,img2r,disp);
 
-    disp.convertTo(map, CV_32FC1, 1.0,0.0);
-    map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
-    //normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+    imgLeftRect = img1r;
+    imgRightRect = img2r;
+
+    Mat disp,disp8,map,dispTemp;
+
+    if (use_elas)
+    {
+        
+        elaswrap->compute_disparity(img1r, img2r, disp, numberOfDisparities);
+
+        map = disp * (255.0 / numberOfDisparities);
+        //threshold(map, map, 0, 255.0, THRESH_TOZERO);
+
+    } else
+    {
+        StereoSGBM sgbm;
+        sgbm.preFilterCap =         preFilterCap; //63
+        sgbm.SADWindowSize =        SADWindowSize;
+        int cn =                    this->imleft.channels();
+        sgbm.P1 =                   8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
+        sgbm.P2 =                   32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
+        sgbm.minDisparity =         minDisparity; //-15
+        sgbm.numberOfDisparities =  numberOfDisparities;
+        sgbm.uniquenessRatio =      uniquenessRatio; //22
+        sgbm.speckleWindowSize =    speckleWindowSize; //100
+        sgbm.speckleRange =         speckleRange; //32
+        sgbm.disp12MaxDiff =        disp12MaxDiff;
+        sgbm.fullDP =               best; // alg == STEREO_HH
+
+        sgbm(img1r, img2r, disp);
+
+        disp.convertTo(map, CV_32FC1, 1.0,0.0);
+        map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
+        //normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+
+    }
     
     if (cameraChanged)
     {
@@ -541,8 +633,14 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
     dispTemp.convertTo(disp8,CV_8U); 
 
     this->mutex->wait();
-    this->Disparity=disp8;
-    this->Disparity16=disp;
+
+    this->Disparity = disp8;
+
+    if (use_elas)
+        disp.convertTo(disp, CV_16SC1, 16.0);
+
+    this->Disparity16 = disp;
+
     this->mutex->post();
 }
 

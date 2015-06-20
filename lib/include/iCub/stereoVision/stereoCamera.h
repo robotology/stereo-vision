@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2010 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Author: Sean Ryan Fanello
- * email:  sean.fanello@iit.it
+ * Author: Sean Ryan Fanello, Giulia Pasquale
+ * email:  sean.fanello@iit.it giulia.pasquale@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -22,7 +22,7 @@
  * Vision library for dealing with stereo camera calibration,
  * 3D points generation and motion estimation
  *
- * \author Sean Ryan Fanello 
+ * \author Sean Ryan Fanello, Giulia Pasquale
  *  
  * Copyright (C) 2010 RobotCub Consortium
  *
@@ -37,11 +37,14 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 #include <iCub/stereoVision/camera.h>
+#include <iCub/stereoVision/elasWrapper.h>
+
 #include <yarp/os/all.h>
 
 #define LEFT    0
@@ -135,8 +138,6 @@ private:
     
     double epipolarTh; //threshold for the constraint x'Fx=0 -> x'Fx<epipolarTh
 
-
-
     Semaphore* mutex;
     bool cameraChanged;
     bool rectify;
@@ -159,6 +160,9 @@ private:
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T);
     void updateExpectedCameraMatrices();
 
+    bool use_elas;
+    elasWrapper*  elaswrap;
+
 public:
 
     /**
@@ -167,7 +171,7 @@ public:
     */
     StereoCamera(bool rectify=true);
 
-    ~StereoCamera() { delete mutex; }
+    ~StereoCamera() { delete mutex;}
 
     /**
     * Costructor for initialization from file.
@@ -183,6 +187,13 @@ public:
     * @param Second the second camera (Right eye is assumed).
     */
     StereoCamera(Camera First, Camera Second,bool rectify=true);
+
+    /**
+    * Initialization of ELAS parameters.
+    * @param rf The ResourceFinder mechanism is used to set the parameters either to the default value or to the value passed by the user via command line.
+    * See the documentation of the \ref SFM module to get the list of parameters that are processed by this initialization function.
+    */
+    void initELAS(yarp::os::ResourceFinder &rf);
 
     /**
     * It performs the stereo camera calibration. (see \ref stereoCalibration module)

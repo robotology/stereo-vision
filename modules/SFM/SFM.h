@@ -1,7 +1,7 @@
 /* 
- * Copyright (C) 2013 RobotCub Consortium
- * Author: Sean Ryan Fanello
- * email:   sean.fanello@iit.it
+ * Copyright (C) 2015 RobotCub Consortium
+ * Author: Sean Ryan Fanello, Giulia Pasquale
+ * email:   sean.fanello@iit.it giulia.pasquale@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -22,9 +22,9 @@
 Structure From Motion (SFM) module for estimation of estrinsics
 parameter and computation of depth map. 
 
-Copyright (C) 2013 RobotCub Consortium
+Copyright (C) 2015 RobotCub Consortium
  
-Author: Sean Ryan Fanello
+Author: Sean Ryan Fanello, Giulia Pasquale
  
 Date: first release around 24/07/2013
 
@@ -34,20 +34,23 @@ CopyPolicy: Released under the terms of the GNU GPL v2.0.
 The module uses a complete Structure From Motion (SFM) pipeline 
 for the computation of the extrinsics parameters between two 
 different views. These parameters are then used to rectify the 
-images and to compute a depth map using the H. Hirschmuller 
-Algorithm (CVPR 2006) implemented since Opencv 2.2. The 
-Kinematics of the iCub is used to guess the current camera 
-positions, then visual features are used to refine this model. 
+images and to compute a depth map using either the H. Hirschmuller 
+Algorithm (CVPR 2006), implemented since Opencv 2.2, or
+<a href="http://www.cvlibs.net/software/libelas/">LIBELAS
+(Library for Efficient Large-scale Stereo Matching)</a>.
+The Kinematics of the iCub is used to guess the current camera positions, 
+then visual features are used to refine this model.
 Before starting, make sure you have calibrated the intrinsics 
 parameters. For the stereo calibration see the module <a 
 href="http://wiki.icub.org/iCub/main/dox/html/group__icub__stereoCalib.html">stereoCalib</a>. 
-The module provides three output ports: the first one is the 
+This module provides five output ports: the first one is the
 disparity map in grayscale values, the second port is the 
 WorldImage, that is a 3-channels float image, where in each 
 pixel are stored the three X Y Z coordinates with respect to 
 robot root reference frame. The third port outputs the current 
 keypoints match. Non valid points are handled with the special 
-value (0,0,0). In addition, a rpc port supports requests for 
+value (0,0,0). The last two ports output the rectified images used to compute
+the horizontal disparity map. In addition, a rpc port supports requests for
 3D/2D points computation (see below). 
 
 \section lib_sec Libraries 
@@ -55,7 +58,10 @@ YARP libraries and OpenCV 2.4 (at least). \n
 For better performance, we suggest you to run the module on a 
 machine equipped with GPU functionality along with the 
 <a href="http://cs.unc.edu/~ccwu/siftgpu">SiftGPU</a> library 
-installed.
+installed. This module now uses <a href="http://www.cvlibs.net/software/libelas/">LIBELAS </a>
+by default to compute the horizontal disparity map from the rectified left and right images.
+The source code of LIBELAS is compiled with the stereoVisionLib (with no particular dependences).
+The OpenMP accelerated version of the LIBELAS is used under UNIX systems, if OpenMP is available.
 
 \section parameters_sec Parameters
 --name \e SFM 
@@ -83,14 +89,90 @@ installed.
 --CommandPort \e comm 
 - The parameter \e comm specifies the command port for rpc protocol. 
 
+--use_sgbm
+- By default LIBELAS is used to compute the disparity. However, if you prefer to continue using the
+OpenCV's SGBM algorithm, you just need to pass the parameter \e use_sgbm.
+
+If you use LIBELAS, there is the possibility of setting the following parameters:
+
+--disp_scaling_factor \e 1.0
+- This parameter provides the option of resizing the left and right images
+before computing the disparity map (and finally resize again
+the resulting map to the original size). It is a multiplicative factor.
+For example, if a low-resolution (also less accurate!) disparity map
+is sufficient, but needed at high rate, you can set this parameter to 1/N
+so that the images width and height are divided by a factor N,
+LIBELAS computes the disparity of the downsampled images,
+and finally the disparity map's size is rescaled by N before returning.
+
+--elas_setting \e ROBOTICS
+- The parameter \e ROBOTICS or \e MIDDLEBURY allow to choose between the two settings
+of parameters defined in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>.
+This module gives the possibility of modifying (eventually tuning to individual needs)
+those parameters which differ between the two settings, plus a couple of others
+(\e elas_subsampling and \e elas_add_corners). The remaining parameters are supposed to be
+fixed to the values proposed by the authors of LIBELAS.
+
+Here we list those LIBELAS parameters that can be passed to this module;
+see <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>
+for the complete list of parameters, their definitions and default values.
+
+--elas_subsampling
+- Pass the parameter \e elas_subsampling if you want to set the \e subsampling parameter to \e true
+in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+to speedup the computation (at the expenses of accuracy).
+
+--elas_add_corners
+- Pass the parameter \e elas_add_corners if you want to set \e add_corners parameter to \e true
+in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+to consider also the image corners in the computation of the disparity map.
+
+--elas_ipol_gap_width \e 40
+- This is the only parameter for which we set a default value different from the ones provided
+in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>, where
+the \e ipol_gap_width parameter is set to \e 3 in \e ROBOTICS and \e 5000 in \e MIDDLEBURY. It is the radius of interpolation (in pixel)
+of the disparity values found in the keypoints. Small values result in sparser disparity maps (with more
+black holes); high values result in denser maps, with the black regions filled with interpolated values.
+
+Also the following LIBELAS parameters can be modified by the user,
+however we stick with the values provided by the authors.
+
+--elas_support_threshold \e 0.85
+- This is the \e support_threshold parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to 0.95 in \e MIDDLEBURY and 0.85 in \e ROBOTICS.
+
+--elas_gamma \e 3
+- This is the \e gamma parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to 5 in \e MIDDLEBURY and 3 in \e ROBOTICS.
+
+--elas_sradius \e 2
+- This is the \e sradius parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to 3 in \e MIDDLEBURY and 2 in \e ROBOTICS.
+
+--elas_match_texture \e true
+- This is the \e match_texture parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
+
+--elas_filter_median \e false
+- This is the \e filter_median parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to \e true in \e MIDDLEBURY and \e false in \e ROBOTICS.
+
+--elas_filter_adaptive_mean \e true
+- This is the \e filter_adaptive_mean parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
+
 \section portsc_sec Ports Created
-- <i> /SFM/left:i </i> accepts the incoming images from the left eye. 
-- <i> /SFM/right:i </i> accepts the incoming images from the right eye. 
+- <i> /SFM/left:i </i> accepts the incoming images from the left eye.
+- <i> /SFM/right:i </i> accepts the incoming images from the right eye.
 
 - <i> /SFM/disp:o </i> outputs the disparity map in grayscale values.
-- <i> /SFM/world:o</i> outputs the world image (3-channel float with X Y Z values). 
+- <i> /SFM/world:o</i> outputs the world image (3-channel float with X Y Z values).
 - <i> /SFM/match:o</i> outputs the match image.
-- <i> /SFM/rpc </i> for terminal commands communication. 
+
+- <i> /SFM/rect_left:o</i> outputs the rectified left image.
+- <i> /SFM/rect_right:o</i> outputs the rectified right image.
+
+- <i> /SFM/rpc </i> for terminal commands communication.
     - [calibrate]: It recomputes the camera positions once.
     - [save]: It saves the current camera positions and uses it when the module starts.
     - [getH]: It returns the calibrated stereo matrix.
@@ -107,14 +189,14 @@ installed.
 None.
 
 \section out_data_sec Output Data Files
-None. 
- 
-\section tested_os_sec Tested OS
-Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7. Tested 
-against OpenCV versions: 2.4. 
+None.
 
-\author Sean Ryan Fanello
-*/ 
+\section tested_os_sec Tested OS
+Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7. Tested
+against OpenCV versions: 2.4.
+
+\author Sean Ryan Fanello, Giulia Pasquale
+*/
 
 #include <string>
 #include <stdio.h>
@@ -169,6 +251,9 @@ class SFM: public yarp::os::RFModule
     BufferedPort<ImageOf<PixelBgr> > outDisp;
     BufferedPort<ImageOf<PixelBgr> > outMatch;
 
+    BufferedPort<ImageOf<PixelBgr> > outLeftRectImgPort;
+    BufferedPort<ImageOf<PixelBgr> > outRightRectImgPort;
+    
     int numberOfTrials;
     string camCalibFile;
     bool useBestDisp;
@@ -182,9 +267,9 @@ class SFM: public yarp::os::RFModule
     int disp12MaxDiff;
     bool doSFM;
     bool calibUpdated;
-    Mutex mutexRecalibration;
+    yarp::os::Mutex mutexRecalibration;
     Event calibEndEvent;
-    Mutex mutexDisp;
+    yarp::os::Mutex mutexDisp;
     
     PolyDriver headCtrl,gazeCtrl;
     IEncoders* iencs;
