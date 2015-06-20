@@ -86,8 +86,8 @@ bool OpticalFlowThread::threadInit()
 }
 
 void OpticalFlowThread::threadRelease() 
-{	
-	fprintf(stdout,"Optical Flow Thread Closed... \n");
+{   
+    fprintf(stdout,"Optical Flow Thread Closed... \n");
 }
 
 bool OpticalFlowThread::checkDone() 
@@ -96,7 +96,7 @@ bool OpticalFlowThread::checkDone()
 }
 void OpticalFlowThread::computeFlowSparse(IplImage* previous, IplImage* current, Mat &optFlow)
 {
-	optFlow.setTo(Scalar(0));
+    optFlow.setTo(Scalar(0));
     optFlow.create(previous->height,previous->width,CV_32FC2);
 
     IplImage* leftPrevGray = cvCreateImage(cvSize(previous->width,previous->height),previous->depth,1);
@@ -154,8 +154,8 @@ void OpticalFlowThread::computeFlowSparse(IplImage* previous, IplImage* current,
 
 void OpticalFlowThread::onStop()
 {
-	this->work=false;
-	this->done=true;
+    this->work=false;
+    this->done=true;
 
 
 }

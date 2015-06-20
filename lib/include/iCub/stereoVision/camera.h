@@ -129,7 +129,4 @@ public:
     * @param D 4x1 camera distortion parameters.
     */
     void setDistCoefficients(Mat& Dist);
-
-
-
 };

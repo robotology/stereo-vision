@@ -10,14 +10,17 @@ endif(COMMAND cmake_policy)
 
 project(stereoVision)
 
-find_package(YARP)
-find_package(ICUB)
-list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
-list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH})
-include(YarpInstallationHelpers)
+find_package(YARP REQUIRED)
+find_package(ICUB REQUIRED)
+find_package(ICUBcontrib REQUIRED)
 
-find_package(ICUBcontrib)
-list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH}
+                              ${ICUB_MODULE_PATH}
+                              ${ICUBCONTRIB_MODULE_PATH})
+
+find_package(OpenCV REQUIRED)
+
+include(YarpInstallationHelpers)
 include(ICUBcontribHelpers)
 include(ICUBcontribOptions)
 icubcontrib_set_default_prefix()
@@ -38,4 +41,3 @@ add_subdirectory(app)
 
 icubcontrib_finalize_export(stereoVision)
 icubcontrib_add_uninstall_target()
-

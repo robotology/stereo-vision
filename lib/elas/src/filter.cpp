@@ -132,9 +132,9 @@ namespace filter {
     void convolve_12021_row_5x5_16bit( const int16_t* in, uint8_t* out, int w, int h ) {
       assert( w % 16 == 0 && "width must be multiple of 16!" );
       const __m128i*  i0 = (const __m128i*)(in);
-      const int16_t* 	i1 = in+1;
-      const int16_t* 	i3 = in+3;
-      const int16_t* 	i4 = in+4;
+      const int16_t*    i1 = in+1;
+      const int16_t*    i3 = in+3;
+      const int16_t*    i4 = in+4;
       uint8_t* result    = out + 2;
       const int16_t* const end_input = in + w*h;
       __m128i offs = _mm_set1_epi16( 128 );
@@ -227,7 +227,7 @@ namespace filter {
     void convolve_101_row_3x3_16bit( const int16_t* in, uint8_t* out, int w, int h ) {
       assert( w % 16 == 0 && "width must be multiple of 16!" );
       const __m128i*  i0 = (const __m128i*)(in);
-      const int16_t* 	i2 = in+2;
+      const int16_t*    i2 = in+2;
       uint8_t* result    = out + 1;
       const int16_t* const end_input = in + w*h;
       const size_t blocked_loops = (w*h-2)/16;
@@ -272,11 +272,11 @@ namespace filter {
       memset( out_v, 0, w*h*sizeof(int16_t) );
       assert( w % 16 == 0 && "width must be multiple of 16!" );
       const int w_chunk  = w/16;
-      __m128i* 	i0       = (__m128i*)( in );
-      __m128i* 	i1       = (__m128i*)( in ) + w_chunk*1;
-      __m128i* 	i2       = (__m128i*)( in ) + w_chunk*2;
-      __m128i* 	i3       = (__m128i*)( in ) + w_chunk*3;
-      __m128i* 	i4       = (__m128i*)( in ) + w_chunk*4;
+      __m128i*  i0       = (__m128i*)( in );
+      __m128i*  i1       = (__m128i*)( in ) + w_chunk*1;
+      __m128i*  i2       = (__m128i*)( in ) + w_chunk*2;
+      __m128i*  i3       = (__m128i*)( in ) + w_chunk*3;
+      __m128i*  i4       = (__m128i*)( in ) + w_chunk*4;
       __m128i* result_h  = (__m128i*)( out_h ) + 4*w_chunk;
       __m128i* result_v  = (__m128i*)( out_v ) + 4*w_chunk;
       __m128i* end_input = (__m128i*)( in ) + w_chunk*h;
@@ -325,10 +325,10 @@ namespace filter {
       using namespace std;
       assert( w % 16 == 0 && "width must be multiple of 16!" );
       const int w_chunk  = w/16;
-      __m128i* 	i0       = (__m128i*)( in );
-      __m128i* 	i1       = (__m128i*)( in ) + w_chunk*1;
-      __m128i* 	i3       = (__m128i*)( in ) + w_chunk*3;
-      __m128i* 	i4       = (__m128i*)( in ) + w_chunk*4;
+      __m128i*  i0       = (__m128i*)( in );
+      __m128i*  i1       = (__m128i*)( in ) + w_chunk*1;
+      __m128i*  i3       = (__m128i*)( in ) + w_chunk*3;
+      __m128i*  i4       = (__m128i*)( in ) + w_chunk*4;
       __m128i* result    = (__m128i*)( out ) + 4*w_chunk;
       __m128i* end_input = (__m128i*)( in ) + w_chunk*h;
       for( ; i4 != end_input; i0++, i1++, i3++, i4++, result+=2 ) {
@@ -351,9 +351,9 @@ namespace filter {
     void convolve_row_p1p1p0m1m1_5x5( const int16_t* in, int16_t* out, int w, int h ) {
       assert( w % 16 == 0 && "width must be multiple of 16!" );
       const __m128i*  i0 = (const __m128i*)(in);
-      const int16_t* 	i1 = in+1;
-      const int16_t* 	i3 = in+3;
-      const int16_t* 	i4 = in+4;
+      const int16_t*    i1 = in+1;
+      const int16_t*    i3 = in+3;
+      const int16_t*    i4 = in+4;
       int16_t* result    = out + 2;
       const int16_t* const end_input = in + w*h;
       for( ; i4+8 < end_input; i0 += 1, i1 += 8, i3 += 8, i4 += 8, result += 8 ) {
@@ -373,9 +373,9 @@ namespace filter {
       using namespace std;
       assert( w % 16 == 0 && "width must be multiple of 16!" );
       const int w_chunk  = w/16;
-      __m128i* 	i0       = (__m128i*)( in );
-      __m128i* 	i1       = (__m128i*)( in ) + w_chunk*1;
-      __m128i* 	i2       = (__m128i*)( in ) + w_chunk*2;
+      __m128i*  i0       = (__m128i*)( in );
+      __m128i*  i1       = (__m128i*)( in ) + w_chunk*1;
+      __m128i*  i2       = (__m128i*)( in ) + w_chunk*2;
       __m128i* result_h  = (__m128i*)( out_h ) + 2*w_chunk;
       __m128i* result_v  = (__m128i*)( out_v ) + 2*w_chunk;
       __m128i* end_input = (__m128i*)( in ) + w_chunk*h;

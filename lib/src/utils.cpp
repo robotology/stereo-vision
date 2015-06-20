@@ -109,20 +109,20 @@ void Utilities::extractMatch_GPU(Mat &leftMat, Mat &rightMat, Mat &matMatches,
         //key1 in the first image matches with key2 in the second image
         if (fabs(key1.y-key2.y)<displacement)
         {
-	    double x=key1.x;
-	    double y=key1.y;
-	    circle(matMatches,cvPoint(x,y),2,cvScalar(255,0,0),2);
+        double x=key1.x;
+        double y=key1.y;
+        circle(matMatches,cvPoint(x,y),2,cvScalar(255,0,0),2);
 
-	    double x2=leftMat.cols+key2.x;
-	    double y2=key2.y;
-	    circle(matMatches,cvPoint(x2,y2),2,cvScalar(255,0,0),2);
-	    line(matMatches, cvPoint(x,y),cvPoint(x2,y2),cvScalar(255,255,255));
-	    
-	    Point2f p1(x,y);
-	    Point2f p2(x2-leftMat.cols,y2);
-	    
-	    pointsL.push_back(p1);
-	    pointsR.push_back(p2);
+        double x2=leftMat.cols+key2.x;
+        double y2=key2.y;
+        circle(matMatches,cvPoint(x2,y2),2,cvScalar(255,0,0),2);
+        line(matMatches, cvPoint(x,y),cvPoint(x2,y2),cvScalar(255,255,255));
+        
+        Point2f p1(x,y);
+        Point2f p2(x2-leftMat.cols,y2);
+        
+        pointsL.push_back(p1);
+        pointsR.push_back(p2);
         }
     } 
 }

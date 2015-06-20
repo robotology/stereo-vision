@@ -50,65 +50,65 @@ using namespace std;
 
 class elasWrapper : public Elas {
 
-	double io_scaling_factor;
+    double io_scaling_factor;
 
 public:
 
-	int64 workBegin();
-	double workEnd(int64 work_begin);
+    int64 workBegin();
+    double workEnd(int64 work_begin);
     
-	elasWrapper();
-	elasWrapper(double scaling_factor, string elas_setting);
+    elasWrapper();
+    elasWrapper(double scaling_factor, string elas_setting);
 
-	double compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL, int num_disparities);
+    double compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL, int num_disparities);
 
-	int get_disp_min();
-	int get_disp_max();
-	float get_support_threshold();
-	int get_support_texture();
-	int get_candidate_stepsize();
-	int get_incon_window_size();
-	int get_incon_threshold();
-	int get_incon_min_support();
-	bool get_add_corners();
-	int get_grid_size();
-	float get_beta();
-	float get_gamma();
-	float get_sigma();
-	float get_sradius();
-	int get_match_texture();
-	int get_lr_threshold();
-	float get_speckle_sim_threshold();
-	int get_speckle_size();
-	int get_ipol_gap_width();
-	bool get_filter_median();
-	bool get_filter_adaptive_mean();
-	bool get_postprocess_only_left();
-	bool get_subsampling();
+    int get_disp_min();
+    int get_disp_max();
+    float get_support_threshold();
+    int get_support_texture();
+    int get_candidate_stepsize();
+    int get_incon_window_size();
+    int get_incon_threshold();
+    int get_incon_min_support();
+    bool get_add_corners();
+    int get_grid_size();
+    float get_beta();
+    float get_gamma();
+    float get_sigma();
+    float get_sradius();
+    int get_match_texture();
+    int get_lr_threshold();
+    float get_speckle_sim_threshold();
+    int get_speckle_size();
+    int get_ipol_gap_width();
+    bool get_filter_median();
+    bool get_filter_adaptive_mean();
+    bool get_postprocess_only_left();
+    bool get_subsampling();
 
-	void set_disp_min(int param_value);
-	void set_disp_max(int param_value);
-	void set_support_threshold(float param_value);
-	void set_support_texture(int param_value);
-	void set_candidate_stepsize(int param_value);
-	void set_incon_window_size(int param_value);
-	void set_incon_threshold(int param_value);
-	void set_incon_min_support(int param_value);
-	void set_add_corners(bool param_value);
-	void set_grid_size(int param_value);
-	void set_beta(float param_value);
-	void set_gamma(float param_value);
-	void set_sigma(float param_value);
-	void set_sradius(float param_value);
-	void set_match_texture(int param_value);
-	void set_lr_threshold(int param_value);
-	void set_speckle_sim_threshold(float param_value);
-	void set_speckle_size(int param_value);
-	void set_ipol_gap_width(int param_value);
-	void set_filter_median(bool param_value);
-	void set_filter_adaptive_mean(bool param_value);
-	void set_postprocess_only_left(bool param_value);
-	void set_subsampling(bool param_value);
+    void set_disp_min(int param_value);
+    void set_disp_max(int param_value);
+    void set_support_threshold(float param_value);
+    void set_support_texture(int param_value);
+    void set_candidate_stepsize(int param_value);
+    void set_incon_window_size(int param_value);
+    void set_incon_threshold(int param_value);
+    void set_incon_min_support(int param_value);
+    void set_add_corners(bool param_value);
+    void set_grid_size(int param_value);
+    void set_beta(float param_value);
+    void set_gamma(float param_value);
+    void set_sigma(float param_value);
+    void set_sradius(float param_value);
+    void set_match_texture(int param_value);
+    void set_lr_threshold(int param_value);
+    void set_speckle_sim_threshold(float param_value);
+    void set_speckle_size(int param_value);
+    void set_ipol_gap_width(int param_value);
+    void set_filter_median(bool param_value);
+    void set_filter_adaptive_mean(bool param_value);
+    void set_postprocess_only_left(bool param_value);
+    void set_subsampling(bool param_value);
 };
 
 #endif /* ELASWRAPPER_H_ */

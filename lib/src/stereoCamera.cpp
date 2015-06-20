@@ -123,31 +123,31 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
         elaswrap->set_subsampling(true);
 
     if (rf.check("elas_add_corners"))
-    	elaswrap->set_add_corners(true);
+        elaswrap->set_add_corners(true);
 
 
     elaswrap->set_ipol_gap_width(40);
     if (rf.check("elas_ipol_gap_width"))
-    	elaswrap->set_ipol_gap_width(rf.find("elas_ipol_gap_width").asInt());
+        elaswrap->set_ipol_gap_width(rf.find("elas_ipol_gap_width").asInt());
 
 
     if (rf.check("elas_support_threshold"))
-    	elaswrap->set_support_threshold(rf.find("elas_support_threshold").asDouble());
+        elaswrap->set_support_threshold(rf.find("elas_support_threshold").asDouble());
 
     if(rf.check("elas_gamma"))
-    	elaswrap->set_gamma(rf.find("elas_gamma").asDouble());
+        elaswrap->set_gamma(rf.find("elas_gamma").asDouble());
 
     if (rf.check("elas_sradius"))
-    	elaswrap->set_sradius(rf.find("elas_sradius").asDouble());
+        elaswrap->set_sradius(rf.find("elas_sradius").asDouble());
 
     if (rf.check("elas_match_texture"))
-    	elaswrap->set_match_texture(rf.find("elas_match_texture").asInt());
+        elaswrap->set_match_texture(rf.find("elas_match_texture").asInt());
 
     if (rf.check("elas_filter_median"))
-    	elaswrap->set_filter_median(rf.find("elas_filter_median").asBool());
+        elaswrap->set_filter_median(rf.find("elas_filter_median").asBool());
 
     if (rf.check("elas_filter_adaptive_mean"))
-    	elaswrap->set_filter_adaptive_mean(rf.find("elas_filter_adaptive_mean").asBool());
+        elaswrap->set_filter_adaptive_mean(rf.find("elas_filter_adaptive_mean").asBool());
 
 
     cout << endl << "ELAS parameters:" << endl << endl;
