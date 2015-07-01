@@ -16,7 +16,8 @@ find_package(ICUBcontrib REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH}
                               ${ICUB_MODULE_PATH}
-                              ${ICUBCONTRIB_MODULE_PATH})
+                              ${ICUBCONTRIB_MODULE_PATH}
+                              ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(OpenCV REQUIRED)
 
@@ -29,8 +30,6 @@ include(YarpInstallationHelpers)
 include(ICUBcontribHelpers)
 include(ICUBcontribOptions)
 icubcontrib_set_default_prefix()
-
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 add_definitions(${YARP_DEFINES})
 include(YarpInstallationHelpers)
