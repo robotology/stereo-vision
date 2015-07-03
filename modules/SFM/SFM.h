@@ -77,6 +77,12 @@ The OpenMP accelerated version of the LIBELAS is used under UNIX systems, if Ope
 --rightPort \e /right:i
 - The parameter \e inputRight specifies the right image input port.
  
+--outLeftRectImgPort \e /rect_left:o
+- Specifies the left rectified image output port.
+
+--outRightRectImgPort \e /rect_right:o
+- Specifies the right rectified image output port.
+
 --outDispPort \e /disp:o 
 - The parameter \e /disparity:o specifies the output port for the disparity image.
 
@@ -182,6 +188,7 @@ set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
     - [Left x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
     - [Right x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the RIGHT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
     - [Root x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the ROOT reference system. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
+    - [Rect tlx tly w h step]: Given the pixels in the rectangle defined by {(tlx,tly) (tlx+w,tly+h)}, the response contains the corresponding 3D points in the ROOT frame. The optional parameter step defines the sampling quantum; by default step=1.
     - [uL_1 vL_1 uR_1 vR_1 ... uL_n vL_n uR_n vR_n]: Given n quadruples uL_i vL_i uR_i vR_i, where uL_i vL_i are the pixel coordinates in the Left image and uR_i vR_i are the coordinates of the matched pixel in the Right image, the response is a set of 3D points (X1 Y1 Z1 ... Xn Yn Zn) wrt the ROOT reference system.
     - [cart2stereo X Y Z]: Given a world point X Y Z wrt to ROOT reference frame the response is the projection (uL vL uR vR) in the Left and Right images.
 
@@ -251,8 +258,8 @@ class SFM: public yarp::os::RFModule
     BufferedPort<ImageOf<PixelBgr> > outDisp;
     BufferedPort<ImageOf<PixelBgr> > outMatch;
 
-    BufferedPort<ImageOf<PixelBgr> > outLeftRectImgPort;
-    BufferedPort<ImageOf<PixelBgr> > outRightRectImgPort;
+    BufferedPort<ImageOf<PixelRgb> > outLeftRectImgPort;
+    BufferedPort<ImageOf<PixelRgb> > outRightRectImgPort;
     
     int numberOfTrials;
     string camCalibFile;

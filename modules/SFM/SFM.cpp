@@ -264,11 +264,13 @@ bool SFM::close()
     outRightRectImgPort.close();
 
     headCtrl.close();
-    gazeCtrl.close();
+    gazeCtrl.close();    
 
 #ifdef USING_GPU
     delete utils;
 #endif
+
+    delete stereo;
     
     return true;
 }
@@ -366,7 +368,7 @@ bool SFM::updateModule()
     {
         Mat rectLeft = this->stereo->getLRectified();
 
-        ImageOf<PixelBgr>& rectLeftImage = outLeftRectImgPort.prepare();
+        ImageOf<PixelRgb>& rectLeftImage = outLeftRectImgPort.prepare();
         rectLeftImage.resize(rectLeft.cols,rectLeft.rows);
 
         rectLeft.copyTo( cv::Mat( (IplImage*)rectLeftImage.getIplImage() ) );
@@ -379,7 +381,7 @@ bool SFM::updateModule()
     {
         Mat rectRight = this->stereo->getRRectified();
 
-        ImageOf<PixelBgr>& rectRightImage = outRightRectImgPort.prepare();
+        ImageOf<PixelRgb>& rectRightImage = outRightRectImgPort.prepare();
         rectRightImage.resize(rectRight.cols,rectRight.rows);
 
         rectRight.copyTo( cv::Mat( (IplImage*)rectRightImage.getIplImage() ) );
@@ -825,7 +827,6 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
 
     mutexDisp.unlock();
     return point;
-
 }
 
 
@@ -1159,6 +1160,28 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(point.y);
         reply.addDouble(point.z);
     }
+    else if (command.get(0).asString()=="Rect")
+    {
+        int tl_u = command.get(1).asInt();
+        int tl_v = command.get(2).asInt();
+        int br_u = tl_u+command.get(3).asInt();
+        int br_v = tl_v+command.get(4).asInt();
+
+        int step = 1;
+        if (command.size()>=5)
+            step=command.get(5).asInt();
+
+        for (int u=tl_u; u<br_u; u+=step)
+        {
+            for (int v=tl_v; v<br_v; v+=step)
+            {
+                Point3f point=this->get3DPoints(u,v,"ROOT"); 
+                reply.addDouble(point.x);
+                reply.addDouble(point.y);
+                reply.addDouble(point.z);
+            }
+        }
+    }
     else if (command.get(0).asString()=="cart2stereo")
     {
         double x = command.get(1).asDouble();
@@ -1226,11 +1249,10 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int widt
                       int height)
 {
     IplImage* img=(IplImage*) worldImg.getIplImage();
-    for(int i=v0; i<(v0+height); i++)
+    for (int i=v0; i<(v0+height); i++)
     {
-        for(int j=u0; j<(u0+width); j++)
+        for (int j=u0; j<(u0+width); j++)
         {
-            
             Point3f point=get3DPoints(j,i,"ROOT");
             ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 0]=point.x;
             ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 1]=point.y;
