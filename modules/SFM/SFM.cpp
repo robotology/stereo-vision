@@ -1194,7 +1194,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addDouble(point.z);
         }
     }
-    else if (command.get(0).asString()=="Flood")
+    else if (command.get(0).asString()=="Flood3D")
     {
         cv::Point seed(command.get(1).asInt(),
                        command.get(2).asInt());
