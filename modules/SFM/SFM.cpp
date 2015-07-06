@@ -1187,7 +1187,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         for (int cnt=1; cnt<command.size()-1; cnt+=2)
         {
             int u=command.get(cnt).asInt();
-            int y=command.get(cnt+1).asInt();
+            int v=command.get(cnt+1).asInt();
             Point3f point=this->get3DPoints(u,v,"ROOT");
             reply.addDouble(point.x);
             reply.addDouble(point.y);
