@@ -1204,16 +1204,19 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             dist=command.get(3).asDouble();
 
         Point3f p=get3DPoints(seed.x,seed.y,"ROOT");
-        reply.addInt(seed.x);
-        reply.addInt(seed.y);
-        reply.addDouble(p.x);
-        reply.addDouble(p.y);
-        reply.addDouble(p.z);
+        if (cv::norm(p)>0.0)
+        {
+            reply.addInt(seed.x); 
+            reply.addInt(seed.y);
+            reply.addDouble(p.x);
+            reply.addDouble(p.y);
+            reply.addDouble(p.z);
 
-        set<int> visited;
-        visited.insert(seed.x*outputD->width+seed.y);
+            set<int> visited;
+            visited.insert(seed.x*outputD->width+seed.y);
 
-        floodFill(seed,p,dist,visited,reply);
+            floodFill(seed,p,dist,visited,reply);
+        }
     }
     else if (command.get(0).asString()=="cart2stereo")
     {
@@ -1313,7 +1316,7 @@ void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
             
             visited.insert(idx);
             Point3f p=get3DPoints(x,y,"ROOT");
-            if (cv::norm(p-p0)<=dist)
+            if ((cv::norm(p)>0.0) && (cv::norm(p-p0)<=dist))
             {
                 res.addInt(x);
                 res.addInt(y);
