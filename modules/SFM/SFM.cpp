@@ -1194,6 +1194,27 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addDouble(point.z);
         }
     }
+    else if (command.get(0).asString()=="Flood")
+    {
+        cv::Point seed(command.get(1).asInt(),
+                       command.get(2).asInt());
+
+        double dist=0.001;
+        if (command.size()>=3)
+            dist=command.get(3).asDouble();
+
+        Point3f p=get3DPoints(seed.x,seed.y,"ROOT");
+        res.addInt(seed.x);
+        res.addInt(seed.y);
+        res.addDouble(p.x);
+        res.addDouble(p.y);
+        res.addDouble(p.z);
+
+        set<int> visited;
+        visited.insert(seed.x*outputD->width+seed.y);
+
+        floodFill(seed,p,dist,visited,reply);
+    }
     else if (command.get(0).asString()=="cart2stereo")
     {
         double x = command.get(1).asDouble();
@@ -1269,6 +1290,39 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int widt
             ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 0]=point.x;
             ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 1]=point.y;
             ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 2]=point.z;
+        }
+    }
+}
+
+
+/******************************************************************************/
+void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
+                    set<int> &visited, Bottle &res)
+{
+    for (int x=seed.x-1; x<seed.x+1; x++)
+    {
+        for (int y=seed.y-1; y<seed.y+1; y++)
+        {
+            if ((x<0)||(y<0)||(x>outputD->width)||(y>outputD->height))
+                continue;
+
+            int idx=x*outputD->width+y;
+            set<int>::iterator el=visited.find(idx);
+            if (el!=visited.end())
+                continue;
+            
+            visited.insert(idx);
+            Point3f p=get3DPoints(x,y,"ROOT");
+            if (cv::norm(p-p0)<=dist)
+            {
+                res.addInt(x);
+                res.addInt(y);
+                res.addDouble(p.x);
+                res.addDouble(p.y);
+                res.addDouble(p.z);
+                    
+                floodFill(Point(x,y),p,dist,visited,res);
+            }                
         }
     }
 }
