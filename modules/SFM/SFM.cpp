@@ -1182,6 +1182,18 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             }
         }
     }
+    else if (command.get(0).asString()=="Points")
+    {        
+        for (int cnt=1; cnt<command.size()-1; cnt+=2)
+        {
+            int u=command.get(cnt).asInt();
+            int y=command.get(cnt+1).asInt();
+            Point3f point=this->get3DPoints(u,v,"ROOT");
+            reply.addDouble(point.x);
+            reply.addDouble(point.y);
+            reply.addDouble(point.z);
+        }
+    }
     else if (command.get(0).asString()=="cart2stereo")
     {
         double x = command.get(1).asDouble();
