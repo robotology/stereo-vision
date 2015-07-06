@@ -1204,11 +1204,11 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             dist=command.get(3).asDouble();
 
         Point3f p=get3DPoints(seed.x,seed.y,"ROOT");
-        res.addInt(seed.x);
-        res.addInt(seed.y);
-        res.addDouble(p.x);
-        res.addDouble(p.y);
-        res.addDouble(p.z);
+        reply.addInt(seed.x);
+        reply.addInt(seed.y);
+        reply.addDouble(p.x);
+        reply.addDouble(p.y);
+        reply.addDouble(p.z);
 
         set<int> visited;
         visited.insert(seed.x*outputD->width+seed.y);
