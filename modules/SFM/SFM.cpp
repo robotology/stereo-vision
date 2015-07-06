@@ -1302,9 +1302,9 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int widt
 void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
                     set<int> &visited, Bottle &res)
 {
-    for (int x=seed.x-1; x<seed.x+1; x++)
+    for (int x=seed.x-1; x<=seed.x+1; x++)
     {
-        for (int y=seed.y-1; y<seed.y+1; y++)
+        for (int y=seed.y-1; y<=seed.y+1; y++)
         {
             if ((x<0)||(y<0)||(x>outputD->width)||(y>outputD->height))
                 continue;
