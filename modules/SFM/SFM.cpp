@@ -1199,7 +1199,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         cv::Point seed(command.get(1).asInt(),
                        command.get(2).asInt());
 
-        double dist=0.001;
+        double dist=0.004;
         if (command.size()>=3)
             dist=command.get(3).asDouble();
 
@@ -1311,20 +1311,20 @@ void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
 
             int idx=x*outputD->width+y;
             set<int>::iterator el=visited.find(idx);
-            if (el!=visited.end())
-                continue;
-            
-            visited.insert(idx);
-            Point3f p=get3DPoints(x,y,"ROOT");
-            if ((cv::norm(p)>0.0) && (cv::norm(p-p0)<=dist))
+            if (el==visited.end())
             {
-                res.addInt(x);
-                res.addInt(y);
-                res.addDouble(p.x);
-                res.addDouble(p.y);
-                res.addDouble(p.z);
-                    
-                floodFill(Point(x,y),p,dist,visited,res);
+  	        visited.insert(idx);
+		Point3f p=get3DPoints(x,y,"ROOT");
+		if ((cv::norm(p)>0.0) && (cv::norm(p-p0)<=dist))
+		{
+	            res.addInt(x);
+		    res.addInt(y);
+		    res.addDouble(p.x);
+		    res.addDouble(p.y);
+		    res.addDouble(p.z);
+		            
+		    floodFill(Point(x,y),p,dist,visited,res);
+		}
             }                
         }
     }
