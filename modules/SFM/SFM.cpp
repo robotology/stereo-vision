@@ -1313,18 +1313,18 @@ void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
             set<int>::iterator el=visited.find(idx);
             if (el==visited.end())
             {
-  	        visited.insert(idx);
-		Point3f p=get3DPoints(x,y,"ROOT");
-		if ((cv::norm(p)>0.0) && (cv::norm(p-p0)<=dist))
-		{
-	            res.addInt(x);
-		    res.addInt(y);
-		    res.addDouble(p.x);
-		    res.addDouble(p.y);
-		    res.addDouble(p.z);
-		            
-		    floodFill(Point(x,y),p,dist,visited,res);
-		}
+            visited.insert(idx);
+        Point3f p=get3DPoints(x,y,"ROOT");
+        if ((cv::norm(p)>0.0) && (cv::norm(p-p0)<=dist))
+        {
+                res.addInt(x);
+            res.addInt(y);
+            res.addDouble(p.x);
+            res.addDouble(p.y);
+            res.addDouble(p.z);
+                    
+            floodFill(Point(x,y),p,dist,visited,res);
+        }
             }                
         }
     }
@@ -1337,7 +1337,7 @@ int main(int argc, char *argv[])
     Network yarp;
 
     if (!yarp.checkNetwork())
-        return -1;
+        return 1;
 
     ResourceFinder rf;
     rf.setVerbose(true);
