@@ -43,7 +43,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-#include "elas.h"
+#include "elas/elas.h"
 
 using namespace cv;
 using namespace std;
@@ -56,7 +56,7 @@ public:
 
     int64 workBegin();
     double workEnd(int64 work_begin);
-    
+
     elasWrapper();
     elasWrapper(double scaling_factor, string elas_setting);
 
