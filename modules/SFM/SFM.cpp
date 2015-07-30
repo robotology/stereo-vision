@@ -1168,7 +1168,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         int br_v = tl_v+command.get(4).asInt();
 
         int step = 1;
-        if (command.size()>=5)
+        if (command.size()>=6)
             step=command.get(5).asInt();
 
         for (int u=tl_u; u<br_u; u+=step)
@@ -1200,7 +1200,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
                        command.get(2).asInt());
 
         double dist=0.004;
-        if (command.size()>=3)
+        if (command.size()>=4)
             dist=command.get(3).asDouble();
 
         Point3f p=get3DPoints(seed.x,seed.y,"ROOT");
