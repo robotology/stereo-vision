@@ -240,9 +240,9 @@ class SFM: public yarp::os::RFModule
 {
     IplImage*     left;
     IplImage*     right;
-    StereoCamera* stereo;
-    IplImage*     outputD;
+    StereoCamera* stereo;    
     IplImage*     output_match;
+    IplImage      outputD;
 
     Mat leftMat, rightMat;
 
@@ -257,11 +257,11 @@ class SFM: public yarp::os::RFModule
     BufferedPort<ImageOf<PixelRgbFloat> > worldPort;
     Port handlerPort;
 
-    BufferedPort<ImageOf<PixelBgr> > outDisp;
-    BufferedPort<ImageOf<PixelBgr> > outMatch;
+    BufferedPort<ImageOf<PixelMono> > outDisp;
+    BufferedPort<ImageOf<PixelBgr> >  outMatch;
 
-    BufferedPort<ImageOf<PixelRgb> > outLeftRectImgPort;
-    BufferedPort<ImageOf<PixelRgb> > outRightRectImgPort;
+    BufferedPort<ImageOf<PixelRgb> >  outLeftRectImgPort;
+    BufferedPort<ImageOf<PixelRgb> >  outRightRectImgPort;
     
     int numberOfTrials;
     string camCalibFile;

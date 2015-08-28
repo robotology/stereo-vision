@@ -39,18 +39,19 @@ Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
     return A;
 }
 
-const Mat StereoCamera::getKleft() {
+Mat StereoCamera::getKleft() const {
     return this->Kleft;
 }
-const Mat StereoCamera::getKright() {
+
+Mat StereoCamera::getKright() const {
     return this->Kright;
 }
 
-const vector<Point2f> StereoCamera::getMatchLeft() {
+vector<Point2f> StereoCamera::getMatchLeft() const {
     return this->InliersL;
 }
-const vector<Point2f>  StereoCamera::getMatchRight() {
 
+vector<Point2f> StereoCamera::getMatchRight() const {
     return this->InliersR;
 }
 
@@ -459,28 +460,26 @@ void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
 }
 
 
-
-
-
-const Mat StereoCamera::getImLeft() {
-
+Mat StereoCamera::getImLeft() const {
     return this->imleft;
 }
 
-const Mat StereoCamera::getImRight() {
+Mat StereoCamera::getImRight() const {
     return this->imright;
 }
 
-const Mat StereoCamera::getDisparity() {
+Mat StereoCamera::getDisparity() const {
     return this->Disparity;
 }
 
-const Mat StereoCamera::getDisparity16() {
+Mat StereoCamera::getDisparity16() const {
     return this->Disparity16;
 }
-const Mat StereoCamera::getQ() {
+
+Mat StereoCamera::getQ() const {
     return this->Q;
 }
+
 void StereoCamera::rectifyImages()
 {
     if(this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty()) {
@@ -1434,15 +1433,15 @@ void StereoCamera::undistortImages() {
 }
 
 
-const Mat StereoCamera::getImLeftUnd() {
+Mat StereoCamera::getImLeftUnd() const {
     return this->imleftund;
 }
 
-const Mat StereoCamera::getFundamental() {
+Mat StereoCamera::getFundamental() const {
     return this->F;
 }
 
-const Mat StereoCamera::getImRightUnd() {
+Mat StereoCamera::getImRightUnd() const {
     return this->imrightund;
 }
 
@@ -1530,11 +1529,11 @@ void StereoCamera::updatePMatrix()
 
 }
 
-const Mat StereoCamera::getTranslation() {
+Mat StereoCamera::getTranslation() const {
     return this->T;
 }
 
-const Mat StereoCamera::getRotation() {
+Mat StereoCamera::getRotation() const {
     return this->R;
 }
 
@@ -1839,19 +1838,19 @@ void StereoCamera::savePoints(string pointsLPath,string pointsRPath, vector<Poin
 }
 
 
-const Mat StereoCamera::getRLrect() {
+Mat StereoCamera::getRLrect() const {
     return this->RLrect;
 }
 
-const Mat StereoCamera::getRRrect() {
+Mat StereoCamera::getRRrect() const {
     return this->RRrect;
 }
 
-const Mat StereoCamera::getMapperL() {
+Mat StereoCamera::getMapperL() const {
     return this->MapperL;
 }
 
-const Mat StereoCamera::getMapperR() {
+Mat StereoCamera::getMapperR() const {
     return this->MapperR;
 }
 

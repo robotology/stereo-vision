@@ -107,7 +107,6 @@ bool SFM::configure(ResourceFinder &rf)
     }
 
     output_match=NULL;
-    outputD=NULL;
     init=true;
     numberOfTrials=0;
 
@@ -257,9 +256,6 @@ bool SFM::close()
     if (output_match!=NULL)
         cvReleaseImage(&output_match);
 
-    if (outputD!=NULL)
-        cvReleaseImage(&outputD);
-
     outLeftRectImgPort.close();
     outRightRectImgPort.close();
 
@@ -303,8 +299,6 @@ bool SFM::updateModule()
     if (init)
     {
         output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
-        outputD=cvCreateImage(cvSize(left->width,left->height),8,3);
-
         this->numberOfDisparities=(left->width<=320)?96:128;
 
         init=false;
@@ -417,9 +411,8 @@ bool SFM::updateModule()
             
     if (outDisp.getOutputCount()>0)
     {
-        IplImage disp=stereo->getDisparity();
-        cvCvtColor(&disp,outputD,CV_GRAY2RGB);
-        ImageOf<PixelBgr>& outim=outDisp.prepare();
+        outputD=stereo->getDisparity();
+        ImageOf<PixelMono> &outim=outDisp.prepare();
         outim.wrapIplImage(outputD);
         outDisp.write();
     }
@@ -1213,7 +1206,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addDouble(p.z);
 
             set<int> visited;
-            visited.insert(seed.x*outputD->width+seed.y);
+            visited.insert(seed.x*outputD.width+seed.y);
 
             floodFill(seed,p,dist,visited,reply);
         }
@@ -1306,10 +1299,10 @@ void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
     {
         for (int y=seed.y-1; y<=seed.y+1; y++)
         {
-            if ((x<0)||(y<0)||(x>outputD->width)||(y>outputD->height))
+            if ((x<0)||(y<0)||(x>outputD.width)||(y>outputD.height))
                 continue;
 
-            int idx=x*outputD->width+y;
+            int idx=x*outputD.width+y;
             set<int>::iterator el=visited.find(idx);
             if (el==visited.end())
             {

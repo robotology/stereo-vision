@@ -351,110 +351,109 @@ public:
     * It returns the left (first) image.
     * @return the left (first) image.
     */
-    const Mat getImLeft();
+    Mat getImLeft() const;
 
     /**
     * It returns the right (second) image.
     * @return the right (second) image.
     */
-    const Mat getImRight();
+    Mat getImRight() const;
 
     /**
     * It returns the left undistorted image.
     * @return the left undistorted image.
     */
-    const Mat getImLeftUnd();
+    Mat getImLeftUnd() const;
 
     /**
     * It returns the right undistorted image.
     * @return the right undistorted image.
     */
-    const Mat getImRightUnd();
+    Mat getImRightUnd() const;
 
     /**
     * It returns the disparity image.
     * @return the disparity image computed via computeDisparity(). The image is 8 bit unsigned.
     */
-    const Mat getDisparity();
+    Mat getDisparity() const;
 
     /**
     * It returns the disparity image.
     * @return the disparity image computed via computeDisparity(). The image is 16 bit signed.
     */
-    const Mat getDisparity16();
+    Mat getDisparity16() const;
 
     /**
     * It returns the 4x4 disparity-to-depth mapping matrix.
     * @return 4x4 disparity-to-depth mapping matrix.
     */
-    const Mat getQ();
+    Mat getQ() const;
 
     /**
     * It returns the 3x3 left camera matrix.
     * @return 3x3 left camera matrix.
     */
-    const Mat getKleft();
+    Mat getKleft() const;
 
     /**
     * It returns the 3x3 right camera matrix.
     * @return 3x3 right camera matrix.
     */
-    const Mat getKright();
+    Mat getKright() const;
 
     /**
     * It returns the 3x3 fundamental matrix.
     * @return 3x3 fundamental matrix.
     */
-    const Mat getFundamental();
+    Mat getFundamental() const;
 
     /**
     * It returns the pixel coordinates of the matches in the left image.
     * @return pixel coordinates of the matches in the left image.
     */
-    const vector<Point2f> getMatchLeft();
+    vector<Point2f> getMatchLeft() const;
 
     /**
     * It returns the pixel coordinates of the matches in the right image.
     * @return pixel coordinates of the matches in the right image.
     */
-    const vector<Point2f> getMatchRight();
+    vector<Point2f> getMatchRight() const;
 
     /**
     * It returns the translation vector between the two cameras.
     * @return 3x1 translation matrix between the first and the second camera.
     */
-    const Mat getTranslation();
+    Mat getTranslation() const;
 
     /**
     * It returns the rotation matrix between the two cameras.
     * @return 3x3 rotation matrix between the first and the second camera.
     */
-    const Mat getRotation();
-
+    Mat getRotation() const;
 
     /**
     * It returns the mapping between the original left camera and the rectified left camera.
     * @return a 16 bit signed 2 channel image containing the mapping from the original left camera to the rectified left camera.
     */
-    const Mat getMapperL();
+    Mat getMapperL() const;
 
     /**
     * It returns the mapping between the original right camera and the rectified right camera.
     * @return a 16 bit signed 2 channel image containing the mapping from the original right camera to the rectified right camera.
     */
-    const Mat getMapperR();
+    Mat getMapperR() const;
 
     /**
     * It returns the rotation matrix between the original left camera and the rectified left camera.
     * @return 3x3 rotation matrix between the original left camera and the rectified left camera.
     */
-    const Mat getRLrect();
+    Mat getRLrect() const;
 
    /**
     * It returns the rotation matrix between the original right camera and the rectified right camera.
     * @return 3x3 rotation matrix between the original right camera and the rectified right camera.
     */
-    const Mat getRRrect();
+    Mat getRRrect() const;
 
     /**
     * It sets the rotation matrix (if known) between the first and the second camera.
