@@ -413,7 +413,7 @@ bool SFM::updateModule()
     {
         outputD=stereo->getDisparity();
         ImageOf<PixelMono> &outim=outDisp.prepare();
-        outim.wrapIplImage(outputD);
+        outim.wrapIplImage(&outputD);
         outDisp.write();
     }
 
