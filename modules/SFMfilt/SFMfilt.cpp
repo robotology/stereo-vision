@@ -17,7 +17,7 @@
 */
 
 #include <algorithm>
-#include "SFM.h"
+#include "SFMfilt.h"
 
 
 /******************************************************************************/
@@ -415,9 +415,12 @@ bool SFM::updateModule()
 
         const double sigmaColor = 100.0;
         const double sigmaSpace = 10.0;
-        IplImage      outputDfilt;
-        cv_extend::bilateralFilter(outputD,outputDfilt, sigmaColor, sigmaSpace);
-
+        IplImage* outputDpt;
+        outputDpt = &outputD;
+        Mat          outputDm = cv::cvarrToMat(outputDpt);
+        Mat          outputDfiltm; 
+        cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColor, sigmaSpace);
+        IplImage outputDfilt = outputDfiltm;
         ImageOf<PixelMono> &outim=outDisp.prepare();
         outim.wrapIplImage(&outputDfilt);
         outDisp.write();

@@ -2,10 +2,10 @@
 # Author: Sean Ryan Fanello
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-project(SFM)
+project(SFMfilt)
 
-set(source SFM.cpp)
-set(header SFM.h)
+set(source SFMfilt.cpp)
+set(header SFMfilt.h)
 
 source_group("Source Files" FILES ${source})
 source_group("Header Files" FILES ${header})
@@ -20,11 +20,11 @@ if(USE_SIFT_GPU)
     add_definitions(-DUSING_GPU)
 endif()
 
-add_executable(SFM ${source} ${header})
-target_link_libraries(SFM stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
+add_executable(SFMfilt ${source} ${header})
+target_link_libraries(SFMfilt stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
 
 if(USE_SIFT_GPU)
-	target_link_libraries(SFM ${SIFTGPU_LIBRARIES})
+	target_link_libraries(SFMfilt ${SIFTGPU_LIBRARIES})
 endif()
 
-install(TARGETS SFM DESTINATION bin)
+install(TARGETS SFMfilt DESTINATION bin)

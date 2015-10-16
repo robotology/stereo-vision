@@ -1,6 +1,6 @@
 
 <application>
-<name>SFM</name>
+<name>SFMfiltAPP</name>
 
 		<dependencies>
 				<port>/icub/camcalib/left/out</port>
@@ -9,21 +9,22 @@
 		</dependencies>
 
 		<module>
-			<name>SFM</name>
+			<name>SFMfilt</name>
+			<parameters>--name SFMfilt</parameters>
 			<node>gpu-node</node>
-			<tag>SFM</tag>
+			<tag>SFMfilt</tag>
         </module>
 
 		<module>
 			<name>yarpview</name>
-			<parameters>--name /matchViewer --x 0</parameters>
+			<parameters>--name /matchViewerFilt --x 0</parameters>
 			<node>console</node>
 			<tag>yarpviewTag</tag>
         </module>
 
 		<module>
 			<name>yarpview</name>
-			<parameters>--name /dispViewer --x 330</parameters>
+			<parameters>--name /dispViewerFilt --x 330</parameters>
 			<node>console</node>
 			<tag>yarpviewTag</tag>
         </module>
@@ -31,25 +32,25 @@
 
 		<connection>
             <from>/icub/camcalib/right/out</from>
-            <to>/SFM/right:i</to>
+            <to>/SFMfilt/right:i</to>
             <protocol>tcp</protocol>
         </connection>
 
 		<connection>
             <from>/icub/camcalib/left/out</from>
-            <to>/SFM/left:i</to>
+            <to>/SFMfilt/left:i</to>
             <protocol>tcp</protocol>
         </connection>
 
 		<connection>
-            <from>/SFM/match:o</from>
-            <to>/matchViewer</to>
+            <from>/SFMfilt/match:o</from>
+            <to>/matchViewerFilt</to>
             <protocol>tcp</protocol>
         </connection>
 
 		<connection>
-            <from>/SFM/disp:o</from>
-            <to>/dispViewer</to>
+            <from>/SFMfilt/disp:o</from>
+            <to>/dispViewerFilt</to>
             <protocol>tcp</protocol>
         </connection>
 
