@@ -220,6 +220,8 @@ against OpenCV versions: 2.4.
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/stereoVision/stereoCamera.h>
 
+#include "fastBilateral.hpp"
+
 #ifdef USING_GPU
     #include <iCub/stereoVision/utils.h>
 #endif

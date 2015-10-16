@@ -412,8 +412,14 @@ bool SFM::updateModule()
     if (outDisp.getOutputCount()>0)
     {
         outputD=stereo->getDisparity();
+
+        const double sigmaColor = 100.0;
+        const double sigmaSpace = 10.0;
+        IplImage      outputDfilt;
+        cv_extend::bilateralFilter(outputD,outputDfilt, sigmaColor, sigmaSpace);
+
         ImageOf<PixelMono> &outim=outDisp.prepare();
-        outim.wrapIplImage(&outputD);
+        outim.wrapIplImage(&outputDfilt);
         outDisp.write();
     }
 
