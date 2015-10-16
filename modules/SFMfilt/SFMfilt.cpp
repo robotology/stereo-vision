@@ -95,6 +95,11 @@ bool SFM::configure(ResourceFinder &rf)
     
     this->numberOfDisparities = 96;
 
+    this->doBLF = true;
+    this->sigmaColorBLF = 50.0;
+    this->sigmaSpaceBLF = 5.0;
+
+
     this->HL_root=Mat::zeros(4,4,CV_64F);
     this->HR_root=Mat::zeros(4,4,CV_64F);
 
@@ -411,18 +416,19 @@ bool SFM::updateModule()
             
     if (outDisp.getOutputCount()>0)
     {
-        outputD=stereo->getDisparity();
-
-        const double sigmaColor = 100.0;
-        const double sigmaSpace = 10.0;
-        IplImage* outputDpt;
-        outputDpt = &outputD;
-        Mat          outputDm = cv::cvarrToMat(outputDpt);
-        Mat          outputDfiltm; 
-        cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColor, sigmaSpace);
-        IplImage outputDfilt = outputDfiltm;
+        outputD = stereo->getDisparity();
         ImageOf<PixelMono> &outim=outDisp.prepare();
-        outim.wrapIplImage(&outputDfilt);
+        if (doBLF)
+        {
+            IplImage* outputDpt = &outputD;
+            Mat          outputDm = cv::cvarrToMat(outputDpt);
+            Mat          outputDfiltm; 
+            cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
+            IplImage outputDfilt = outputDfiltm;
+            outim.wrapIplImage(&outputDfilt);
+        }else{
+            outim.wrapIplImage(&outputD);
+        }
         outDisp.write();
     }
 
@@ -1234,6 +1240,20 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(pointR.x);
         reply.addDouble(pointR.y);
     }
+    else if (command.get(0).asString()=="bilatfilt")
+    {
+        sigmaColorBLF = command.get(1).asDouble();
+        sigmaSpaceBLF = command.get(2).asDouble();
+        if (sigmaSpaceBLF + sigmaColorBLF == 0.0){   // set both to 0 to turn off bilateral filteer
+            doBLF = false;
+            reply.addString("Bilateral Filter OFF");
+        } else {                                     // Set any different from 0 to activate bilateral filter.
+            doBLF = true;
+            reply.addString("Bilateral Filter ON");
+        }
+        reply.addDouble(sigmaColorBLF);
+        reply.addDouble(sigmaSpaceBLF);
+    }
     else if(command.size()>0 && command.size()%4==0)
     {
         for (int i=0; i<command.size(); i+=4)
@@ -1249,6 +1269,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addDouble(point.z);
         }
     }
+
     else
         reply.addString("NACK");
 

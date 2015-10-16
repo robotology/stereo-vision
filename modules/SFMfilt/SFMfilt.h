@@ -278,6 +278,9 @@ class SFM: public yarp::os::RFModule
     int disp12MaxDiff;
     bool doSFM;
     bool calibUpdated;
+    double sigmaColorBLF;
+    double sigmaSpaceBLF;
+    bool doBLF;
     yarp::os::Mutex mutexRecalibration;
     Event calibEndEvent;
     yarp::os::Mutex mutexDisp;
