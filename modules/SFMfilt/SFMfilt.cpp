@@ -1244,12 +1244,27 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     {
         sigmaColorBLF = command.get(1).asDouble();
         sigmaSpaceBLF = command.get(2).asDouble();
-        if (sigmaSpaceBLF + sigmaColorBLF == 0.0){   // set both to 0 to turn off bilateral filteer
-            doBLF = false;
-            reply.addString("Bilateral Filter OFF");
-        } else {                                     // Set any different from 0 to activate bilateral filter.
-            doBLF = true;
-            reply.addString("Bilateral Filter ON");
+        reply.addString("BLF ");
+        reply.addDouble(sigmaColorBLF);
+        reply.addDouble(sigmaSpaceBLF);
+    }
+    else if (command.get(0).asString()=="doBLF")
+    {
+        bool onoffBLF = command.get(1).asBool();
+        if (onoffBLF == true ){     // turn ON Bilateral Filtering
+            if (doBLF == true){                   
+                reply.addString("Bilateral Filter Already Running");
+            } else {                                     // Set any different from 0 to activate bilateral filter.
+                doBLF = true;
+                reply.addString("Bilateral Filter ON");
+            }
+        } else {                    // turn OFF Bilateral Filtering
+            if (doBLF == true){
+                doBLF = false;  
+                reply.addString("Bilateral Filter OFF");
+            } else {
+                reply.addString("Bilateral Filter already OFF");
+            }
         }
         reply.addDouble(sigmaColorBLF);
         reply.addDouble(sigmaSpaceBLF);
