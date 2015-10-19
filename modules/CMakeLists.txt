@@ -7,5 +7,5 @@ set(PROJECTNAME stereoModules)
 
 project(${PROJECTNAME})
 
-add_subdirectory(SFMfilt)
+add_subdirectory(SFM)
 add_subdirectory(sceneFlow)

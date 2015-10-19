@@ -183,6 +183,7 @@ set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
     - [save]: It saves the current camera positions and uses it when the module starts.
     - [getH]: It returns the calibrated stereo matrix.
     - [setNumDisp NumOfDisparities]: It sets the expected number of disparity (in pixel). Values must be divisible by 32. Good values are 64 for 320x240 images and 128 for 640x480 images.
+    - [setMinDisp minDisparity]: It sets the minimum disparity (in pixel).
     - [Point x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
     - [x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z ur vr computed using the depth map wrt the the ROOT reference system; (ur vr) is the corresponding pixel in the Right image. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
     - [Left x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
@@ -193,6 +194,8 @@ set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
     - [Flood3D x y dist]: Perform 3D flood-fill on the seed point (x,y), returning the following info: [u_1 v_1 x_1 y_1 z_1 ...]. The optional parameter dist expressed in meters regulates the fill (by default = 0.004).
     - [uL_1 vL_1 uR_1 vR_1 ... uL_n vL_n uR_n vR_n]: Given n quadruples uL_i vL_i uR_i vR_i, where uL_i vL_i are the pixel coordinates in the Left image and uR_i vR_i are the coordinates of the matched pixel in the Right image, the response is a set of 3D points (X1 Y1 Z1 ... Xn Yn Zn) wrt the ROOT reference system.
     - [cart2stereo X Y Z]: Given a world point X Y Z wrt to ROOT reference frame the response is the projection (uL vL uR vR) in the Left and Right images.
+    - [doBLF flag]: activate Bilateral filter for flag = true, and skip it for flag = false (default by config).
+    - [bilatfilt sigmaColor sigmaSpace]: Set the parameters for the bilateral filer (default sigmaColor = 10.0, sigmaSpace = 10.0 .
 
 \section in_files_sec Input Data Files
 None.
