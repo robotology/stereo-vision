@@ -95,6 +95,9 @@ The OpenMP accelerated version of the LIBELAS is used under UNIX systems, if Ope
 --CommandPort \e comm 
 - The parameter \e comm specifies the command port for rpc protocol. 
 
+--skipBLF
+- Disable Bilateral filter.
+
 --use_sgbm
 - By default LIBELAS is used to compute the disparity. However, if you prefer to continue using the
 OpenCV's SGBM algorithm, you just need to pass the parameter \e use_sgbm.
@@ -165,8 +168,8 @@ set to \e true in \e MIDDLEBURY and \e false in \e ROBOTICS.
 
 --elas_filter_adaptive_mean \e true
 - This is the \e filter_adaptive_mean parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
-set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
-
+set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS. 
+ 
 \section portsc_sec Ports Created
 - <i> /SFM/left:i </i> accepts the incoming images from the left eye.
 - <i> /SFM/right:i </i> accepts the incoming images from the right eye.
