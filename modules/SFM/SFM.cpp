@@ -1050,7 +1050,6 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="help") {
         reply.addVocab(Vocab::encode("many"));
-        responseCode = Vocab::encode("ack");
         reply.addString("Available commands are:");
         reply.addString("- [calibrate]: It recomputes the camera positions once.");
         reply.addString("- [save]: It saves the current camera positions and uses it when the module starts.");
