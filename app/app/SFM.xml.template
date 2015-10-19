@@ -1,0 +1,48 @@
+<application>
+    <name>SFM Application</name>
+    <module>
+        <name>SFM</name>
+        <parameters></parameters>
+        <node>node1</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 283) (y 161.9))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /matchViewer --x 0 --p 50</parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 310) (y 10))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /dispViewer --x 330 --p 50</parameters>
+        <node>console</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 610) (y 10))</geometry>
+    </module>
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/SFM/right:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 231) (y 214.5)) ((x 199) (y 224)) ((x 284) (y 205))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/SFM/left:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 227.5) (y 177)) ((x 192) (y 174)) ((x 284) (y 180))  )</geometry>
+    </connection>
+    <connection>
+        <from>/SFM/match:o</from>
+        <to external="true">/matchViewer</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 438.5) (y 226)) ((x 397) (y 217)) ((x 501) (y 235))  )</geometry>
+    </connection>
+    <connection>
+        <from>/SFM/disp:o</from>
+        <to external="true">/dispViewer</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 437.5) (y 190.5)) ((x 397) (y 192)) ((x 499) (y 189))  )</geometry>
+    </connection>
+</application>
