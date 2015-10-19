@@ -95,8 +95,12 @@ bool SFM::configure(ResourceFinder &rf)
     
     this->numberOfDisparities = 96;
 
-    //this->doBLF = true;
-    this->doBLF = rf.check("doBLF",Value(true)).asBool();
+    this->doBLF = true;
+    bool skipBLF = rf.check("skipBLF");
+    if (skipBLF){
+        this->doBLF = false;}
+    // this->doBLF = rf.check("doBLF",Value(true)).asBool();  
+    cout << " Bilateral filter set to " << doBLF << endl;  
     this->sigmaColorBLF = 10.0;
     this->sigmaSpaceBLF = 10.0;
 
@@ -423,6 +427,7 @@ bool SFM::updateModule()
         {
             IplImage* outputDpt = &outputD;
             Mat          outputDm = cv::cvarrToMat(outputDpt);
+            //  cvReleaseImage(&outputDpt);
             Mat          outputDfiltm; 
             cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
             IplImage outputDfilt = outputDfiltm;
@@ -1281,19 +1286,20 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     else if (command.get(0).asString()=="doBLF")
     {
         bool onoffBLF = command.get(1).asBool();
-        if (onoffBLF == true ){     // turn ON Bilateral Filtering
-            if (doBLF == true){                   
-                reply.addString("Bilateral Filter Already Running");
-            } else {                                     // Set any different from 0 to activate bilateral filter.
-                doBLF = true;
-                reply.addString("Bilateral Filter ON");
-            }
-        } else {                    // turn OFF Bilateral Filtering
+        if (onoffBLF == false ){     // turn OFF Bilateral Filtering
             if (doBLF == true){
                 doBLF = false;  
                 reply.addString("Bilateral Filter OFF");
             } else {
                 reply.addString("Bilateral Filter already OFF");
+            }
+
+        } else {                    // turn ON Bilateral Filtering
+            if (doBLF == true){                   
+                reply.addString("Bilateral Filter Already Running");
+            } else {                                     // Set any different from 0 to activate bilateral filter.
+                doBLF = true;
+                reply.addString("Bilateral Filter ON");
             }
         }
         reply.addDouble(sigmaColorBLF);
