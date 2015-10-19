@@ -95,6 +95,16 @@ bool SFM::configure(ResourceFinder &rf)
     
     this->numberOfDisparities = 96;
 
+    this->doBLF = true;
+    bool skipBLF = rf.check("skipBLF");
+    if (skipBLF){
+        this->doBLF = false;}
+    // this->doBLF = rf.check("doBLF",Value(true)).asBool();  
+    cout << " Bilateral filter set to " << doBLF << endl;  
+    this->sigmaColorBLF = 10.0;
+    this->sigmaSpaceBLF = 10.0;
+
+
     this->HL_root=Mat::zeros(4,4,CV_64F);
     this->HR_root=Mat::zeros(4,4,CV_64F);
 
@@ -411,9 +421,20 @@ bool SFM::updateModule()
             
     if (outDisp.getOutputCount()>0)
     {
-        outputD=stereo->getDisparity();
+        outputD = stereo->getDisparity();
         ImageOf<PixelMono> &outim=outDisp.prepare();
-        outim.wrapIplImage(&outputD);
+        if (doBLF)
+        {
+            IplImage* outputDpt = &outputD;
+            Mat          outputDm = cv::cvarrToMat(outputDpt);
+            //  cvReleaseImage(&outputDpt);
+            Mat          outputDfiltm; 
+            cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
+            IplImage outputDfilt = outputDfiltm;
+            outim.wrapIplImage(&outputDfilt);
+        }else{
+            outim.wrapIplImage(&outputD);
+        }
         outDisp.write();
     }
 
@@ -1032,6 +1053,29 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         return false;
     }
 
+    if (command.get(0).asString()=="help") {
+        reply.addVocab(Vocab::encode("many"));
+        reply.addString("Available commands are:");
+        reply.addString("- [calibrate]: It recomputes the camera positions once.");
+        reply.addString("- [save]: It saves the current camera positions and uses it when the module starts.");
+        reply.addString("- [getH]: It returns the calibrated stereo matrix.");
+        reply.addString("- [setNumDisp NumOfDisparities]: It sets the expected number of disparity (in pixel). Values must be divisible by 32. ");
+        reply.addString("- [Point x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye.");
+        reply.addString("- [x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z ur vr computed using the depth map wrt the the ROOT reference system.(ur vr) is the corresponding pixel in the Right image. ");
+        reply.addString("- [Left x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0). ");
+        reply.addString("- [Right x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the RIGHT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).");
+        reply.addString("- [Root x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the ROOT reference system. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).");
+        reply.addString("- [Rect tlx tly w h step]: Given the pixels in the rectangle defined by {(tlx,tly) (tlx+w,tly+h)} (parsed by columns), the response contains the corresponding 3D points in the ROOT frame. The optional parameter step defines the sampling quantum; by default step=1.");
+        reply.addString("- [Points u_1 v_1 ... u_n v_n]: Given a list of n pixels, the response contains the corresponding 3D points in the ROOT frame.");
+        reply.addString("- [Flood3D x y dist]: Perform 3D flood-fill on the seed point (x,y), returning the following info: [u_1 v_1 x_1 y_1 z_1 ...]. The optional parameter dist expressed in meters regulates the fill (by default = 0.004).");
+        reply.addString("- [uL_1 vL_1 uR_1 vR_1 ... uL_n vL_n uR_n vR_n]: Given n quadruples uL_i vL_i uR_i vR_i, where uL_i vL_i are the pixel coordinates in the Left image and uR_i vR_i are the coordinates of the matched pixel in the Right image, the response is a set of 3D points (X1 Y1 Z1 ... Xn Yn Zn) wrt the ROOT reference system.");
+        reply.addString("- [cart2stereo X Y Z]: Given a world point X Y Z wrt to ROOT reference frame the response is the projection (uL vL uR vR) in the Left and Right images.");
+        reply.addString("- [doBLF flag]: activate Bilateral filter for flag = true, and skip it for flag = false.");
+        reply.addString("- [bilatfilt sigmaColor sigmaSpace]: Set the parameters for the bilateral filer (default sigmaColor = 10.0, sigmaSpace = 10.0 .");
+        reply.addString("For more details on the commands, check the module's documentation");
+        return true;
+    }
+
     if (command.get(0).asString()=="calibrate")
     {
         mutexRecalibration.lock();
@@ -1225,6 +1269,42 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(pointR.x);
         reply.addDouble(pointR.y);
     }
+    else if (command.get(0).asString()=="bilatfilt" && command.size()==3)
+    {
+        if (!doBLF){
+            doBLF = true;
+            reply.addString("Bilateral filter activated.");
+        }
+        sigmaColorBLF = command.get(1).asDouble();
+        sigmaSpaceBLF = command.get(2).asDouble();
+        reply.addString("BLF sigmaColor ");
+        reply.addDouble(sigmaColorBLF);
+        reply.addString("BLF sigmaSpace ");
+        reply.addDouble(sigmaSpaceBLF);
+
+    }
+    else if (command.get(0).asString()=="doBLF")
+    {
+        bool onoffBLF = command.get(1).asBool();
+        if (onoffBLF == false ){     // turn OFF Bilateral Filtering
+            if (doBLF == true){
+                doBLF = false;  
+                reply.addString("Bilateral Filter OFF");
+            } else {
+                reply.addString("Bilateral Filter already OFF");
+            }
+
+        } else {                    // turn ON Bilateral Filtering
+            if (doBLF == true){                   
+                reply.addString("Bilateral Filter Already Running");
+            } else {                                     // Set any different from 0 to activate bilateral filter.
+                doBLF = true;
+                reply.addString("Bilateral Filter ON");
+            }
+        }
+        reply.addDouble(sigmaColorBLF);
+        reply.addDouble(sigmaSpaceBLF);
+    }
     else if(command.size()>0 && command.size()%4==0)
     {
         for (int i=0; i<command.size(); i+=4)
@@ -1240,6 +1320,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addDouble(point.z);
         }
     }
+
     else
         reply.addString("NACK");
 
