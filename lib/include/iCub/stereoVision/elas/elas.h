@@ -160,7 +160,7 @@ public:
   //         note: D1 and D2 must be allocated before (bytes per line = width)
   //               if subsampling is not active their size is width x height,
   //               otherwise width/2 x height/2 (rounded towards zero)
-  void process (uint8_t* I1,uint8_t* I2,float* D1,float* D2,const int32_t* dims);
+  bool process (uint8_t* I1,uint8_t* I2,float* D1,float* D2,const int32_t* dims);
 
 private:
 

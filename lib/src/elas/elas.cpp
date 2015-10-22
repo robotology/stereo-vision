@@ -29,7 +29,7 @@ Street, Fifth Floor, Boston, MA 02110-1301, USA
 
 using namespace std;
 
-void Elas::process (uint8_t* I1_,uint8_t* I2_,float* D1,float* D2,const int32_t* dims){
+bool Elas::process (uint8_t* I1_,uint8_t* I2_,float* D1,float* D2,const int32_t* dims){
   
   // get width, height and bytes per line
   width  = dims[0];
@@ -62,92 +62,107 @@ void Elas::process (uint8_t* I1_,uint8_t* I2_,float* D1,float* D2,const int32_t*
 #endif
   vector<support_pt> p_support = computeSupportMatches(desc1.I_desc,desc2.I_desc);
   
-  // if not enough support points for triangulation
-  if (p_support.size()<3) {
-    cout << "ERROR: Need at least 3 support points!" << endl;
-    _mm_free(I1);
-    _mm_free(I2);
-    return;
+  bool success;
+
+  if (p_support.size()>=3)
+  {
+
+	  //	  // if not enough support points for triangulation
+	  //	  if (p_support.size()<3) {
+	  //		  cout << "ERROR: Need at least 3 support points!" << endl;
+	  //		  _mm_free(I1);
+	  //		  _mm_free(I2);
+	  //		  return;
+	  //	  }
+
+#ifdef PROFILE
+	  timer.start("Delaunay Triangulation");
+#endif
+	  vector<triangle> tri_1 = computeDelaunayTriangulation(p_support,0);
+	  vector<triangle> tri_2 = computeDelaunayTriangulation(p_support,1);
+
+#ifdef PROFILE
+	  timer.start("Disparity Planes");
+#endif
+	  computeDisparityPlanes(p_support,tri_1,0);
+	  computeDisparityPlanes(p_support,tri_2,1);
+
+#ifdef PROFILE
+	  timer.start("Grid");
+#endif
+
+	  // allocate memory for disparity grid
+	  int32_t grid_width   = (int32_t)ceil((float)width/(float)param.grid_size);
+	  int32_t grid_height  = (int32_t)ceil((float)height/(float)param.grid_size);
+	  int32_t grid_dims[3] = {param.disp_max+2,grid_width,grid_height};
+	  int32_t* disparity_grid_1 = (int32_t*)calloc((param.disp_max+2)*grid_height*grid_width,sizeof(int32_t));
+	  int32_t* disparity_grid_2 = (int32_t*)calloc((param.disp_max+2)*grid_height*grid_width,sizeof(int32_t));
+
+	  createGrid(p_support,disparity_grid_1,grid_dims,0);
+	  createGrid(p_support,disparity_grid_2,grid_dims,1);
+
+#ifdef PROFILE
+	  timer.start("Matching");
+#endif
+	  computeDisparity(p_support,tri_1,disparity_grid_1,grid_dims,desc1.I_desc,desc2.I_desc,0,D1);
+	  computeDisparity(p_support,tri_2,disparity_grid_2,grid_dims,desc1.I_desc,desc2.I_desc,1,D2);
+
+#ifdef PROFILE
+	  timer.start("L/R Consistency Check");
+#endif
+	  leftRightConsistencyCheck(D1,D2);
+
+#ifdef PROFILE
+	  timer.start("Remove Small Segments");
+#endif
+	  removeSmallSegments(D1);
+	  if (!param.postprocess_only_left)
+		  removeSmallSegments(D2);
+
+#ifdef PROFILE
+	  timer.start("Gap Interpolation");
+#endif
+	  gapInterpolation(D1);
+	  if (!param.postprocess_only_left)
+		  gapInterpolation(D2);
+
+	  if (param.filter_adaptive_mean) {
+#ifdef PROFILE
+		  timer.start("Adaptive Mean");
+#endif
+		  adaptiveMean(D1);
+		  if (!param.postprocess_only_left)
+			  adaptiveMean(D2);
+	  }
+
+	  if (param.filter_median) {
+#ifdef PROFILE
+		  timer.start("Median");
+#endif
+		  median(D1);
+		  if (!param.postprocess_only_left)
+			  median(D2);
+	  }
+
+#ifdef PROFILE
+	  timer.plot();
+#endif
+
+	  free(disparity_grid_1);
+	  free(disparity_grid_2);
+
+	  success = true;
+
+  } else
+  {
+	  success = false;
   }
-
-#ifdef PROFILE
-  timer.start("Delaunay Triangulation");
-#endif
-  vector<triangle> tri_1 = computeDelaunayTriangulation(p_support,0);
-  vector<triangle> tri_2 = computeDelaunayTriangulation(p_support,1);
-
-#ifdef PROFILE
-  timer.start("Disparity Planes");
-#endif
-  computeDisparityPlanes(p_support,tri_1,0);
-  computeDisparityPlanes(p_support,tri_2,1);
-
-#ifdef PROFILE
-  timer.start("Grid");
-#endif
-
-  // allocate memory for disparity grid
-  int32_t grid_width   = (int32_t)ceil((float)width/(float)param.grid_size);
-  int32_t grid_height  = (int32_t)ceil((float)height/(float)param.grid_size);
-  int32_t grid_dims[3] = {param.disp_max+2,grid_width,grid_height};
-  int32_t* disparity_grid_1 = (int32_t*)calloc((param.disp_max+2)*grid_height*grid_width,sizeof(int32_t));
-  int32_t* disparity_grid_2 = (int32_t*)calloc((param.disp_max+2)*grid_height*grid_width,sizeof(int32_t));
-  
-  createGrid(p_support,disparity_grid_1,grid_dims,0);
-  createGrid(p_support,disparity_grid_2,grid_dims,1);
-
-#ifdef PROFILE
-  timer.start("Matching");
-#endif
-  computeDisparity(p_support,tri_1,disparity_grid_1,grid_dims,desc1.I_desc,desc2.I_desc,0,D1);
-  computeDisparity(p_support,tri_2,disparity_grid_2,grid_dims,desc1.I_desc,desc2.I_desc,1,D2);
-
-#ifdef PROFILE
-  timer.start("L/R Consistency Check");
-#endif
-  leftRightConsistencyCheck(D1,D2);
-
-#ifdef PROFILE
-  timer.start("Remove Small Segments");
-#endif
-  removeSmallSegments(D1);
-  if (!param.postprocess_only_left)
-    removeSmallSegments(D2);
-
-#ifdef PROFILE
-  timer.start("Gap Interpolation");
-#endif
-  gapInterpolation(D1);
-  if (!param.postprocess_only_left)
-    gapInterpolation(D2);
-
-  if (param.filter_adaptive_mean) {
-#ifdef PROFILE
-    timer.start("Adaptive Mean");
-#endif
-    adaptiveMean(D1);
-    if (!param.postprocess_only_left)
-      adaptiveMean(D2);
-  }
-
-  if (param.filter_median) {
-#ifdef PROFILE
-    timer.start("Median");
-#endif
-    median(D1);
-    if (!param.postprocess_only_left)
-      median(D2);
-  }
-
-#ifdef PROFILE
-  timer.plot();
-#endif
 
   // release memory
-  free(disparity_grid_1);
-  free(disparity_grid_2);
   _mm_free(I1);
   _mm_free(I2);
+
+  return success;
 }
 
 void Elas::removeInconsistentSupportPoints (int16_t* D_can,int32_t D_can_width,int32_t D_can_height) {

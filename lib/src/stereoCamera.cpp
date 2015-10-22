@@ -519,7 +519,8 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
                                     int speckleRange, int numberOfDisparities, int SADWindowSize,
                                     int minDisparity, int preFilterCap, int disp12MaxDiff)
 {
-    if (this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty())
+
+	if (this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty())
     {
         cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
         return;
@@ -567,80 +568,94 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
     Mat disp,disp8,map,dispTemp;
 
+    bool success;
+
     if (use_elas)
     {
         
-        elaswrap->compute_disparity(img1r, img2r, disp, numberOfDisparities);
+        success = elaswrap->compute_disparity(img1r, img2r, disp, numberOfDisparities);
 
-        map = disp * (255.0 / numberOfDisparities);
-        //threshold(map, map, 0, 255.0, THRESH_TOZERO);
+        if (success)
+        {
+        	map = disp * (255.0 / numberOfDisparities);
+        	//threshold(map, map, 0, 255.0, THRESH_TOZERO);
+        }
 
     } else
     {
-        StereoSGBM sgbm;
-        sgbm.preFilterCap =         preFilterCap; //63
-        sgbm.SADWindowSize =        SADWindowSize;
-        int cn =                    this->imleft.channels();
-        sgbm.P1 =                   8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-        sgbm.P2 =                   32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-        sgbm.minDisparity =         minDisparity; //-15
-        sgbm.numberOfDisparities =  numberOfDisparities;
-        sgbm.uniquenessRatio =      uniquenessRatio; //22
-        sgbm.speckleWindowSize =    speckleWindowSize; //100
-        sgbm.speckleRange =         speckleRange; //32
-        sgbm.disp12MaxDiff =        disp12MaxDiff;
-        sgbm.fullDP =               best; // alg == STEREO_HH
+    	StereoSGBM sgbm;
+    	sgbm.preFilterCap =         preFilterCap; //63
+    	sgbm.SADWindowSize =        SADWindowSize;
+    	int cn =                    this->imleft.channels();
+    	sgbm.P1 =                   8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
+    	sgbm.P2 =                   32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
+    	sgbm.minDisparity =         minDisparity; //-15
+    	sgbm.numberOfDisparities =  numberOfDisparities;
+    	sgbm.uniquenessRatio =      uniquenessRatio; //22
+    	sgbm.speckleWindowSize =    speckleWindowSize; //100
+    	sgbm.speckleRange =         speckleRange; //32
+    	sgbm.disp12MaxDiff =        disp12MaxDiff;
+    	sgbm.fullDP =               best; // alg == STEREO_HH
 
-        sgbm(img1r, img2r, disp);
+    	sgbm(img1r, img2r, disp);
 
-        disp.convertTo(map, CV_32FC1, 1.0,0.0);
-        map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
-        //normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+    	disp.convertTo(map, CV_32FC1, 1.0,0.0);
+    	map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
+    	//normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
 
+    	success = true;
     }
-    
-    if (cameraChanged)
+
+    if (success)
     {
-        this->mutex->wait();
-        Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
-        Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
 
-        for (int y=0; y<map.rows; y++)
-        {
-            for (int x=0; x<map.cols; x++)
-            {
-                inverseMapL.ptr<float>(y*map.cols+x)[0]=(float)x;
-                inverseMapL.ptr<float>(y*map.cols+x)[1]=(float)y;
-                inverseMapR.ptr<float>(y*map.cols+x)[0]=(float)x;
-                inverseMapR.ptr<float>(y*map.cols+x)[1]=(float)y;
-            }
-        }
+    	if (cameraChanged)
+    	{
+    		this->mutex->wait();
 
-        undistortPoints(inverseMapL,inverseMapL,this->Kleft,this->DistL,this->RLrect,this->PLrect);
-        undistortPoints(inverseMapR,inverseMapR,this->Kright,this->DistR,this->RRrect,this->PRrect);
+    		Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
+    		Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
 
-        Mat mapperL=inverseMapL.reshape(2,map.rows);
-        Mat mapperR=inverseMapR.reshape(2,map.rows);
-        this->MapperL=mapperL;
-        this->MapperR=mapperR;
-        this->mutex->post();
-        cameraChanged=false;
+    		for (int y=0; y<map.rows; y++)
+    		{
+    			for (int x=0; x<map.cols; x++)
+    			{
+    				inverseMapL.ptr<float>(y*map.cols+x)[0]=(float)x;
+    				inverseMapL.ptr<float>(y*map.cols+x)[1]=(float)y;
+    				inverseMapR.ptr<float>(y*map.cols+x)[0]=(float)x;
+    				inverseMapR.ptr<float>(y*map.cols+x)[1]=(float)y;
+    			}
+    		}
+
+    		undistortPoints(inverseMapL,inverseMapL,this->Kleft,this->DistL,this->RLrect,this->PLrect);
+    		undistortPoints(inverseMapR,inverseMapR,this->Kright,this->DistR,this->RRrect,this->PRrect);
+
+    		Mat mapperL=inverseMapL.reshape(2,map.rows);
+    		Mat mapperR=inverseMapR.reshape(2,map.rows);
+    		this->MapperL=mapperL;
+    		this->MapperR=mapperR;
+
+    		this->mutex->post();
+
+    		cameraChanged = false;
+    	}
+
+    	Mat x;
+    	remap(map,dispTemp,this->MapperL,x,cv::INTER_LINEAR);
+    	dispTemp.convertTo(disp8,CV_8U);
+
+    	if (use_elas)
+    		disp.convertTo(disp, CV_16SC1, 16.0);
+
     }
 
-    Mat x;
-    remap(map,dispTemp,this->MapperL,x,cv::INTER_LINEAR);
-    dispTemp.convertTo(disp8,CV_8U); 
+	this->mutex->wait();
 
-    this->mutex->wait();
+	this->Disparity = disp8;
+	this->Disparity16 = disp;
 
-    this->Disparity = disp8;
+	this->mutex->post();
 
-    if (use_elas)
-        disp.convertTo(disp, CV_16SC1, 16.0);
-
-    this->Disparity16 = disp;
-
-    this->mutex->post();
 }
 
 

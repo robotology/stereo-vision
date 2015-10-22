@@ -250,7 +250,7 @@ class SFM: public yarp::os::RFModule
     IplImage*     right;
     StereoCamera* stereo;    
     IplImage*     output_match;
-    IplImage      outputD;
+    Mat           outputDm;
 
     Mat leftMat, rightMat;
 

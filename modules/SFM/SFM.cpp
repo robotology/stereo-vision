@@ -421,21 +421,24 @@ bool SFM::updateModule()
             
     if (outDisp.getOutputCount()>0)
     {
-        outputD = stereo->getDisparity();
-        ImageOf<PixelMono> &outim=outDisp.prepare();
-        if (doBLF)
+        outputDm = stereo->getDisparity();
+
+        if (!outputDm.empty())
         {
-            IplImage* outputDpt = &outputD;
-            Mat          outputDm = cv::cvarrToMat(outputDpt);
-            //  cvReleaseImage(&outputDpt);
-            Mat          outputDfiltm; 
-            cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
-            IplImage outputDfilt = outputDfiltm;
-            outim.wrapIplImage(&outputDfilt);
-        }else{
-            outim.wrapIplImage(&outputD);
+        	ImageOf<PixelMono> &outim = outDisp.prepare();
+        	if (doBLF)
+        	{
+        		Mat outputDfiltm;
+        		cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
+        		IplImage outputDfilt = outputDfiltm;
+        		outim.wrapIplImage(&outputDfilt);
+        	} else
+        	{
+        		IplImage outputD = outputDm;
+        		outim.wrapIplImage(&outputD);
+        	}
+        	outDisp.write();
         }
-        outDisp.write();
     }
 
     if (worldPort.getOutputCount()>0)
@@ -633,9 +636,10 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    IplImage disp16=this->stereo->getDisparity16();
+    Mat disp16m = this->stereo->getDisparity16();
+    IplImage disp16 = disp16m;
 
-    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
+    if(disp16m.empty() || u<0 || u>=disp16m.cols || v<0 || v>=disp16m.rows) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -758,9 +762,10 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    IplImage disp16=this->stereo->getDisparity16();
+    Mat disp16m = this->stereo->getDisparity16();
+    IplImage disp16 = disp16m;
 
-    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
+    if(disp16m.empty() || u<0 || u>=disp16m.cols || v<0 || v>=disp16m.rows) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -1250,7 +1255,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addDouble(p.z);
 
             set<int> visited;
-            visited.insert(seed.x*outputD.width+seed.y);
+            visited.insert(seed.x*outputDm.cols+seed.y);
 
             floodFill(seed,p,dist,visited,reply);
         }
@@ -1380,10 +1385,10 @@ void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
     {
         for (int y=seed.y-1; y<=seed.y+1; y++)
         {
-            if ((x<0)||(y<0)||(x>outputD.width)||(y>outputD.height))
+            if ((x<0)||(y<0)||(x>outputDm.cols)||(y>outputDm.rows))
                 continue;
 
-            int idx=x*outputD.width+y;
+            int idx=x*outputDm.cols+y;
             set<int>::iterator el=visited.find(idx);
             if (el==visited.end())
             {
