@@ -483,7 +483,7 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
 
     IplImage disp16=disparity;
 
-    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) 
+    if(disparity.empty() || u<0 || u>=disp16.width || v<0 || v>=disp16.height)
     {
         point.x=0.0;
         point.y=0.0;

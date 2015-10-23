@@ -14,7 +14,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #include <algorithm>
 #include "SFM.h"
@@ -25,7 +25,7 @@ bool SFM::configure(ResourceFinder &rf)
 {
     string name=rf.check("name",Value("SFM")).asString().c_str();
     string robot=rf.check("robot",Value("icub")).asString().c_str();
-    string left=rf.check("leftPort",Value("/left:i")).asString().c_str();    
+    string left=rf.check("leftPort",Value("/left:i")).asString().c_str();
     string right=rf.check("rightPort",Value("/right:i")).asString().c_str();
     string SFMFile=rf.check("SFMFile",Value("SFM.ini")).asString().c_str();
 
@@ -47,10 +47,10 @@ bool SFM::configure(ResourceFinder &rf)
 
     this->camCalibFile=localCalibration.getHomeContextPath().c_str();
     this->camCalibFile+="/"+SFMFile;
-    
+
     outMatchName=sname+outMatchName;
     outDispName=sname+outDispName;
-    
+
     outLeftRectImgPortName=sname+outLeftRectImgPortName;
     outRightRectImgPortName=sname+outRightRectImgPortName;
 
@@ -77,11 +77,11 @@ bool SFM::configure(ResourceFinder &rf)
         stereo->initELAS(rf);
 
     Mat KL, KR, DistL, DistR;
-    
+
     loadIntrinsics(rf,KL,KR,DistL,DistR);
     loadExtrinsics(localCalibration,R0,T0,eyes0);
     eyes.resize(eyes0.length(),0.0);
-    
+
     stereo->setIntrinsics(KL,KR,DistL,DistR);
 
     this->useBestDisp=true;
@@ -92,15 +92,15 @@ bool SFM::configure(ResourceFinder &rf)
     this->minDisparity=0;
     this->preFilterCap=63;
     this->disp12MaxDiff=0;
-    
+
     this->numberOfDisparities = 96;
 
     this->doBLF = true;
     bool skipBLF = rf.check("skipBLF");
     if (skipBLF){
         this->doBLF = false;}
-    // this->doBLF = rf.check("doBLF",Value(true)).asBool();  
-    cout << " Bilateral filter set to " << doBLF << endl;  
+    // this->doBLF = rf.check("doBLF",Value(true)).asBool();
+    cout << " Bilateral filter set to " << doBLF << endl;
     this->sigmaColorBLF = 10.0;
     this->sigmaSpaceBLF = 10.0;
 
@@ -124,7 +124,7 @@ bool SFM::configure(ResourceFinder &rf)
     utils=new Utilities();
     utils->initSIFT_GPU();
 #endif
-    
+
     Property optionHead;
     optionHead.put("device","remote_controlboard");
     optionHead.put("remote",("/"+robot+"/head").c_str());
@@ -160,10 +160,10 @@ bool SFM::configure(ResourceFinder &rf)
     }
     else
     {
-       cout << "No local calibration file found in " <<  camCalibFile << " ... Using Kinematics and Running SFM once." << endl;
-       updateViaGazeCtrl(true);
-       R0=this->stereo->getRotation();
-       T0=this->stereo->getTranslation();
+        cout << "No local calibration file found in " <<  camCalibFile << " ... Using Kinematics and Running SFM once." << endl;
+        updateViaGazeCtrl(true);
+        R0=this->stereo->getRotation();
+        T0=this->stereo->getTranslation();
     }
 
     doSFM=false;
@@ -259,7 +259,7 @@ bool SFM::close()
     leftImgPort.close();
     rightImgPort.close();
     outDisp.close();
-    outMatch.close();  
+    outMatch.close();
     handlerPort.close();
     worldPort.close();
 
@@ -270,14 +270,14 @@ bool SFM::close()
     outRightRectImgPort.close();
 
     headCtrl.close();
-    gazeCtrl.close();    
+    gazeCtrl.close();
 
 #ifdef USING_GPU
     delete utils;
 #endif
 
     delete stereo;
-    
+
     return true;
 }
 
@@ -303,8 +303,8 @@ bool SFM::updateModule()
     updateViaKinematics(eyes-eyes0);
     updateViaGazeCtrl(false);
 
-    left=(IplImage*)yarp_imgL->getIplImage(); 
-    right=(IplImage*)yarp_imgR->getIplImage(); 
+    left=(IplImage*)yarp_imgL->getIplImage();
+    right=(IplImage*)yarp_imgR->getIplImage();
 
     if (init)
     {
@@ -317,22 +317,22 @@ bool SFM::updateModule()
     getCameraHGazeCtrl(LEFT);
     getCameraHGazeCtrl(RIGHT);
 
-    Mat leftMat(left); 
+    Mat leftMat(left);
     Mat rightMat(right);
     this->stereo->setImages(left,right);
-    
+
     mutexRecalibration.lock();
     if (doSFM)
     {
-    #ifdef USING_GPU
+#ifdef USING_GPU
         utils->extractMatch_GPU(leftMat,rightMat);
         vector<Point2f> leftM,rightM;
         utils->getMatches(leftM,rightM);
         mutexDisp.lock();
         this->stereo->setMatches(leftM,rightM);
-    #else
+#else
         this->stereo->findMatch(false);
-    #endif
+#endif
         this->stereo->estimateEssential();
         bool ok=this->stereo->essentialDecomposition();
         mutexDisp.unlock();
@@ -357,16 +357,16 @@ bool SFM::updateModule()
 
     mutexDisp.lock();
     this->stereo->computeDisparity(this->useBestDisp,this->uniquenessRatio,this->speckleWindowSize,
-                                   this->speckleRange,this->numberOfDisparities,this->SADWindowSize,
-                                   this->minDisparity,this->preFilterCap,this->disp12MaxDiff);
+            this->speckleRange,this->numberOfDisparities,this->SADWindowSize,
+            this->minDisparity,this->preFilterCap,this->disp12MaxDiff);
     mutexDisp.unlock();
-    
+
     // DEBUG
     /*int uR,vR;
     Point3f point = this->get3DPointsAndDisp(160,120,uR,vR,"ROOT");
     circle(leftMat,cvPoint(160,120),2,cvScalar(255,0,0),2);
     circle(rightMat,cvPoint(uR,vR),2,cvScalar(0,255,0),2);
-    */
+     */
 
     if (outLeftRectImgPort.getOutputCount()>0)
     {
@@ -397,7 +397,7 @@ bool SFM::updateModule()
     if (outMatch.getOutputCount()>0)
     {
         /*Mat F= this->stereo->getFundamental();
-        
+
         if(matchtmp.size()>0)
         {
             Mat m(matchtmp);
@@ -418,29 +418,32 @@ bool SFM::updateModule()
         cvCopyImage(&tmpR,(IplImage*)imgMatch.getIplImage());
         outMatch.write();
     }
-            
+
     if (outDisp.getOutputCount()>0)
     {
-        outputD = stereo->getDisparity();
-        ImageOf<PixelMono> &outim=outDisp.prepare();
-        if (doBLF)
+        outputDm = stereo->getDisparity();
+
+        if (!outputDm.empty())
         {
-            IplImage* outputDpt = &outputD;
-            Mat          outputDm = cv::cvarrToMat(outputDpt);
-            //  cvReleaseImage(&outputDpt);
-            Mat          outputDfiltm; 
-            cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
-            IplImage outputDfilt = outputDfiltm;
-            outim.wrapIplImage(&outputDfilt);
-        }else{
-            outim.wrapIplImage(&outputD);
+            ImageOf<PixelMono> &outim = outDisp.prepare();
+            if (doBLF)
+            {
+                Mat outputDfiltm;
+                cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
+                IplImage outputDfilt = outputDfiltm;
+                outim.wrapIplImage(&outputDfilt);
+            } else
+            {
+                IplImage outputD = outputDm;
+                outim.wrapIplImage(&outputD);
+            }
+            outDisp.write();
         }
-        outDisp.write();
     }
 
     if (worldPort.getOutputCount()>0)
     {
-        ImageOf<PixelRgbFloat>& outim=worldPort.prepare(); 
+        ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
         outim.resize(left->width,left->height);
         fillWorld3D(outim,0,0,left->width,left->height);
         worldPort.write();
@@ -495,7 +498,7 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::s
 
 /******************************************************************************/
 bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL,
-                         Mat &DistR)
+        Mat &DistR)
 {
     Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
     if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
@@ -518,7 +521,7 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
     DistL.at<double>(0,1)=k2;
     DistL.at<double>(0,2)=p1;
     DistL.at<double>(0,3)=p2;
-    
+
     KL=Mat::eye(3,3,CV_64FC1);
     KL.at<double>(0,0)=fx;
     KL.at<double>(0,2)=cx;
@@ -546,7 +549,7 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
     DistR.at<double>(0,1)=k2;
     DistR.at<double>(0,2)=p1;
     DistR.at<double>(0,3)=p2;
-    
+
     KR=Mat::eye(3,3,CV_64FC1);
     KR.at<double>(0,0)=fx;
     KR.at<double>(0,2)=cx;
@@ -559,7 +562,7 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
 
 /******************************************************************************/
 bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes,
-                           const string& groupname)
+        const string& groupname)
 {
     ofstream out;
     out.open(camCalibFile.c_str());
@@ -569,10 +572,10 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes,
         out << "["+groupname+"]" << endl;
         out << "eyes (" << eyes.toString().c_str() << ")" << endl;
         out << "HN (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
-                      << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
-                      << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
-                      << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")"
-                      << endl;
+                << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
+                << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "
+                << 0.0                 << " " << 0.0                 << " " << 0.0                 << " " << 1.0                << ")"
+                << endl;
         out.close();
         return true;
     }
@@ -583,9 +586,9 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes,
 
 /******************************************************************************/
 void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio,
-                            int _speckleWindowSize,int _speckleRange,
-                            int _numberOfDisparities, int _SADWindowSize,
-                            int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
+        int _speckleWindowSize,int _speckleRange,
+        int _numberOfDisparities, int _SADWindowSize,
+        int _minDisparity, int _preFilterCap, int _disp12MaxDiff)
 {
     this->mutexDisp.lock();
     this->useBestDisp=_useBestDisp;
@@ -633,9 +636,10 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    IplImage disp16=this->stereo->getDisparity16();
+    Mat disp16m = this->stereo->getDisparity16();
+    IplImage disp16 = disp16m;
 
-    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
+    if(disp16m.empty() || u<0 || u>=disp16m.cols || v<0 || v>=disp16m.rows) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -646,7 +650,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
     Mat Q=this->stereo->getQ();
     CvScalar scal= cvGet2D(&disp16,v,u);
     double disparity=scal.val[0]/16.0;
-        
+
     uR=u-(int)disparity;
     vR=(int)v;
 
@@ -672,7 +676,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         return point;
     }
 
-   if(drive=="LEFT") {
+    if(drive=="LEFT") {
         Mat P(3,1,CV_64FC1);
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
@@ -683,8 +687,8 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         point.x=(float) P.at<double>(0,0);
         point.y=(float) P.at<double>(1,0);
         point.z=(float) P.at<double>(2,0);
-   }
-   if(drive=="RIGHT") {
+    }
+    if(drive=="RIGHT") {
         Mat Rright = this->stereo->getRotation();
         Mat Tright = this->stereo->getTranslation();
         Mat RRright = this->stereo->getRRrect().t();
@@ -698,7 +702,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
         P.at<double>(3,0)=1;
-       
+
         P=Hrect*HRL*P;
 
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
@@ -720,7 +724,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
-   }
+    }
 
     mutexDisp.unlock();
     return point;
@@ -758,9 +762,10 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    IplImage disp16=this->stereo->getDisparity16();
+    Mat disp16m = this->stereo->getDisparity16();
+    IplImage disp16 = disp16m;
 
-    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
+    if(disp16m.empty() || u<0 || u>=disp16m.cols || v<0 || v>=disp16m.rows) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -789,7 +794,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         return point;
     }
 
-   if(drive=="LEFT") {
+    if(drive=="LEFT") {
         Mat P(3,1,CV_64FC1);
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
@@ -800,8 +805,8 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         point.x=(float) P.at<double>(0,0);
         point.y=(float) P.at<double>(1,0);
         point.z=(float) P.at<double>(2,0);
-   }
-   if(drive=="RIGHT") {
+    }
+    if(drive=="RIGHT") {
         Mat Rright = this->stereo->getRotation();
         Mat Tright = this->stereo->getTranslation();
         Mat RRright = this->stereo->getRRrect().t();
@@ -815,7 +820,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
         P.at<double>(3,0)=1;
-       
+
         P=Hrect*HRL*P;
 
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
@@ -837,7 +842,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
         point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
-   }
+    }
 
     mutexDisp.unlock();
     return point;
@@ -846,7 +851,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
 
 /******************************************************************************/
 Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
-                             const string &drive)
+        const string &drive)
 {
     Point3f point;
     if(drive!="RIGHT" && drive !="LEFT" && drive!="ROOT") {
@@ -877,8 +882,8 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
         mutexDisp.unlock();
         return point;
     }
-    
-        if(cvRound(u2)<0 || cvRound(u2)>=MapperL.cols || cvRound(v2)<0 || cvRound(v2)>=MapperL.rows) {
+
+    if(cvRound(u2)<0 || cvRound(u2)>=MapperL.cols || cvRound(v2)<0 || cvRound(v2)>=MapperL.rows) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -887,7 +892,7 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
     }
 
     float urect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)];
-    float vrect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)+1]; 
+    float vrect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)+1];
 
     float urect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)];
     float vrect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)+1];
@@ -903,7 +908,7 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
     point.y=point.y/w;
     point.z=point.z/w;
 
-   if(drive=="LEFT") {
+    if(drive=="LEFT") {
         Mat P(3,1,CV_64FC1);
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
@@ -929,7 +934,7 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
         P.at<double>(3,0)=1;
-       
+
         P=Hrect*HRL*P;
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
@@ -994,7 +999,7 @@ Matrix SFM::getCameraHGazeCtrl(int camera)
     if(!check)
     {
         Matrix H_curr(4, 4);
-        return H_curr;    
+        return H_curr;
     }
 
     Matrix R_curr=axis2dcm(o_curr);
@@ -1102,18 +1107,18 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="save")
     {
-        updateExtrinsics(R0,T0,eyes0,"STEREO_DISPARITY"); 
+        updateExtrinsics(R0,T0,eyes0,"STEREO_DISPARITY");
         reply.addString("ACK");
-        return true;               
+        return true;
     }
 
     if (command.get(0).asString()=="getH")
-    {        
+    {
         Mat RT0=buildRotTras(R0,T0);
         Matrix H0; convert(RT0,H0);
 
         reply.read(H0);
-        return true;               
+        return true;
     }
 
     if (command.get(0).asString()=="setNumDisp")
@@ -1124,12 +1129,12 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             this->numberOfDisparities=dispNum;
             this->setDispParameters(useBestDisp,uniquenessRatio,speckleWindowSize,speckleRange,numberOfDisparities,SADWindowSize,minDisparity,preFilterCap,disp12MaxDiff);
             reply.addString("ACK");
-            return true;  
+            return true;
         }
         else
         {
             reply.addString("Num Disparity must be divisible by 32");
-            return true;          
+            return true;
         }
     }
 
@@ -1138,10 +1143,10 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         int dispNum=command.get(1).asInt();
         this->minDisparity=dispNum;
         this->setDispParameters(useBestDisp,uniquenessRatio,speckleWindowSize,
-                                speckleRange,numberOfDisparities,SADWindowSize,
-                                minDisparity,preFilterCap,disp12MaxDiff);
+                speckleRange,numberOfDisparities,SADWindowSize,
+                minDisparity,preFilterCap,disp12MaxDiff);
         reply.addString("ACK");
-        return true;  
+        return true;
     }
 
     if (command.get(0).asString()=="set" && command.size()==10)
@@ -1161,7 +1166,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" )
     {
         int u = command.get(1).asInt();
-        int v = command.get(2).asInt(); 
+        int v = command.get(2).asInt();
         Point3f point = this->get3DPoints(u,v);
         reply.addDouble(point.x);
         reply.addDouble(point.y);
@@ -1170,7 +1175,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     else if (!command.get(0).isString() && command.size()==2)
     {
         int u = command.get(0).asInt();
-        int v = command.get(1).asInt(); 
+        int v = command.get(1).asInt();
         int uR,vR;
         Point3f point = this->get3DPointsAndDisp(u,v,uR,vR,"ROOT");
         reply.addDouble(point.x);
@@ -1212,7 +1217,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         {
             for (int v=tl_v; v<br_v; v+=step)
             {
-                Point3f point=this->get3DPoints(u,v,"ROOT"); 
+                Point3f point=this->get3DPoints(u,v,"ROOT");
                 reply.addDouble(point.x);
                 reply.addDouble(point.y);
                 reply.addDouble(point.z);
@@ -1220,7 +1225,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         }
     }
     else if (command.get(0).asString()=="Points")
-    {        
+    {
         for (int cnt=1; cnt<command.size()-1; cnt+=2)
         {
             int u=command.get(cnt).asInt();
@@ -1234,7 +1239,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     else if (command.get(0).asString()=="Flood3D")
     {
         cv::Point seed(command.get(1).asInt(),
-                       command.get(2).asInt());
+                command.get(2).asInt());
 
         double dist=0.004;
         if (command.size()>=4)
@@ -1243,14 +1248,14 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         Point3f p=get3DPoints(seed.x,seed.y,"ROOT");
         if (cv::norm(p)>0.0)
         {
-            reply.addInt(seed.x); 
+            reply.addInt(seed.x);
             reply.addInt(seed.y);
             reply.addDouble(p.x);
             reply.addDouble(p.y);
             reply.addDouble(p.z);
 
             set<int> visited;
-            visited.insert(seed.x*outputD.width+seed.y);
+            visited.insert(seed.x*outputDm.cols+seed.y);
 
             floodFill(seed,p,dist,visited,reply);
         }
@@ -1288,14 +1293,14 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         bool onoffBLF = command.get(1).asBool();
         if (onoffBLF == false ){     // turn OFF Bilateral Filtering
             if (doBLF == true){
-                doBLF = false;  
+                doBLF = false;
                 reply.addString("Bilateral Filter OFF");
             } else {
                 reply.addString("Bilateral Filter already OFF");
             }
 
         } else {                    // turn ON Bilateral Filtering
-            if (doBLF == true){                   
+            if (doBLF == true){
                 reply.addString("Bilateral Filter Already Running");
             } else {                                     // Set any different from 0 to activate bilateral filter.
                 doBLF = true;
@@ -1356,7 +1361,7 @@ Point2f SFM::projectPoint(const string &camera, double x, double y, double z)
 
 /******************************************************************************/
 void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width,
-                      int height)
+        int height)
 {
     IplImage* img=(IplImage*) worldImg.getIplImage();
     for (int i=v0; i<(v0+height); i++)
@@ -1374,32 +1379,32 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int widt
 
 /******************************************************************************/
 void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
-                    set<int> &visited, Bottle &res)
+        set<int> &visited, Bottle &res)
 {
     for (int x=seed.x-1; x<=seed.x+1; x++)
     {
         for (int y=seed.y-1; y<=seed.y+1; y++)
         {
-            if ((x<0)||(y<0)||(x>outputD.width)||(y>outputD.height))
+            if ((x<0)||(y<0)||(x>outputDm.cols)||(y>outputDm.rows))
                 continue;
 
-            int idx=x*outputD.width+y;
+            int idx=x*outputDm.cols+y;
             set<int>::iterator el=visited.find(idx);
             if (el==visited.end())
             {
-            visited.insert(idx);
-        Point3f p=get3DPoints(x,y,"ROOT");
-        if ((cv::norm(p)>0.0) && (cv::norm(p-p0)<=dist))
-        {
-                res.addInt(x);
-            res.addInt(y);
-            res.addDouble(p.x);
-            res.addDouble(p.y);
-            res.addDouble(p.z);
-                    
-            floodFill(Point(x,y),p,dist,visited,res);
-        }
-            }                
+                visited.insert(idx);
+                Point3f p=get3DPoints(x,y,"ROOT");
+                if ((cv::norm(p)>0.0) && (cv::norm(p-p0)<=dist))
+                {
+                    res.addInt(x);
+                    res.addInt(y);
+                    res.addDouble(p.x);
+                    res.addDouble(p.y);
+                    res.addDouble(p.z);
+
+                    floodFill(Point(x,y),p,dist,visited,res);
+                }
+            }
         }
     }
 }
@@ -1415,8 +1420,8 @@ int main(int argc, char *argv[])
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("icubEyes.ini"); 
-    rf.setDefaultContext("cameraCalibration");   
+    rf.setDefaultConfigFile("icubEyes.ini");
+    rf.setDefaultContext("cameraCalibration");
     rf.configure(argc,argv);
 
     SFM mod;

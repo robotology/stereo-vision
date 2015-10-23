@@ -18,24 +18,24 @@
 
 #include "iCub/stereoVision/stereoCamera.h"
 #ifndef USING_GPU
-    #include <opencv2/nonfree/nonfree.hpp>
+#include <opencv2/nonfree/nonfree.hpp>
 #endif 
 
 Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
     Mat A = Mat::eye(4, 4, CV_64F);
     for(int i = 0; i < R.rows; i++)
-     {
-     double* Mi = A.ptr<double>(i);
-     double* MRi = R.ptr<double>(i);
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = R.ptr<double>(i);
         for(int j = 0; j < R.cols; j++)
-             Mi[j]=MRi[j];
-     }
+            Mi[j]=MRi[j];
+    }
     for(int i = 0; i < T.rows; i++)
-     {
-     double* Mi = A.ptr<double>(i);
-     double* MRi = T.ptr<double>(i);
-             Mi[3]=MRi[0];
-     }
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = T.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
     return A;
 }
 
@@ -69,21 +69,21 @@ StereoCamera::StereoCamera(bool rectify) {
 }
 
 StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
-        Mat KL, KR, DistL, DistR, R, T;
-        loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
-        this->mutex= new Semaphore(1);
-        this->setIntrinsics(KL,KR,DistL,DistR);
-        this->setRotation(R,0);
-        this->setTranslation(T,0);
+    Mat KL, KR, DistL, DistR, R, T;
+    loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
+    this->mutex= new Semaphore(1);
+    this->setIntrinsics(KL,KR,DistL,DistR);
+    this->setRotation(R,0);
+    this->setTranslation(T,0);
 
-        this->cameraChanged=true;
-        this->epipolarTh=0.01;
-        this->rectify=rectify;
-        buildUndistortRemap();
+    this->cameraChanged=true;
+    this->epipolarTh=0.01;
+    this->rectify=rectify;
+    buildUndistortRemap();
 
-    #ifndef USING_GPU
-        cv::initModule_nonfree();
-    #endif 
+#ifndef USING_GPU
+    cv::initModule_nonfree();
+#endif
 
     use_elas = false;
 
@@ -119,7 +119,7 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
 
     elaswrap = new elasWrapper(disp_scaling_factor, elas_string);
 
-    
+
     if (rf.check("elas_subsampling"))
         elaswrap->set_subsampling(true);
 
@@ -178,20 +178,20 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
 }
 
 void StereoCamera::setImages(IplImage * left, IplImage * right) {
-       this->imleft=left;
-       this->imright=right;
+    this->imleft=left;
+    this->imright=right;
 }
 
 
 void StereoCamera::printStereoIntrinsic() {
     if(this->Kleft.empty())
         printf("Stereo Cameras are not calibrated, run calibration method before..\n");
-    else 
+    else
     {
-     printf("Left Intrinsic Parameters: \n");
-     printMatrix(this->Kleft);
-     printf("Right Intrinsic Parameters: \n");
-     printMatrix(this->Kright);
+        printf("Left Intrinsic Parameters: \n");
+        printMatrix(this->Kleft);
+        printf("Right Intrinsic Parameters: \n");
+        printMatrix(this->Kright);
     }
 }
 
@@ -207,7 +207,7 @@ void StereoCamera::stereoCalibration(string imagesFilePath, int boardWidth, int 
     Size boardSize;
     boardSize.width=boardWidth;
     boardSize.height=boardHeight;
-    
+
     vector<string> imagelist;
     bool ok = readStringList(imagesFilePath, imagelist);
     if(!ok || imagelist.empty())
@@ -232,7 +232,7 @@ bool StereoCamera::readStringList( const string& filename, vector<string>& l )
         l.push_back((string)*it);
     return true;
 }
-    
+
 void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSize, const float squareSize)
 {
     if( imagelist.size() % 2 != 0 )
@@ -240,21 +240,21 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
         cout << "Error: the image list contains odd (non-even) number of elements\n";
         return;
     }
-    
+
     bool displayCorners = false;
     const int maxScale = 2;
     // ARRAY AND VECTOR STORAGE:
-    
+
     vector<vector<Point2f> > imagePoints[2];
     vector<vector<Point3f> > objectPoints;
     Size imageSize;
-    
+
     int i, j, k, nimages = (int)imagelist.size()/2;
-    
+
     imagePoints[0].resize(nimages);
     imagePoints[1].resize(nimages);
     vector<string> goodImageList;
-    
+
     for( i = j = 0; i < nimages; i++ )
     {
         for( k = 0; k < 2; k++ )
@@ -279,8 +279,8 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                     timg = img;
                 else
                     resize(img, timg, Size(), scale, scale);
-                found = findChessboardCorners(timg, boardSize, corners, 
-                    CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+                found = findChessboardCorners(timg, boardSize, corners,
+                        CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
                 if( found )
                 {
                     if( scale > 1 )
@@ -306,7 +306,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 putchar('.');
             if( !found )
                 break;
-            }
+        }
         if( k == 2 )
         {
             goodImageList.push_back(imagelist[i*2]);
@@ -321,35 +321,35 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
         fprintf(stdout,"Error: too few pairs detected");
         return;
     }
-    
+
     imagePoints[0].resize(nimages);
     imagePoints[1].resize(nimages);
     objectPoints.resize(nimages);
-    
+
     for( i = 0; i < nimages; i++ )
     {
         for( j = 0; j < boardSize.height; j++ )
             for( k = 0; k < boardSize.width; k++ )
                 objectPoints[i].push_back(Point3f(j*squareSize, k*squareSize, 0));
     }
-    
+
     fprintf(stdout,"Running stereo calibration ...\n");
-    
+
     Mat cameraMatrix[2], distCoeffs[2];
     Mat E, F;
-    
+
     if(this->Kleft.empty() || this->Kleft.empty())
     {
         double rms = stereoCalibrate(objectPoints, imagePoints[0], imagePoints[1],
-                        this->Kleft, this->DistL,
-                        this->Kright, this->DistR,
-                        imageSize, this->R, this->T, E, F,
-                        TermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5),
-                        CV_CALIB_FIX_ASPECT_RATIO +
-                        CV_CALIB_ZERO_TANGENT_DIST +
-                        CV_CALIB_SAME_FOCAL_LENGTH +
-                        CV_CALIB_RATIONAL_MODEL +
-                        CV_CALIB_FIX_K3 + CV_CALIB_FIX_K4 + CV_CALIB_FIX_K5);
+                this->Kleft, this->DistL,
+                this->Kright, this->DistR,
+                imageSize, this->R, this->T, E, F,
+                TermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5),
+                CV_CALIB_FIX_ASPECT_RATIO +
+                CV_CALIB_ZERO_TANGENT_DIST +
+                CV_CALIB_SAME_FOCAL_LENGTH +
+                CV_CALIB_RATIONAL_MODEL +
+                CV_CALIB_FIX_K3 + CV_CALIB_FIX_K4 + CV_CALIB_FIX_K5);
         fprintf(stdout,"done with RMS error= %f\n",rms);
     } else
     {
@@ -360,11 +360,11 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 TermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5),CV_CALIB_FIX_INTRINSIC);
         fprintf(stdout,"done with RMS error= %f\n",rms);
     }
-// CALIBRATION QUALITY CHECK
-// because the output fundamental matrix implicitly
-// includes all the output information,
-// we can check the quality of calibration using the
-// epipolar geometry constraint: m2^t*F*m1=0
+    // CALIBRATION QUALITY CHECK
+    // because the output fundamental matrix implicitly
+    // includes all the output information,
+    // we can check the quality of calibration using the
+    // epipolar geometry constraint: m2^t*F*m1=0
     cameraMatrix[0] = this->Kleft;
     cameraMatrix[1] = this->Kright;
     distCoeffs[0]=this->DistL;
@@ -388,9 +388,9 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
         for( j = 0; j < npt; j++ )
         {
             double errij = fabs(imagePoints[0][i][j].x*lines[1][j][0] +
-                                imagePoints[0][i][j].y*lines[1][j][1] + lines[1][j][2]) +
-                           fabs(imagePoints[1][i][j].x*lines[0][j][0] +
-                                imagePoints[1][i][j].y*lines[0][j][1] + lines[0][j][2]);
+                    imagePoints[0][i][j].y*lines[1][j][1] + lines[1][j][2]) +
+                            fabs(imagePoints[1][i][j].x*lines[0][j][0] +
+                                    imagePoints[1][i][j].y*lines[0][j][1] + lines[0][j][2]);
             err += errij;
         }
         npoints += npt;
@@ -405,8 +405,8 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
 void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFilePath) {
 
     if( Kleft.empty() || Kright.empty() || DistL.empty() || DistR.empty() || R.empty() || T.empty()) {
-            cout << "Error: cameras are not calibrated! Run the calibration or set intrinsic and extrinsic parameters \n";
-            return;
+        cout << "Error: cameras are not calibrated! Run the calibration or set intrinsic and extrinsic parameters \n";
+        return;
     }
 
     FileStorage fs(intrinsicFilePath+".yml", CV_STORAGE_WRITE);
@@ -487,8 +487,8 @@ void StereoCamera::rectifyImages()
         return;
     }
     if(this->imleft.empty() || this->imright.empty()) {
-          cout << "Images are not set! set the images first!" << endl;
-          return;
+        cout << "Images are not set! set the images first!" << endl;
+        return;
     }
     Size img_size = this->imleft.size();
 
@@ -505,7 +505,7 @@ void StereoCamera::rectifyImages()
         initUndistortRectifyMap(this->Kleft, this->DistL, this->RLrect, this->PLrect, img_size, CV_32FC1, this->map11, this->map12);
         initUndistortRectifyMap(this->Kright,  this->DistR, this->RRrect, this->PRrect, img_size, CV_32FC1, this->map21, this->map22);
     }
-    
+
     Mat img1r, img2r;
     remap(this->imleft, img1r, this->map11, this->map12, cv::INTER_LINEAR);
     remap(this->imright, img2r, this->map21,this->map22, cv::INTER_LINEAR);
@@ -516,9 +516,10 @@ void StereoCamera::rectifyImages()
 
 
 void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleWindowSize,
-                                    int speckleRange, int numberOfDisparities, int SADWindowSize,
-                                    int minDisparity, int preFilterCap, int disp12MaxDiff)
+        int speckleRange, int numberOfDisparities, int SADWindowSize,
+        int minDisparity, int preFilterCap, int disp12MaxDiff)
 {
+
     if (this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty())
     {
         cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
@@ -537,8 +538,8 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
     {
         mutex->wait();
         stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size,
-                      this->R, this->T, this->RLrect, this->RRrect, this->PLrect,
-                      this->PRrect, this->Q, -1);
+                this->R, this->T, this->RLrect, this->RRrect, this->PLrect,
+                this->PRrect, this->Q, -1);
 
         if (!rectify)
         {
@@ -553,11 +554,11 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
     if (cameraChanged)
     {
         initUndistortRectifyMap(this->Kleft, this->DistL, this->RLrect, this->PLrect,
-                                img_size, CV_32FC1, this->map11, this->map12);
+                img_size, CV_32FC1, this->map11, this->map12);
         initUndistortRectifyMap(this->Kright,  this->DistR, this->RRrect, this->PRrect,
-                                img_size, CV_32FC1, this->map21, this->map22);
+                img_size, CV_32FC1, this->map21, this->map22);
     }
-    
+
     Mat img1r, img2r;
     remap(this->imleft, img1r, this->map11, this->map12, cv::INTER_LINEAR);
     remap(this->imright, img2r, this->map21,this->map22, cv::INTER_LINEAR);
@@ -567,13 +568,18 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
     Mat disp,disp8,map,dispTemp;
 
+    bool success;
+
     if (use_elas)
     {
-        
-        elaswrap->compute_disparity(img1r, img2r, disp, numberOfDisparities);
 
-        map = disp * (255.0 / numberOfDisparities);
-        //threshold(map, map, 0, 255.0, THRESH_TOZERO);
+        success = elaswrap->compute_disparity(img1r, img2r, disp, numberOfDisparities);
+
+        if (success)
+        {
+            map = disp * (255.0 / numberOfDisparities);
+            //threshold(map, map, 0, 255.0, THRESH_TOZERO);
+        }
 
     } else
     {
@@ -597,50 +603,59 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
         //normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
 
+        success = true;
     }
-    
-    if (cameraChanged)
-    {
-        this->mutex->wait();
-        Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
-        Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
 
-        for (int y=0; y<map.rows; y++)
+    if (success)
+    {
+
+        if (cameraChanged)
         {
-            for (int x=0; x<map.cols; x++)
+            this->mutex->wait();
+
+            Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
+            Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
+
+            for (int y=0; y<map.rows; y++)
             {
-                inverseMapL.ptr<float>(y*map.cols+x)[0]=(float)x;
-                inverseMapL.ptr<float>(y*map.cols+x)[1]=(float)y;
-                inverseMapR.ptr<float>(y*map.cols+x)[0]=(float)x;
-                inverseMapR.ptr<float>(y*map.cols+x)[1]=(float)y;
+                for (int x=0; x<map.cols; x++)
+                {
+                    inverseMapL.ptr<float>(y*map.cols+x)[0]=(float)x;
+                    inverseMapL.ptr<float>(y*map.cols+x)[1]=(float)y;
+                    inverseMapR.ptr<float>(y*map.cols+x)[0]=(float)x;
+                    inverseMapR.ptr<float>(y*map.cols+x)[1]=(float)y;
+                }
             }
+
+            undistortPoints(inverseMapL,inverseMapL,this->Kleft,this->DistL,this->RLrect,this->PLrect);
+            undistortPoints(inverseMapR,inverseMapR,this->Kright,this->DistR,this->RRrect,this->PRrect);
+
+            Mat mapperL=inverseMapL.reshape(2,map.rows);
+            Mat mapperR=inverseMapR.reshape(2,map.rows);
+            this->MapperL=mapperL;
+            this->MapperR=mapperR;
+
+            this->mutex->post();
+
+            cameraChanged = false;
         }
 
-        undistortPoints(inverseMapL,inverseMapL,this->Kleft,this->DistL,this->RLrect,this->PLrect);
-        undistortPoints(inverseMapR,inverseMapR,this->Kright,this->DistR,this->RRrect,this->PRrect);
+        Mat x;
+        remap(map,dispTemp,this->MapperL,x,cv::INTER_LINEAR);
+        dispTemp.convertTo(disp8,CV_8U);
 
-        Mat mapperL=inverseMapL.reshape(2,map.rows);
-        Mat mapperR=inverseMapR.reshape(2,map.rows);
-        this->MapperL=mapperL;
-        this->MapperR=mapperR;
-        this->mutex->post();
-        cameraChanged=false;
+        if (use_elas)
+            disp.convertTo(disp, CV_16SC1, 16.0);
+
     }
-
-    Mat x;
-    remap(map,dispTemp,this->MapperL,x,cv::INTER_LINEAR);
-    dispTemp.convertTo(disp8,CV_8U); 
 
     this->mutex->wait();
 
     this->Disparity = disp8;
-
-    if (use_elas)
-        disp.convertTo(disp, CV_16SC1, 16.0);
-
     this->Disparity16 = disp;
 
     this->mutex->post();
+
 }
 
 
@@ -657,13 +672,13 @@ Point2f StereoCamera::fromRectifiedToOriginal(int u, int v, int camera)
     }
     if(camera==LEFT)
     {
-            originalPoint.x=map11.ptr<float>(v)[u];
-            originalPoint.y=map12.ptr<float>(v)[u];
+        originalPoint.x=map11.ptr<float>(v)[u];
+        originalPoint.y=map12.ptr<float>(v)[u];
     }
     else
     {
-            originalPoint.x=map21.ptr<float>(v)[u];
-            originalPoint.y=map22.ptr<float>(v)[u];
+        originalPoint.x=map21.ptr<float>(v)[u];
+        originalPoint.y=map22.ptr<float>(v)[u];
     }
 
 
@@ -682,16 +697,16 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius)
 
     this->PointsL.clear();
     this->PointsR.clear();
-    
+
     this->InliersL.clear();
     this->InliersR.clear();
 
     Mat grayleft(imleftund.rows,imleftund.cols, CV_8UC1);
     imleftund.convertTo(grayleft,CV_8UC1);
-    
+
     Mat grayright(imrightund.rows,imrightund.cols,CV_8UC1);
     imrightund.convertTo(grayright,CV_8UC1);
-    
+
     vector<KeyPoint> keypoints1,keypoints2;
     Mat descriptors1,descriptors2;
 
@@ -719,13 +734,13 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius)
         {
             this->PointsR.push_back(pointR);
             this->PointsL.push_back(pointL);
-        }   
+        }
     }
 
     Mat matchImg;
     if (visualize)
         cv::drawMatches(this->imleftund,keypoints1,this->imrightund,keypoints2,
-                        filteredMatches,matchImg,Scalar(0,0,255,0),Scalar(0,0,255,0));
+                filteredMatches,matchImg,Scalar(0,0,255,0),Scalar(0,0,255,0));
 
     return matchImg;
 }
@@ -773,30 +788,30 @@ double StereoCamera::reprojectionErrorAvg() {
 
 
 Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight) {
-      
-      Point3f point3D;
-      Mat J=Mat(4,4,CV_64FC1);
-      J.setTo(0);
-      for(int j=0; j<4; j++) {
 
-            int rowA=0;
-            int rowB=2;
+    Point3f point3D;
+    Mat J=Mat(4,4,CV_64FC1);
+    J.setTo(0);
+    for(int j=0; j<4; j++) {
 
-            J.at<double>(0,j)=(pointleft.x*this->Pleft.at<double>(rowB,j))- (this->Pleft.at<double>(rowA,j));
-            J.at<double>(2,j)=(pointRight.x*this->Pright.at<double>(rowB,j))- (this->Pright.at<double>(rowA,j));
+        int rowA=0;
+        int rowB=2;
 
-            rowA=1;
-            
-            J.at<double>(1,j)=(pointleft.y*this->Pleft.at<double>(rowB,j))- (this->Pleft.at<double>(rowA,j));
-            J.at<double>(3,j)=(pointRight.y*this->Pright.at<double>(rowB,j))- (this->Pright.at<double>(rowA,j));
-        }
-        SVD decom(J);
-        Mat V= decom.vt;
+        J.at<double>(0,j)=(pointleft.x*this->Pleft.at<double>(rowB,j))- (this->Pleft.at<double>(rowA,j));
+        J.at<double>(2,j)=(pointRight.x*this->Pright.at<double>(rowB,j))- (this->Pright.at<double>(rowA,j));
 
-        point3D.x=(float) ((float) V.at<double>(3,0))/((float) V.at<double>(3,3));
-        point3D.y=(float) ((float) V.at<double>(3,1))/((float) V.at<double>(3,3));     
-        point3D.z=(float) ((float) V.at<double>(3,2))/((float) V.at<double>(3,3));
-        return point3D;
+        rowA=1;
+
+        J.at<double>(1,j)=(pointleft.y*this->Pleft.at<double>(rowB,j))- (this->Pleft.at<double>(rowA,j));
+        J.at<double>(3,j)=(pointRight.y*this->Pright.at<double>(rowB,j))- (this->Pright.at<double>(rowA,j));
+    }
+    SVD decom(J);
+    Mat V= decom.vt;
+
+    point3D.x=(float) ((float) V.at<double>(3,0))/((float) V.at<double>(3,3));
+    point3D.y=(float) ((float) V.at<double>(3,1))/((float) V.at<double>(3,3));
+    point3D.z=(float) ((float) V.at<double>(3,2))/((float) V.at<double>(3,3));
+    return point3D;
 
 }
 
@@ -811,7 +826,7 @@ Mat StereoCamera::FfromP(Mat& P1, Mat& P2)
     Mat Y1(2,4,CV_64FC1);
     Mat Y2(2,4,CV_64FC1);
     Mat Y3(2,4,CV_64FC1);
-    
+
 
     for(int i=0; i<P1.rows; i++)
     {
@@ -822,14 +837,14 @@ Mat StereoCamera::FfromP(Mat& P1, Mat& P2)
                 X2.at<double>(1,j)= P1.at<double>(i,j);
                 X3.at<double>(0,j)= P1.at<double>(i,j);
                 Y2.at<double>(1,j)= P2.at<double>(i,j);
-                Y3.at<double>(0,j)= P2.at<double>(i,j);                    
+                Y3.at<double>(0,j)= P2.at<double>(i,j);
             }
             if(i==1)
             {
                 X1.at<double>(0,j)= P1.at<double>(i,j);
                 X3.at<double>(1,j)= P1.at<double>(i,j);
                 Y1.at<double>(0,j)= P2.at<double>(i,j);
-                Y3.at<double>(1,j)= P2.at<double>(i,j);                   
+                Y3.at<double>(1,j)= P2.at<double>(i,j);
             }
 
             if(i==2)
@@ -909,11 +924,11 @@ void StereoCamera::estimateEssential()
         pl.at<double>(0,0)=PointsL[i].x;
         pl.at<double>(1,0)=PointsL[i].y;
         pl.at<double>(2,0)=1;
-        
+
         pr.at<double>(0,0)=PointsR[i].x;
         pr.at<double>(1,0)=PointsR[i].y;
         pr.at<double>(2,0)=1;
-             
+
         Mat xrFxl=pr.t()*F_exp*pl;
         Mat Fxl=F_exp*pl;
         Mat Fxr=F_exp.t()*pr;
@@ -923,12 +938,12 @@ void StereoCamera::estimateEssential()
         pow(Fxl,2,Fxl);
 
         pow(Fxr,2,Fxr);
-        
+
         Scalar den1,den2;
         den1=sum(Fxl);
         den2=sum(Fxr);
         double sampsonDistance=xrFxl.at<double>(0,0)/(den1.val[0]+den2.val[0]);
-        
+
         if (sampsonDistance<0.1)
         {
             filteredL.push_back(PointsL[i]);
@@ -940,17 +955,17 @@ void StereoCamera::estimateEssential()
 
     vector<uchar> status;
     this->F=findFundamentalMat(Mat(filteredL), Mat(filteredR),status, CV_FM_8POINT, 1, 0.999);
-    
+
     for (size_t i=0; i<(int) filteredL.size(); i++)
     {
         pl.at<double>(0,0)=filteredL[i].x;
         pl.at<double>(1,0)=filteredL[i].y;
         pl.at<double>(2,0)=1;
-        
+
         pr.at<double>(0,0)=filteredR[i].x;
         pr.at<double>(1,0)=filteredR[i].y;
         pr.at<double>(2,0)=1;
-             
+
         Mat xrFxl=pr.t()*F*pl;
         Mat Fxl=F*pl;
         Mat Fxr=F.t()*pr;
@@ -958,13 +973,13 @@ void StereoCamera::estimateEssential()
         pow(xrFxl,2,xrFxl);
         pow(Fxl,2,Fxl);
         pow(Fxr,2,Fxr);
-        
+
         Scalar den1,den2;
         den1=sum(Fxl);
         den2=sum(Fxr);
         double sampsonDistance=xrFxl.at<double>(0,0)/(den1.val[0]+den2.val[0]);
 
-        if (status[i]==1 && xrFxl.at<double>(0,0)<0.001) 
+        if (status[i]==1 && xrFxl.at<double>(0,0)<0.001)
         {
             InliersL.push_back(filteredL[i]);
             InliersR.push_back(filteredR[i]);
@@ -980,8 +995,8 @@ void StereoCamera::estimateEssential()
         cout << "Not enough matches in memory! Run findMatch first!" << endl;
         this->E=Mat(3,3,CV_64FC1);
         return;
-    }    
-   
+    }
+
     this->F=findFundamentalMat(Mat(InliersL), Mat(InliersR),status, CV_FM_8POINT, 1, 0.999);
     this->E=this->Kright.t()*this->F*this->Kleft;
 
@@ -995,7 +1010,7 @@ bool StereoCamera::essentialDecomposition()
         cout << "Essential Matrix is empty! Run the estimateEssential first!" << endl;
         return false;
     }
-    
+
     if (this->InliersL.empty())
     {
         cout << "No matches in memory! Run findMatch first!" << endl;
@@ -1017,11 +1032,11 @@ bool StereoCamera::essentialDecomposition()
     W.at<double>(2,2)=1;
 
     SVD dec(E);
-    
+
     Mat Y=Mat::eye(3,3,CV_64FC1);
     Y.at<double>(2,2)=0.0;
     E=dec.u*Y*dec.vt; // projection to the Essential Matrix space
-    
+
     dec(E);
 
     Mat V=dec.vt;
@@ -1029,7 +1044,7 @@ bool StereoCamera::essentialDecomposition()
 
     Mat R1=U*W*V;
     Mat R2=U*W.t()*V;
-    
+
     if (determinant(R1)<0 || determinant(R2)<0)
     {
         E=-E;
@@ -1037,7 +1052,7 @@ bool StereoCamera::essentialDecomposition()
 
         V=dec2.vt;
         U=dec2.u;
-        
+
         R1=U*W*V;
         R2=U*W.t()*V;
     }
@@ -1050,27 +1065,27 @@ bool StereoCamera::essentialDecomposition()
     Mat tnew=Mat(3,1,CV_64FC1);
 
     chierality(R1,R2,t1,t2,Rnew,tnew,this->InliersL,this->InliersR);
-    
+
     //double t_norm=norm(T/norm(T),tnew/norm(tnew));
     //double r_norm=norm(R,Rnew);
-    
+
     Mat rvec_new=Mat::zeros(3,1,CV_64FC1);
     Mat rvec_exp=Mat::zeros(3,1,CV_64FC1);
     Rodrigues(Rnew,rvec_new);
     Rodrigues(R_exp,rvec_exp);
 
     Mat t_est=(tnew/norm(tnew))*norm(this->T);
-    
+
     Mat diff_angles=rvec_exp-rvec_new;
     Mat diff_tran=T_exp-t_est;
-    
+
     fprintf(stdout,"Angles Differences: %f %f %f\n",diff_angles.at<double>(0,0),diff_angles.at<double>(1,0),diff_angles.at<double>(2,0));
-    fprintf(stdout,"Translation Differences: %f %f %f\n",diff_tran.at<double>(0,0),diff_tran.at<double>(1,0),diff_tran.at<double>(2,0));    
-    
+    fprintf(stdout,"Translation Differences: %f %f %f\n",diff_tran.at<double>(0,0),diff_tran.at<double>(1,0),diff_tran.at<double>(2,0));
+
     // Magic numbers: rvec_new are the rotation angles, only vergence (rvec_new(1,0)) is allowed to be large
     // t_est is the translation estimated, it can change a little bit when joint 4 of the head is moving
     if (fabs(diff_angles.at<double>(0,0))<0.15 && fabs(diff_angles.at<double>(1,0))<0.15 && fabs(diff_angles.at<double>(2,0))<0.15 &&
-        fabs(diff_tran.at<double>(0,0))<0.01 && fabs(diff_tran.at<double>(1,0))<0.01  && fabs(diff_tran.at<double>(2,0))<0.01)    
+            fabs(diff_tran.at<double>(0,0))<0.01 && fabs(diff_tran.at<double>(1,0))<0.01  && fabs(diff_tran.at<double>(2,0))<0.01)
     {
         this->mutex->wait();
         this->R=Rnew;
@@ -1087,136 +1102,136 @@ bool StereoCamera::essentialDecomposition()
 
 void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t, Vector<Point2f> points1, Vector<Point2f> points2) {
 
-        Mat A= Mat::eye(3,4,CV_64FC1);
-        Mat P1 = this->Kleft*Mat::eye(3, 4, CV_64F);
+    Mat A= Mat::eye(3,4,CV_64FC1);
+    Mat P1 = this->Kleft*Mat::eye(3, 4, CV_64F);
 
-        for(int i = 0; i < R1.rows; i++)
-         {
-             double* Mi = A.ptr<double>(i);
-             double* MRi = R1.ptr<double>(i);
-                for(int j = 0; j < R1.cols; j++)
-                     Mi[j]=MRi[j];
-         }
-         
-        for(int i = 0; i < t1.rows; i++)
-         {
-             double* Mi = A.ptr<double>(i);
-             double* MRi = t1.ptr<double>(i);
-             Mi[3]=MRi[0];
-         }
+    for(int i = 0; i < R1.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = R1.ptr<double>(i);
+        for(int j = 0; j < R1.cols; j++)
+            Mi[j]=MRi[j];
+    }
 
-        Mat P2=this->Kright*A;
-        A= Mat::eye(3,4,CV_64FC1);
-        
-        for(int i = 0; i < R2.rows; i++)
-         {
-             double* Mi = A.ptr<double>(i);
-             double* MRi = R2.ptr<double>(i);
-                for(int j = 0; j < R2.cols; j++)
-                     Mi[j]=MRi[j];
-         }
-        for(int i = 0; i < t2.rows; i++)
-         {
-             double* Mi = A.ptr<double>(i);
-             double* MRi = t2.ptr<double>(i);
-             Mi[3]=MRi[0];
-         }
-        Mat P3=this->Kright*A;
-        A= Mat::eye(3,4,CV_64FC1);
+    for(int i = 0; i < t1.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = t1.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
 
-        for(int i = 0; i < R1.rows; i++)
-         {
-             double* Mi = A.ptr<double>(i);
-             double* MRi = R1.ptr<double>(i);
-             for(int j = 0; j < R1.cols; j++)
-                     Mi[j]=MRi[j];
-         }
-        for(int i = 0; i < t1.rows; i++)
-         {
-             double* Mi = A.ptr<double>(i);
-             double* MRi = t2.ptr<double>(i);
-             Mi[3]=MRi[0];
-         }
-        Mat P4=this->Kright*A;
-        A= Mat::eye(3,4,CV_64FC1);
+    Mat P2=this->Kright*A;
+    A= Mat::eye(3,4,CV_64FC1);
 
-
-            for(int i = 0; i < R2.rows; i++)
-     {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = R2.ptr<double>(i);
-            for(int j = 0; j < R2.cols; j++)
-                 Mi[j]=MRi[j];
-     }
+    for(int i = 0; i < R2.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = R2.ptr<double>(i);
+        for(int j = 0; j < R2.cols; j++)
+            Mi[j]=MRi[j];
+    }
     for(int i = 0; i < t2.rows; i++)
-     {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = t1.ptr<double>(i);
-         Mi[3]=MRi[0];
-     }
-     Mat P5=this->Kright*A;
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = t2.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
+    Mat P3=this->Kright*A;
+    A= Mat::eye(3,4,CV_64FC1);
 
-     int err1=0; //R1 t1
-     int err2=0; //R2 t2
-     int err3=0; //R1 t2
-     int err4=0; //R2 t1
-     Mat point(4,1,CV_64FC1);
+    for(int i = 0; i < R1.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = R1.ptr<double>(i);
+        for(int j = 0; j < R1.cols; j++)
+            Mi[j]=MRi[j];
+    }
+    for(int i = 0; i < t1.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = t2.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
+    Mat P4=this->Kright*A;
+    A= Mat::eye(3,4,CV_64FC1);
 
-         for(int i=0; i<(int) InliersL.size(); i++) 
-         {
-             Point3f point3D=triangulation(points1[i],points2[i],P1,P2);
-             Mat H1=buildRotTras(R1,t1);
-             point.at<double>(0,0)=point3D.x;
-             point.at<double>(1,0)=point3D.y;
-             point.at<double>(2,0)=point3D.z;
-             point.at<double>(0,0)=1.0;
-             Mat rotatedPoint=H1*point;
 
-             //fprintf(stdout, "Camera P2 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+    for(int i = 0; i < R2.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = R2.ptr<double>(i);
+        for(int j = 0; j < R2.cols; j++)
+            Mi[j]=MRi[j];
+    }
+    for(int i = 0; i < t2.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = t1.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
+    Mat P5=this->Kright*A;
 
-             if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
-                 err1++;                 
-             }
-             point3D=triangulation(points1[i],points2[i],P1,P3);
-             Mat H2=buildRotTras(R2,t2);
-             point.at<double>(0,0)=point3D.x;
-             point.at<double>(1,0)=point3D.y;
-             point.at<double>(2,0)=point3D.z;
-             point.at<double>(0,0)=1.0;
-             rotatedPoint=H2*point;  
-             //fprintf(stdout, "Camera P3 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+    int err1=0; //R1 t1
+    int err2=0; //R2 t2
+    int err3=0; //R1 t2
+    int err4=0; //R2 t1
+    Mat point(4,1,CV_64FC1);
 
-             if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
-                 err2++;                 
-             }
-                          
-             point3D=triangulation(points1[i],points2[i],P1,P4);   
-             Mat H3=buildRotTras(R1,t2);
-             point.at<double>(0,0)=point3D.x;
-             point.at<double>(1,0)=point3D.y;
-             point.at<double>(2,0)=point3D.z;
-             point.at<double>(0,0)=1.0;
-             rotatedPoint=H3*point;
-             //fprintf(stdout, "Camera P4 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+    for(int i=0; i<(int) InliersL.size(); i++)
+    {
+        Point3f point3D=triangulation(points1[i],points2[i],P1,P2);
+        Mat H1=buildRotTras(R1,t1);
+        point.at<double>(0,0)=point3D.x;
+        point.at<double>(1,0)=point3D.y;
+        point.at<double>(2,0)=point3D.z;
+        point.at<double>(0,0)=1.0;
+        Mat rotatedPoint=H1*point;
 
-             if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
-                 err3++;                 
-             } 
-             
-             point3D=triangulation(points1[i],points2[i],P1,P5);
-             Mat H4=buildRotTras(R2,t1);
-             point.at<double>(0,0)=point3D.x;
-             point.at<double>(1,0)=point3D.y;
-             point.at<double>(2,0)=point3D.z;
-             point.at<double>(0,0)=1.0;
-             rotatedPoint=H4*point;
-             //fprintf(stdout, "Camera P5 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
-             
-             if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
-                 err4++;                 
-             } 
+        //fprintf(stdout, "Camera P2 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
 
-         }
+        if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
+            err1++;
+        }
+        point3D=triangulation(points1[i],points2[i],P1,P3);
+        Mat H2=buildRotTras(R2,t2);
+        point.at<double>(0,0)=point3D.x;
+        point.at<double>(1,0)=point3D.y;
+        point.at<double>(2,0)=point3D.z;
+        point.at<double>(0,0)=1.0;
+        rotatedPoint=H2*point;
+        //fprintf(stdout, "Camera P3 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+
+        if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
+            err2++;
+        }
+
+        point3D=triangulation(points1[i],points2[i],P1,P4);
+        Mat H3=buildRotTras(R1,t2);
+        point.at<double>(0,0)=point3D.x;
+        point.at<double>(1,0)=point3D.y;
+        point.at<double>(2,0)=point3D.z;
+        point.at<double>(0,0)=1.0;
+        rotatedPoint=H3*point;
+        //fprintf(stdout, "Camera P4 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+
+        if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
+            err3++;
+        }
+
+        point3D=triangulation(points1[i],points2[i],P1,P5);
+        Mat H4=buildRotTras(R2,t1);
+        point.at<double>(0,0)=point3D.x;
+        point.at<double>(1,0)=point3D.y;
+        point.at<double>(2,0)=point3D.z;
+        point.at<double>(0,0)=1.0;
+        rotatedPoint=H4*point;
+        //fprintf(stdout, "Camera P5 Point3D: %f %f %f Rotated Point: %f %f %f \n", point3D.x,point3D.y,point3D.z, rotatedPoint.at<double>(0,0),rotatedPoint.at<double>(1,0),rotatedPoint.at<double>(2,0));
+
+        if(point3D.z<0 || rotatedPoint.at<double>(2,0)<0) {
+            err4++;
+        }
+
+    }
 
     /*printMatrix(R1);
     printMatrix(t1);
@@ -1225,103 +1240,103 @@ void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Ma
     //fprintf(stdout, "Inliers: %d, %d, \n",points1.size(),points2.size());
     //fprintf(stdout, "errors: %d, %d, %d, %d, \n",err1,err2,err3,err4);
 
-      double minErr=10000;
-      double secondErr=minErr;
+    double minErr=10000;
+    double secondErr=minErr;
 
-      int idx=0;
-      if(err1<minErr && t1.ptr<double>(0)[0]<0)
-      {
+    int idx=0;
+    if(err1<minErr && t1.ptr<double>(0)[0]<0)
+    {
         idx=1;
         secondErr=minErr;
         minErr=err1;
-      }
-        
-      if(err2<minErr && t2.ptr<double>(0)[0]<0)
-      {
+    }
+
+    if(err2<minErr && t2.ptr<double>(0)[0]<0)
+    {
         idx=2;
         secondErr=minErr;
         minErr=err2;
-      } 
-      if(err3<minErr && t2.ptr<double>(0)[0]<0)
-      {
+    }
+    if(err3<minErr && t2.ptr<double>(0)[0]<0)
+    {
         idx=3;
         secondErr=minErr;
         minErr=err3;
-      }
-      if(err4<minErr && t1.ptr<double>(0)[0]<0)
-      {
+    }
+    if(err4<minErr && t1.ptr<double>(0)[0]<0)
+    {
         idx=4;
         secondErr=minErr;
         minErr=err4;
-      }
+    }
 
-      /*if(secondErr==minErr)
+    /*if(secondErr==minErr)
       {
         R=this->R;
         t=this->T;
         return;      
       }*/
-      if(idx==1) {
-            R=R1;
-            t=t1;
-            return;
-       }
-      if(idx==2) {
-            R=R2;
-            t=t2;
-            return;
-       }
-      if(idx==3) {
-            R=R1;
-            t=t2;
-            return;
-       }
-      if(idx==4) {
-            R=R2;
-            t=t1;
-            return;
-       }
+    if(idx==1) {
+        R=R1;
+        t=t1;
+        return;
+    }
+    if(idx==2) {
+        R=R2;
+        t=t2;
+        return;
+    }
+    if(idx==3) {
+        R=R1;
+        t=t2;
+        return;
+    }
+    if(idx==4) {
+        R=R2;
+        t=t1;
+        return;
+    }
 
 }
 
 
 Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat Camera1, Mat Camera2) {
 
-      Point3f point3D;
-      Mat J=Mat(4,4,CV_64FC1);
-      J.setTo(0);
-                
-      for(int j=0; j<4; j++) {
+    Point3f point3D;
+    Mat J=Mat(4,4,CV_64FC1);
+    J.setTo(0);
 
-            int rowA=0;
-            int rowB=2;
+    for(int j=0; j<4; j++) {
 
-            J.at<double>(0,j)=(pointleft.x*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
-            J.at<double>(2,j)=(pointRight.x*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
+        int rowA=0;
+        int rowB=2;
 
-            rowA=1;
-            
-            J.at<double>(1,j)=(pointleft.y*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
-            J.at<double>(3,j)=(pointRight.y*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
-        }
-        SVD decom(J);
-        Mat V= decom.vt;
+        J.at<double>(0,j)=(pointleft.x*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
+        J.at<double>(2,j)=(pointRight.x*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
 
-       // printMatrix(V);
-        
-        /*Mat sol=Mat(4,1,CV_64FC1);
+        rowA=1;
+
+        J.at<double>(1,j)=(pointleft.y*Camera1.at<double>(rowB,j))- (Camera1.at<double>(rowA,j));
+        J.at<double>(3,j)=(pointRight.y*Camera2.at<double>(rowB,j))- (Camera2.at<double>(rowA,j));
+    }
+    SVD decom(J);
+    Mat V= decom.vt;
+
+    // printMatrix(V);
+
+    /*Mat sol=Mat(4,1,CV_64FC1);
         sol.at<double>(0,0)=V.at<double>(0,0);
         sol.at<double>(1,0)=V.at<double>(1,1);
         sol.at<double>(2,0)=V.at<double>(2,2);
         sol.at<double>(3,0)=V.at<double>(3,3);
-        
+
         Mat test=J*sol;
-        
+
         printMatrix(test);*/
-        point3D.x=(float) ((float) V.at<double>(3,0))/((float) V.at<double>(3,3));
-        point3D.y=(float) ((float) V.at<double>(3,1))/((float) V.at<double>(3,3));     
-        point3D.z=(float) ((float) V.at<double>(3,2))/((float) V.at<double>(3,3));
-        return point3D;
+    point3D.x=(float) ((float) V.at<double>(3,0))/((float) V.at<double>(3,3));
+    point3D.y=(float) ((float) V.at<double>(3,1))/((float) V.at<double>(3,3));
+    point3D.z=(float) ((float) V.at<double>(3,2))/((float) V.at<double>(3,3));
+    return point3D;
 
 }
 
@@ -1337,16 +1352,16 @@ Point3f StereoCamera::triangulation(Point2f& pointleft, Point2f& pointRight, Mat
     Point3f u1(point2.x,point2.y,1.0);
     Mat um1 = Kright.inv() * Mat(u1);
     ur = um1.at<Point3f>(0);
-    
+
     Mat A(u.x*P(2,0)-P(0,0),u.x*P(2,1)-P(0,1),u.x*P(2,2)-P(0,2),
 u.y*P(2,0)-P(1,0),u.y*P(2,1)-P(1,1),u.y*P(2,2)-P(1,2),
 u1.x*P1(2,0)-P1(0,0), u1.x*P1(2,1)-P1(0,1),u1.x*P1(2,2)-P1(0,2),
 u1.y*P1(2,0)-P1(1,0), u1.y*P1(2,1)-P1(1,1),u1.y*P1(2,2)-P1(1,2));
 
    Mat A=Mat(4,3,CV_64FC1);
-   
+
     A.at<double>(0,0)=u.x*P.at<double>(2,0)-P.at<double(0.0);
-    
+
     return u;
 
 
@@ -1361,28 +1376,28 @@ double * StereoCamera::reprojectionError(Mat& Rot, Mat& Tras) {
     }
 
     if(InliersL.empty()) {
-    InliersL=PointsL;
-    InliersR=PointsR;
+        InliersL=PointsL;
+        InliersR=PointsR;
     }
 
     Point2f pointL, pointR;
     vector<Point3f> WorldPoints;
-        Mat A = Mat::eye(3, 4, CV_64F);
-        Mat P1=this->Kleft*A;
+    Mat A = Mat::eye(3, 4, CV_64F);
+    Mat P1=this->Kleft*A;
 
-        for(int i = 0; i < Rot.rows; i++)
-         {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = Rot.ptr<double>(i);
-            for(int j = 0; j < Rot.cols; j++)
-                 Mi[j]=MRi[j];
-         }
-        for(int i = 0; i < Tras.rows; i++)
-         {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = Tras.ptr<double>(i);
-         Mi[3]=MRi[0];
-         }
+    for(int i = 0; i < Rot.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = Rot.ptr<double>(i);
+        for(int j = 0; j < Rot.cols; j++)
+            Mi[j]=MRi[j];
+    }
+    for(int i = 0; i < Tras.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = Tras.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
     Mat P2=this->Kright*A;
     Point3f point3D;
     for(int i =0; i<(int) this->InliersL.size(); i++) {
@@ -1401,8 +1416,8 @@ double * StereoCamera::reprojectionError(Mat& Rot, Mat& Tras) {
 
 
     projectPoints(Mat(WorldPoints), this->R, this->T, this->Kright, Mat(), reprojectionR);
-        double errorLeft=0;
-        double errorRight=0;
+    double errorLeft=0;
+    double errorRight=0;
     for(int i =0; i<(int) WorldPoints.size(); i++) {
         errorLeft += pow(sqrt(pow(InliersL[i].x-reprojectionL[i].x,2)+ pow(InliersL[i].y-reprojectionL[i].y,2)),2);
         //cvSet2D(err,i,0,cvScalar(errorLeft,0,0,0));
@@ -1424,10 +1439,10 @@ void StereoCamera::undistortImages() {
         return;
     }
     if(this->imleft.empty() || this->imright.empty()) {
-          cout << "Images are not set! set the images first!" << endl;
-          return;
+        cout << "Images are not set! set the images first!" << endl;
+        return;
     }
-        
+
     undistort(this->imleft,this->imleftund,this->Kleft,this->DistL);
     undistort(this->imright,this->imrightund,this->Kright,this->DistR);
 }
@@ -1453,9 +1468,9 @@ void StereoCamera::setRotation(Mat& Rot, int mul) {
         this->R=Rot*R;
     if(mul==2)
         this->R=Rot*Rinit;
-        
+
     if(R_exp.empty())
-       R_exp=R;
+        R_exp=R;
     this->updatePMatrix();
     this->cameraChanged=true;
     this->mutex->post();
@@ -1472,7 +1487,7 @@ void StereoCamera::setTranslation(Mat& Tras, int mul) {
 
     if(T_exp.empty())
         T_exp=T;
-        
+
     if(!this->Kleft.empty() && !this->Kright.empty())
         this->updatePMatrix();
     this->cameraChanged=true;
@@ -1486,46 +1501,46 @@ void StereoCamera::printExtrinsic() {
 
 void StereoCamera::updateExpectedCameraMatrices()
 {
-        Mat A = Mat::eye(3, 4, CV_64F);
-        Pleft_exp=Kleft*A;
+    Mat A = Mat::eye(3, 4, CV_64F);
+    Pleft_exp=Kleft*A;
 
-        for(int i = 0; i < this->R_exp.rows; i++)
-        {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = this->R_exp.ptr<double>(i);
-            for(int j = 0; j < this->R_exp.cols; j++)
-                 Mi[j]=MRi[j];
-        }
-        for(int i = 0; i < this->T_exp.rows; i++)
-        {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = this->T_exp.ptr<double>(i);
-         Mi[3]=MRi[0];
-        }
+    for(int i = 0; i < this->R_exp.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = this->R_exp.ptr<double>(i);
+        for(int j = 0; j < this->R_exp.cols; j++)
+            Mi[j]=MRi[j];
+    }
+    for(int i = 0; i < this->T_exp.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = this->T_exp.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
 
-        Pright_exp=Kright*A;
+    Pright_exp=Kright*A;
 }
 
 
 void StereoCamera::updatePMatrix()
 {
-        Mat A = Mat::eye(3, 4, CV_64F);
-        Pleft=Kleft*A;
-   
-        for(int i = 0; i < this->R.rows; i++)
-         {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = this->R.ptr<double>(i);
-            for(int j = 0; j < this->R.cols; j++)
-                 Mi[j]=MRi[j];
-         }
-        for(int i = 0; i < this->T.rows; i++)
-         {
-         double* Mi = A.ptr<double>(i);
-         double* MRi = this->T.ptr<double>(i);
-         Mi[3]=MRi[0];
-         }
-        Pright=Kright*A;
+    Mat A = Mat::eye(3, 4, CV_64F);
+    Pleft=Kleft*A;
+
+    for(int i = 0; i < this->R.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = this->R.ptr<double>(i);
+        for(int j = 0; j < this->R.cols; j++)
+            Mi[j]=MRi[j];
+    }
+    for(int i = 0; i < this->T.rows; i++)
+    {
+        double* Mi = A.ptr<double>(i);
+        double* MRi = this->T.ptr<double>(i);
+        Mi[3]=MRi[0];
+    }
+    Pright=Kright*A;
 
 }
 
@@ -1539,8 +1554,8 @@ Mat StereoCamera::getRotation() const {
 
 
 void StereoCamera::crossCheckMatching( cv::BFMatcher &descriptorMatcher,
-                         const Mat& descriptors1, const Mat& descriptors2,
-                         vector<DMatch>& filteredMatches12, double radius)
+        const Mat& descriptors1, const Mat& descriptors2,
+        vector<DMatch>& filteredMatches12, double radius)
 {
     filteredMatches12.clear();
     vector<vector<DMatch> > matches12, matches21;
@@ -1628,7 +1643,7 @@ Mat StereoCamera::drawMatches()
     }
 
     cv::drawMatches(this->imleftund,keypoints1,this->imrightund,keypoints2,
-                    filteredMatches,matchImg,Scalar(0,0,255,0),Scalar(0,0,255,0));
+            filteredMatches,matchImg,Scalar(0,0,255,0),Scalar(0,0,255,0));
 
     return matchImg;
 }
@@ -1651,17 +1666,17 @@ void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
 
     while ( (prevres  - res  >  vanishing) ) {
         iters = iters+1;
-        
+
         B.setTo(0);
         C.setTo(0);
         D.setTo(0);
         cs.setTo(0);
         ds.setTo(0);
-       
+
         prevres=res;
         res=0;
         for(int i=0; i<(int) PointsL.size(); i++) {
-            
+
             r1.at<double>(0,0)=PointsL[i].x;
             r1.at<double>(1,0)=PointsL[i].y;
             r1.at<double>(2,0)=1;
@@ -1679,11 +1694,11 @@ void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
             Mat di=r1p.cross(r2.cross(Tras));
             Mat si=Tras.t()*ci;
 
-          
+
             B=B+(ci*di.t());
             D=D+(di*di.t());
             C=C+(ci*ci.t());
-            
+
             cs=cs+ (si.at<double>(0,0)*ci);
             ds=ds+ (si.at<double>(0,0)*di);
 
@@ -1694,7 +1709,7 @@ void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
 
         Mat L(7,7,CV_64FC1);
         L.setTo(0);
-        
+
         for(int i=0; i<3; i++)
             for(int j=0; j<3; j++)
                 L.at<double>(i,j)=C.at<double>(i,j);
@@ -1702,9 +1717,9 @@ void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
         for(int i=0; i<3; i++)
             for(int j=3; j<6; j++)
                 L.at<double>(i,j)=B.at<double>(i,j-3);
-    
+
         for(int i=0; i<3; i++)
-                L.at<double>(i,6)=Tras.at<double>(i,0);
+            L.at<double>(i,6)=Tras.at<double>(i,0);
 
 
         for(int i=3; i<6; i++)
@@ -1720,8 +1735,8 @@ void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
                 L.at<double>(i,j)=D.at<double>(i-3,j-3);
 
         for(int j=0; j<3; j++) {
-                Mat Trast=Tras.t();
-                L.at<double>(6,j)=Trast.at<double>(0,j);
+            Mat Trast=Tras.t();
+            L.at<double>(6,j)=Trast.at<double>(0,j);
         }
 
 
@@ -1729,10 +1744,10 @@ void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
         Y.setTo(0);
 
         for(int j=0; j<3; j++)
-                Y.at<double>(j,0)=-cs.at<double>(j,0);
+            Y.at<double>(j,0)=-cs.at<double>(j,0);
 
         for(int j=3; j<6; j++)
-                Y.at<double>(j,0)=-ds.at<double>(j-3,0);
+            Y.at<double>(j,0)=-ds.at<double>(j-3,0);
 
         Mat Linv=L.inv();
         Mat result=Linv*Y;
@@ -1741,7 +1756,7 @@ void StereoCamera::horn(Mat & K1,Mat & K2, vector<Point2f> & PointsL,vector<Poin
 
         Mat q(4,1,CV_64FC1);
 
-        Mat temp=result(Range(3,6),Range(0,1));       
+        Mat temp=result(Range(3,6),Range(0,1));
         q.at<double>(0,0)= sqrt(1-(0.25* norm(temp)*norm(temp)));
         q.at<double>(1,0)= 0.5*result.at<double>(3,0);
         q.at<double>(2,0)= 0.5*result.at<double>(4,0);
@@ -1776,7 +1791,7 @@ void StereoCamera::getRotation(Mat & q, Mat & Rot) {
 
 
     Rot.at<double>(0,0)= (2*((n*n) + (e1*e1))) - 1;
-    Rot.at<double>(0,1)= 2*(e1*e2-n*e3); 
+    Rot.at<double>(0,1)= 2*(e1*e2-n*e3);
     Rot.at<double>(0,2)= 2*(e1*e3+n*e2);
 
     Rot.at<double>(1,0)= 2*(e1*e2+n*e3);
@@ -1790,9 +1805,9 @@ void StereoCamera::getRotation(Mat & q, Mat & Rot) {
 
 void StereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL, vector<Point2f> & PointsR) {
 
-   
-   Mat Point(3,1,CV_64FC1);
-   for (int i=0; i<(int) PointsL.size(); i++) {
+
+    Mat Point(3,1,CV_64FC1);
+    for (int i=0; i<(int) PointsL.size(); i++) {
 
         Point.at<double>(0,0)=PointsL[i].x;
         Point.at<double>(1,0)=PointsL[i].y;
@@ -1802,8 +1817,8 @@ void StereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL
         pnorm.at<double>(0,0)=pnorm.at<double>(0,0)/pnorm.at<double>(2,0);
         pnorm.at<double>(1,0)=pnorm.at<double>(1,0)/pnorm.at<double>(2,0);
         pnorm.at<double>(2,0)=1;
-      
-        
+
+
         PointsL[i].x=(float) pnorm.at<double>(0,0);
         PointsL[i].y=(float) pnorm.at<double>(1,0);
 
@@ -1816,7 +1831,7 @@ void StereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL
         pnorm.at<double>(1,0)=pnorm.at<double>(1,0)/pnorm.at<double>(2,0);
         pnorm.at<double>(2,0)=1;
 
-        
+
         PointsR[i].x=(float) pnorm.at<double>(0,0);
         PointsR[i].y=(float) pnorm.at<double>(1,0);
     }
@@ -1824,16 +1839,16 @@ void StereoCamera::normalizePoints(Mat & K1, Mat & K2, vector<Point2f> & PointsL
 }
 
 void StereoCamera::savePoints(string pointsLPath,string pointsRPath, vector<Point2f>  PointL, vector<Point2f>  PointR) {
-  ofstream myfile;
-  myfile.open (pointsLPath.c_str());
-  for(int i=0; i<(int) PointL.size(); i++)
-       myfile << PointL[i].x << " " << PointL[i].y << "\n";
-  myfile.close();
+    ofstream myfile;
+    myfile.open (pointsLPath.c_str());
+    for(int i=0; i<(int) PointL.size(); i++)
+        myfile << PointL[i].x << " " << PointL[i].y << "\n";
+    myfile.close();
 
-  myfile.open (pointsRPath.c_str());
-  for(int i=0; i<(int) PointR.size(); i++)
-     myfile << PointR[i].x << " " << PointR[i].y << "\n";
-  myfile.close();
+    myfile.open (pointsRPath.c_str());
+    for(int i=0; i<(int) PointR.size(); i++)
+        myfile << PointR[i].x << " " << PointR[i].y << "\n";
+    myfile.close();
 
 }
 
@@ -1858,7 +1873,7 @@ Mat StereoCamera::getMapperR() const {
 void StereoCamera::printMatrix(Mat &matrix) {
     int row=matrix.rows;
     int col =matrix.cols;
-        cout << endl;
+    cout << endl;
     for(int i = 0; i < matrix.rows; i++)
     {
         const double* Mi = matrix.ptr<double>(i);
@@ -1866,7 +1881,7 @@ void StereoCamera::printMatrix(Mat &matrix) {
             cout << Mi[j] << " ";
         cout << endl;
     }
-        cout << endl;
+    cout << endl;
 }
 
 
@@ -1898,7 +1913,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
         return point;
     }
 
-    int u=(int) point1.x; 
+    int u=(int) point1.x;
     int v=(int) point1.y;
     Point3f point;
 
@@ -1910,20 +1925,20 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-       
+
         mutex->post();
         return point;
     }
 
 
     float usign=Mapper.ptr<float>(v)[2*u];
-    float vsign=Mapper.ptr<float>(v)[2*u+1]; 
+    float vsign=Mapper.ptr<float>(v)[2*u+1];
 
     u=cvRound(usign);
     v=cvRound(vsign);
 
     IplImage disp16=this->getDisparity16();
-    
+
 
     if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
         point.x=0.0;
@@ -1949,21 +1964,21 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-    } 
-    else {
-            Mat P(3,1,CV_64FC1);
-            P.at<double>(0,0)=point.x;
-            P.at<double>(1,0)=point.y;
-            P.at<double>(2,0)=point.z;
-
-            // Rototranslation from rectified camera to original camera
-            P=this->getRLrect().t()*P;
-
-            point.x=(float) P.at<double>(0,0);
-            point.y=(float) P.at<double>(1,0);
-            point.z=(float) P.at<double>(2,0);
     }
- 
+    else {
+        Mat P(3,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+
+        // Rototranslation from rectified camera to original camera
+        P=this->getRLrect().t()*P;
+
+        point.x=(float) P.at<double>(0,0);
+        point.y=(float) P.at<double>(1,0);
+        point.z=(float) P.at<double>(2,0);
+    }
+
     mutex->post();
     return point;
 
@@ -1999,20 +2014,20 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        
+
         mutex->post();
         return point;
     }
 
 
     float usign=Mapper.ptr<float>(v)[2*u];
-    float vsign=Mapper.ptr<float>(v)[2*u+1]; 
+    float vsign=Mapper.ptr<float>(v)[2*u+1];
 
     u=cvRound(usign);
     v=cvRound(vsign);
 
     IplImage disp16=this->getDisparity16();
-    
+
 
     if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
         point.x=0.0;
@@ -2040,7 +2055,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
         point.z=0.0;
         mutex->post();
         return point;
-    } 
+    }
 
     Mat RLrectTmp=this->getRLrect().t();
     Mat Tfake = Mat::zeros(0,3,CV_64F);
@@ -2137,7 +2152,7 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
     mutex->wait();
 
     for (int i=0; i<points3D.size(); i++)
-    {   
+    {
         // Apply inverse Trasformation for each point
         Point3f point=points3D[i];
         Mat P(4,1,CV_64FC1);
@@ -2204,8 +2219,8 @@ Mat StereoCamera::computeWorldImage(Mat &H)
 
     for(int i=0; i<worldImg.rows; i++)
     {
-       for(int j=0; j<worldImg.cols; j++)
-        {   
+        for(int j=0; j<worldImg.cols; j++)
+        {
             Mat RLrectTmp=this->getRLrect().t();
             Mat Tfake = Mat::zeros(0,3,CV_64F);
             Mat P(4,1,CV_64FC1);
@@ -2231,7 +2246,7 @@ Mat StereoCamera::computeWorldImage(Mat &H)
             (worldImg.data + worldImg.step * i)[j * worldImg.channels() + 2]=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
         }
     }
-    
+
     return worldImg;
 }
 Mat StereoCamera::getDistCoeffLeft()
@@ -2297,7 +2312,7 @@ bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, M
     DistL.at<double>(0,1)=k2;
     DistL.at<double>(0,2)=p1;
     DistL.at<double>(0,3)=p2;
-    
+
 
     KL=Mat::eye(3,3,CV_64FC1);
     KL.at<double>(0,0)=fx;
@@ -2326,7 +2341,7 @@ bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, M
     DistR.at<double>(0,1)=k2;
     DistR.at<double>(0,2)=p1;
     DistR.at<double>(0,3)=p2;
-    
+
 
     KR=Mat::eye(3,3,CV_64FC1);
     KR.at<double>(0,0)=fx;
@@ -2363,5 +2378,5 @@ void StereoCamera::setMatches(std::vector<cv::Point2f> & pointsL, std::vector<cv
 void StereoCamera::setExpectedPosition(Mat &Rot, Mat &Tran)
 {
     R_exp=Rot;
-    T_exp=Tran; 
+    T_exp=Tran;
 }

@@ -45,10 +45,8 @@ elasWrapper::elasWrapper() : Elas(parameters(ROBOTICS))
     io_scaling_factor = 1.0;
 }
 
-double elasWrapper::compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL, int num_disparities)
+bool elasWrapper::compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL, int num_disparities)
 {
-
-    int64 start = workBegin();
 
     // check for correct size
     if (imL.cols <= 0 || imL.rows <= 0 || imR.cols <= 0 || imR.rows <= 0
@@ -61,7 +59,7 @@ double elasWrapper::compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL
     }
 
     Size im_size = imL.size();
-    
+
     param.disp_max = num_disparities - 1;
 
     Mat imR_scaled, imL_scaled;
@@ -97,20 +95,22 @@ double elasWrapper::compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL
     // compute disparity
     const int32_t dims[3] = {width,height,width}; // bytes per line = width
 
-    process((unsigned char*)imL_scaled.data,(unsigned char*)imR_scaled.data, dispL_data, dispR_data, dims);
+    bool success = process((unsigned char*)imL_scaled.data,(unsigned char*)imR_scaled.data, dispL_data, dispR_data, dims);
 
-    Mat dispL_scaled = Mat(height_disp_data, width_disp_data, CV_32FC1, dispL_data);
+    if (success)
+    {
+        Mat dispL_scaled = Mat(height_disp_data, width_disp_data, CV_32FC1, dispL_data);
 
-    if (io_scaling_factor!=1.0 || param.subsampling==true)
-        resize(dispL_scaled, dispL, im_size);
-    else
-        dispL = dispL_scaled.clone();
+        if (io_scaling_factor!=1.0 || param.subsampling==true)
+            resize(dispL_scaled, dispL, im_size);
+        else
+            dispL = dispL_scaled.clone();
+    }
 
     free(dispL_data);
     free(dispR_data);
 
-    return workEnd(start);
-
+    return success;
 }
 
 int elasWrapper::get_disp_min()

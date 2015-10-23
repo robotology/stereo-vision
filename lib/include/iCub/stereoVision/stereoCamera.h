@@ -229,14 +229,14 @@ public:
     */
     cv::Mat findMatch(bool visualize=false, double displacement=20.0, double radius=200.0);
 
-    /** It computes the Disparity Map using H. Hirschmuller Algorithm (CVPR 2006) (see \ref stereoDisparity).
+    /** It computes the Disparity Map (see \ref stereoDisparity).
     * @param best set equal true for better accuracy, equal false for save computation.
     * @param uniquenessRatio The margin in percents by which the best (minimum) computed cost function value should win the second best value to consider the found match correct. Normally, some value within 5-15 range is good enough.
     * @param speckleWindowSize Maximum size of smooth disparity regions to consider them noise speckles and invdalidate. Set it to 0 to disable speckle filtering. Otherwise, set it somewhere in 50-200 range.
     * @param speckleRange Maximum disparity variation within each connected component. If you do speckle filtering, set it to some positive value, multiple of 16. Normally, 16 or 32 is good enough.
     * @note Run the calibration or set all the parameters before using this method.
     */
-    void computeDisparity(bool best=true, int uniquenessRatio=15, int speckleWindowSize=50,int speckleRange=16, int numberOfDisparities=64, int SADWindowSize=7, int minDisparity=0, int preFilterCap=63, int disp12MaxDiff=0); 
+    void computeDisparity(bool best=true, int uniquenessRatio=15, int speckleWindowSize=50,int speckleRange=16, int numberOfDisparities=64, int SADWindowSize=7, int minDisparity=0, int preFilterCap=63, int disp12MaxDiff=0);
 
     /** It undistorts the images. 
     * @note Set undistortion coefficients before using this method.
