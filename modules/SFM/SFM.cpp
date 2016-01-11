@@ -317,8 +317,8 @@ bool SFM::updateModule()
     getCameraHGazeCtrl(LEFT);
     getCameraHGazeCtrl(RIGHT);
 
-    Mat leftMat(left);
-    Mat rightMat(right);
+    Mat leftMat=cvarrToMat(left);
+    Mat rightMat=cvarrToMat(right);
     this->stereo->setImages(left,right);
 
     mutexRecalibration.lock();
@@ -375,7 +375,8 @@ bool SFM::updateModule()
         ImageOf<PixelRgb>& rectLeftImage = outLeftRectImgPort.prepare();
         rectLeftImage.resize(rectLeft.cols,rectLeft.rows);
 
-        rectLeft.copyTo( cv::Mat( (IplImage*)rectLeftImage.getIplImage() ) );
+        Mat rectLeftImageMat=cvarrToMat((IplImage*)rectLeftImage.getIplImage());
+        rectLeft.copyTo(rectLeftImageMat);
 
         outLeftRectImgPort.setEnvelope(stamp_left);
         outLeftRectImgPort.write();
@@ -388,7 +389,8 @@ bool SFM::updateModule()
         ImageOf<PixelRgb>& rectRightImage = outRightRectImgPort.prepare();
         rectRightImage.resize(rectRight.cols,rectRight.rows);
 
-        rectRight.copyTo( cv::Mat( (IplImage*)rectRightImage.getIplImage() ) );
+        Mat rectRightImageMat=cvarrToMat((IplImage*)rectRightImage.getIplImage());
+        rectRight.copyTo(rectRightImageMat);
 
         outRightRectImgPort.setEnvelope(stamp_right);
         outRightRectImgPort.write();
@@ -415,7 +417,7 @@ bool SFM::updateModule()
         imgMatch.resize(matches.cols,matches.rows);
         IplImage tmpR=matches;
 
-        cvCopyImage(&tmpR,(IplImage*)imgMatch.getIplImage());
+        cvCopy(&tmpR,(IplImage*)imgMatch.getIplImage());
         outMatch.write();
     }
 

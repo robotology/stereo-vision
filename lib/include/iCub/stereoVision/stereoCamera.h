@@ -37,10 +37,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 
-#include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
 #include <iCub/stereoVision/camera.h>
 #include <iCub/stereoVision/elasWrapper.h>
@@ -70,7 +69,6 @@ using cv::StereoBM;
 using cv::Rect;
 using cv::SVD;
 using cv::Vec3f;
-using cv::Vector;
 using cv::Range;
 using cv::Scalar;
 using cv::TermCriteria;
@@ -344,7 +342,7 @@ public:
     * @param points2 corrispondences in the second image
     * 
     */
-    void chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t, Vector<Point2f> points1, Vector<Point2f> points2);
+    void chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t, vector<Point2f> points1, vector<Point2f> points2);
 
 
     /**

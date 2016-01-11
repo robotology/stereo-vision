@@ -135,9 +135,8 @@ void SceneFlow::run()
             width=imgLNext->width;
             height=imgLNext->height;
 
-
-            Mat tmpLNext(imgLNext);
-            Mat tmpRNext(imgRNext);
+            Mat tmpLNext=cvarrToMat(imgLNext);
+            Mat tmpRNext=cvarrToMat(imgRNext);
             disp->setImages(tmpLNext,tmpRNext);
             while (!disp->checkDone())
                 Time::delay(0.01);
@@ -177,9 +176,9 @@ void SceneFlow::run()
             mapperOld=mapperNew.clone();
             dispOld=dispNew.clone();
             dispFloatOld=dispFloatNew.clone();
-            Mat tmpLNext(imgLNext);
-            Mat tmpRNext(imgRNext);
-            Mat tmpLPrev(imgLPrev);
+            Mat tmpLNext=cvarrToMat(imgLNext);
+            Mat tmpRNext=cvarrToMat(imgRNext);
+            Mat tmpLPrev=cvarrToMat(imgLPrev);
             disp->setImages(tmpLNext,tmpRNext);
             opt->setImages(tmpLPrev,tmpLNext);
             opt->resume();

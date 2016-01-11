@@ -68,6 +68,9 @@ Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7.
 #include <iostream>
 #include <fstream>
 #include <deque>
+
+#include <opencv2/opencv.hpp>
+
 #include <yarp/os/Network.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Stamp.h>
@@ -80,8 +83,6 @@ Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7.
 #include <yarp/dev/GazeControl.h>
 #include <yarp/dev/CartesianControl.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
-#include <cv.h>
-#include <highgui.h>
 #include <iCub/ctrl/math.h>
 #include <iCub/stereoVision/sceneFlow.h>
 

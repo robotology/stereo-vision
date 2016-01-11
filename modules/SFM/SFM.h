@@ -217,11 +217,14 @@ against OpenCV versions: 2.4.
 #include <cstdio>
 #include <iostream>
 #include <fstream>
+#include <set>
 #include <deque>
+
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/math/Math.h>
+
 #include <iCub/ctrl/math.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/stereoVision/stereoCamera.h>
@@ -306,7 +309,7 @@ class SFM: public yarp::os::RFModule
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);    
     void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
-    void floodFill(const Point &seed,const Point3f &p0, const double dist,set<int> &visited,Bottle &res);
+    void floodFill(const Point &seed,const Point3f &p0, const double dist, set<int> &visited, Bottle &res);
     bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
     bool updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
     void updateViaGazeCtrl(const bool update);

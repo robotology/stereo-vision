@@ -1100,7 +1100,7 @@ bool StereoCamera::essentialDecomposition()
 }
 
 
-void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t, Vector<Point2f> points1, Vector<Point2f> points2) {
+void StereoCamera::chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t, vector<Point2f> points1, vector<Point2f> points2) {
 
     Mat A= Mat::eye(3,4,CV_64FC1);
     Mat P1 = this->Kleft*Mat::eye(3, 4, CV_64F);
