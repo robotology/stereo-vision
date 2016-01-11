@@ -16,6 +16,7 @@
  * Public License for more details
  */
 
+#include <cstdio>
 #include "iCub/stereoVision/camera.h"
 
 Camera::Camera(string intrinsicFilePath) {
