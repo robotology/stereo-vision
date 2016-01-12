@@ -61,6 +61,10 @@ if(USE_SIFT_GPU)
     list(APPEND folder_header include/iCub/stereoVision/utils.h)
 endif()
 
+if(OpenCV_VERSION_MAJOR GREATER 2)
+  add_definitions(-DOPENCV_GREATER_2)
+endif()
+
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas)
 

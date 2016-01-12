@@ -16,10 +16,15 @@
  * Public License for more details
  */
 
-#include "iCub/stereoVision/stereoCamera.h"
 #ifndef USING_GPU
-#include <opencv2/nonfree/nonfree.hpp>
+    #ifdef OPENCV_GREATER_2
+        #include <opencv2/xfeatures2d/nonfree.hpp>
+    #else
+        #include <opencv2/nonfree/nonfree.hpp>        
+    #endif
 #endif 
+
+#include "iCub/stereoVision/stereoCamera.h"
 
 Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
     Mat A = Mat::eye(4, 4, CV_64F);
@@ -60,12 +65,11 @@ StereoCamera::StereoCamera(bool rectify) {
     this->rectify=rectify;
     this->epipolarTh=0.01;
 
-#ifndef USING_GPU
+#if !defined(USING_GPU) && !defined(OPENCV_GREATER_2)
     cv::initModule_nonfree();
 #endif 
 
     use_elas = false;
-
 }
 
 StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
@@ -81,12 +85,11 @@ StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
     this->rectify=rectify;
     buildUndistortRemap();
 
-#ifndef USING_GPU
+#if !defined(USING_GPU) && !defined(OPENCV_GREATER_2)
     cv::initModule_nonfree();
-#endif
+#endif 
 
     use_elas = false;
-
 }
 
 StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
@@ -101,12 +104,11 @@ StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
     this->epipolarTh=0.01;
     buildUndistortRemap();
 
-#ifndef USING_GPU
+#if !defined(USING_GPU) && !defined(OPENCV_GREATER_2)
     cv::initModule_nonfree();
 #endif 
 
     use_elas = false;
-
 }
 
 void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
@@ -150,7 +152,6 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
     if (rf.check("elas_filter_adaptive_mean"))
         elaswrap->set_filter_adaptive_mean(rf.find("elas_filter_adaptive_mean").asBool());
 
-
     cout << endl << "ELAS parameters:" << endl << endl;
 
     cout << "disp_scaling_factor: " << disp_scaling_factor << endl;
@@ -174,12 +175,11 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
     cout << "filter_adaptive_mean: " << elaswrap->get_filter_adaptive_mean() << endl;
 
     cout << endl;
-
 }
 
 void StereoCamera::setImages(IplImage * left, IplImage * right) {
-    this->imleft=left;
-    this->imright=right;
+    this->imleft=cvarrToMat(left);
+    this->imright=cvarrToMat(right);
 }
 
 
@@ -344,12 +344,15 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 this->Kleft, this->DistL,
                 this->Kright, this->DistR,
                 imageSize, this->R, this->T, E, F,
-                TermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5),
-                CV_CALIB_FIX_ASPECT_RATIO +
-                CV_CALIB_ZERO_TANGENT_DIST +
-                CV_CALIB_SAME_FOCAL_LENGTH +
-                CV_CALIB_RATIONAL_MODEL +
-                CV_CALIB_FIX_K3 + CV_CALIB_FIX_K4 + CV_CALIB_FIX_K5);
+            #ifdef OPENCV_GREATER_2
+                CV_CALIB_FIX_ASPECT_RATIO+CV_CALIB_ZERO_TANGENT_DIST+CV_CALIB_SAME_FOCAL_LENGTH+
+                CV_CALIB_RATIONAL_MODEL+CV_CALIB_FIX_K3+CV_CALIB_FIX_K4+CV_CALIB_FIX_K5,
+                TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 1e-5));
+            #else
+                TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 1e-5),
+                CV_CALIB_FIX_ASPECT_RATIO+CV_CALIB_ZERO_TANGENT_DIST+CV_CALIB_SAME_FOCAL_LENGTH+
+                CV_CALIB_RATIONAL_MODEL+CV_CALIB_FIX_K3+CV_CALIB_FIX_K4+CV_CALIB_FIX_K5);
+            #endif
         fprintf(stdout,"done with RMS error= %f\n",rms);
     } else
     {
@@ -357,7 +360,13 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 this->Kleft, this->DistL,
                 this->Kright, this->DistR,
                 imageSize, this->R, this->T, E, F,
-                TermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5),CV_CALIB_FIX_INTRINSIC);
+            #ifdef OPENCV_GREATER_2
+                CV_CALIB_FIX_INTRINSIC,
+                TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 1e-5));
+            #else
+                TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 1e-5),
+                CV_CALIB_FIX_INTRINSIC);
+            #endif
         fprintf(stdout,"done with RMS error= %f\n",rms);
     }
     // CALIBRATION QUALITY CHECK
@@ -427,8 +436,6 @@ void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
     else
         cout << "Error: can not save the intrinsic parameters\n";
 
-
-
     ofstream fout((intrinsicFilePath+".ini").c_str());
 
     // Left Eye
@@ -454,11 +461,7 @@ void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
     fout << "p2 " << DistR.at<double>(3,0) << endl;
 
     fout.close();
-
-
-
 }
-
 
 Mat StereoCamera::getImLeft() const {
     return this->imleft;
@@ -572,23 +575,29 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
     if (use_elas)
     {
-
         success = elaswrap->compute_disparity(img1r, img2r, disp, numberOfDisparities);
-
         if (success)
         {
             map = disp * (255.0 / numberOfDisparities);
             //threshold(map, map, 0, 255.0, THRESH_TOZERO);
         }
-
     } else
     {
+        int cn=this->imleft.channels();
+    #ifdef OPENCV_GREATER_2
+        Ptr<StereoSGBM> sgbm=cv::StereoSGBM::create(minDisparity,numberOfDisparities,SADWindowSize,
+                                                    8*cn*SADWindowSize*SADWindowSize,
+                                                    32*cn*SADWindowSize*SADWindowSize,
+                                                    disp12MaxDiff,preFilterCap,uniquenessRatio,
+                                                    speckleWindowSize,speckleRange,
+                                                    best?StereoSGBM::MODE_HH:StereoSGBM::MODE_SGBM);
+        sgbm->compute(img1r, img2r, disp);
+    #else
         StereoSGBM sgbm;
         sgbm.preFilterCap =         preFilterCap; //63
-        sgbm.SADWindowSize =        SADWindowSize;
-        int cn =                    this->imleft.channels();
-        sgbm.P1 =                   8*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
-        sgbm.P2 =                   32*cn*sgbm.SADWindowSize*sgbm.SADWindowSize;
+        sgbm.SADWindowSize =        SADWindowSize;        
+        sgbm.P1 =                   8*cn*SADWindowSize*SADWindowSize;
+        sgbm.P2 =                   32*cn*SADWindowSize*SADWindowSize;
         sgbm.minDisparity =         minDisparity; //-15
         sgbm.numberOfDisparities =  numberOfDisparities;
         sgbm.uniquenessRatio =      uniquenessRatio; //22
@@ -598,6 +607,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
         sgbm.fullDP =               best; // alg == STEREO_HH
 
         sgbm(img1r, img2r, disp);
+    #endif
 
         disp.convertTo(map, CV_32FC1, 1.0,0.0);
         map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
@@ -608,7 +618,6 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
     if (success)
     {
-
         if (cameraChanged)
         {
             this->mutex->wait();
@@ -646,7 +655,6 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
         if (use_elas)
             disp.convertTo(disp, CV_16SC1, 16.0);
-
     }
 
     this->mutex->wait();
@@ -710,9 +718,18 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius)
     vector<KeyPoint> keypoints1,keypoints2;
     Mat descriptors1,descriptors2;
 
+#ifdef OPENCV_GREATER_2
+    Ptr<xfeatures2d::SIFT> sift=xfeatures2d::SIFT::create();
+    yAssert(sift!=NULL);
+
+    sift->detect(grayleft,keypoints1);
+    sift->compute(grayleft,keypoints1,descriptors1);
+
+    sift->detect(grayright,keypoints2);
+    sift->compute(grayright,keypoints2,descriptors2);
+#else
     Ptr<cv::FeatureDetector> detector=cv::FeatureDetector::create("SIFT");
     Ptr<cv::DescriptorExtractor> descriptorExtractor=cv::DescriptorExtractor::create("SIFT");
-    cv::BFMatcher descriptorMatcher;
 
     yAssert(detector!=NULL);
     yAssert(descriptorExtractor!=NULL);
@@ -722,7 +739,9 @@ Mat StereoCamera::findMatch(bool visualize, double displacement, double radius)
 
     detector->detect(grayright,keypoints2);
     descriptorExtractor->compute(grayright,keypoints2,descriptors2);
-
+#endif
+    
+    cv::BFMatcher descriptorMatcher;
     vector<DMatch> filteredMatches;
     crossCheckMatching(descriptorMatcher,descriptors1,descriptors2,filteredMatches,radius);
 
