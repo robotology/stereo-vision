@@ -742,12 +742,8 @@ Matrix DisparityThread::getCameraHGazeCtrl(int camera)
     }
 
     Matrix R_curr=axis2dcm(o_curr);
-
-    Matrix H_curr(4, 4);
-    H_curr=R_curr;
-    H_curr(0,3)=x_curr[0];
-    H_curr(1,3)=x_curr[1];
-    H_curr(2,3)=x_curr[2];
+    Matrix H_curr=R_curr;
+    H_curr.setSubcol(x_curr,0,3);
 
     if (camera==LEFT)
         convert(H_curr,HL_root);
