@@ -1237,12 +1237,12 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     else if (command.get(0).asString()=="Flood3D")
     {
         cv::Point seed(command.get(1).asInt(),
-                command.get(2).asInt());
+                       command.get(2).asInt());
 
         double dist=0.004;
         if (command.size()>=4)
             dist=command.get(3).asDouble();
-
+        
         Point3f p=get3DPoints(seed.x,seed.y,"ROOT");
         if (cv::norm(p)>0.0)
         {
@@ -1376,8 +1376,8 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int widt
 
 
 /******************************************************************************/
-void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
-        set<int> &visited, Bottle &res)
+void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist, 
+                    set<int> &visited, Bottle &res)
 {
     for (int x=seed.x-1; x<=seed.x+1; x++)
     {
