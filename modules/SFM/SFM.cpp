@@ -1159,7 +1159,10 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         int preFilterCap=command.get(8).asInt();
         int disp12MaxDiff=command.get(9).asInt();
 
-        this->setDispParameters(bestDisp,uniquenessRatio,speckleWindowSize,speckleRange,numberOfDisparities,SADWindowSize,minDisparity,preFilterCap,disp12MaxDiff);
+        this->setDispParameters(bestDisp,uniquenessRatio,speckleWindowSize,
+                                speckleRange,numberOfDisparities,SADWindowSize,
+                                minDisparity,preFilterCap,disp12MaxDiff);
+        reply.addString("ACK");
     }
     else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" )
     {
@@ -1257,6 +1260,8 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
             floodFill(seed,p,dist,visited,reply);
         }
+        else
+            reply.addString("NACK");
     }
     else if (command.get(0).asString()=="cart2stereo")
     {
@@ -1284,7 +1289,6 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         reply.addDouble(sigmaColorBLF);
         reply.addString("BLF sigmaSpace ");
         reply.addDouble(sigmaSpaceBLF);
-
     }
     else if (command.get(0).asString()=="doBLF")
     {
@@ -1323,7 +1327,6 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             reply.addDouble(point.z);
         }
     }
-
     else
         reply.addString("NACK");
 
