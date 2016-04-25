@@ -14,6 +14,6 @@ include_directories(${stereoVision_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS})
-add_executable(sceneFlowModule ${source} ${header})
-target_link_libraries(sceneFlowModule stereoVision ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
-install(TARGETS sceneFlowModule DESTINATION bin)
+add_executable(${PROJECT_NAME} ${source} ${header})
+target_link_libraries(${PROJECT_NAME} stereoVision ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)

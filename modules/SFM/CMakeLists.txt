@@ -20,11 +20,11 @@ if(USE_SIFT_GPU)
     add_definitions(-DUSING_GPU)
 endif()
 
-add_executable(SFM ${source} ${header})
-target_link_libraries(SFM stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
+add_executable(${PROJECT_NAME} ${source} ${header})
+target_link_libraries(${PROJECT_NAME} stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
 
 if(USE_SIFT_GPU)
-	target_link_libraries(SFM ${SIFTGPU_LIBRARIES})
+	target_link_libraries(${PROJECT_NAME} ${SIFTGPU_LIBRARIES})
 endif()
 
-install(TARGETS SFM DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)

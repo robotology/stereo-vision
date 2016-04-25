@@ -8,7 +8,7 @@ if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
-project(stereoVision)
+project(stereo-vision)
 
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)

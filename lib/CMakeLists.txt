@@ -2,8 +2,7 @@
 # Author: Sean Ryan Fanello, Giulia Pasquale
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME stereoVision)
-project(${PROJECTNAME})
+project(stereoVision)
 
 ############## LIBELAS ##############
 
@@ -31,7 +30,7 @@ else()
                          src/elas/filter.cpp
                          src/elas/matrix.cpp
                          src/elas/triangle.cpp)
-endif()                    
+endif()
 
 ####################################
 
@@ -79,27 +78,27 @@ if(USE_SIFT_GPU)
     add_definitions(-DUSING_GPU)
 endif()
 
-add_library(${PROJECTNAME} ${folder_source} ${folder_source_elas} ${folder_header})
-target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES})
+add_library(${PROJECT_NAME} ${folder_source} ${folder_source_elas} ${folder_header})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES})
 
 if(USE_SIFT_GPU)
-    target_link_libraries(${PROJECTNAME} ${SIFTGPU_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} ${SIFTGPU_LIBRARIES})
 endif()
 
 if(OPENMP_FOUND)
-   target_link_libraries(${PROJECTNAME} ${OpenMP_C_FLAGS} ${OpenMP_CXX_FLAGS})
+   target_link_libraries(${PROJECT_NAME} ${OpenMP_C_FLAGS} ${OpenMP_CXX_FLAGS})
 endif()
 
 if(USE_SIFT_GPU)
-   icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas
-                                             EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS}
-                                             DESTINATION include/iCub/${PROJECTNAME}
-                                             FILES_WITH_PATH ${folder_header}
-                                             PATH_TO_EXCLUDE include/iCub/stereoVision)
+   icubcontrib_export_library(${PROJECT_NAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas
+                                              EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS}
+                                              DESTINATION include/iCub/${PROJECT_NAME}
+                                              FILES_WITH_PATH ${folder_header}
+                                              PATH_TO_EXCLUDE include/iCub/stereoVision)
 else()
-   icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas
-                                             EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES}
-                                             DESTINATION include/iCub/${PROJECTNAME}
-                                             FILES_WITH_PATH ${folder_header}
-                                             PATH_TO_EXCLUDE include/iCub/stereoVision)
+   icubcontrib_export_library(${PROJECT_NAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas
+                                              EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES}
+                                              DESTINATION include/iCub/${PROJECT_NAME}
+                                              FILES_WITH_PATH ${folder_header}
+                                              PATH_TO_EXCLUDE include/iCub/stereoVision)
 endif()
