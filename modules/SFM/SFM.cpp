@@ -447,7 +447,7 @@ bool SFM::updateModule()
     {
         ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
         outim.resize(left->width,left->height);
-        fillWorld3D(outim,0,0,left->width,left->height);
+        fillWorld3D(outim);
         worldPort.write();
     }
 
@@ -610,27 +610,16 @@ void SFM::setDispParameters(bool _useBestDisp, int _uniquenessRatio,
 /******************************************************************************/
 Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &drive)
 {
-    Point3f point;
-
-    if(drive!="RIGHT" && drive!="LEFT" && drive!="ROOT") {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
+    Point3f point(0.0f,0.0f,0.0f);
+    if ((drive!="RIGHT") && (drive!="LEFT") && (drive!="ROOT"))
         return point;
-    }
 
-    mutexDisp.lock();
+    LockGuard lg(mutexDisp);
 
     // Mapping from Rectified Cameras to Original Cameras
-    Mat Mapper=this->stereo->getMapperL();
-
-    if(Mapper.empty()) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-        mutexDisp.unlock();
+    const Mat& Mapper=this->stereo->getMapperL();
+    if (Mapper.empty())
         return point;
-    }
 
     float usign=Mapper.ptr<float>(v)[2*u];
     float vsign=Mapper.ptr<float>(v)[2*u+1];
@@ -638,63 +627,69 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    Mat disp16m = this->stereo->getDisparity16();
-    IplImage disp16 = disp16m;
-
-    if(disp16m.empty() || u<0 || u>=disp16m.cols || v<0 || v>=disp16m.rows) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-        mutexDisp.unlock();
+    const Mat& disp16m=this->stereo->getDisparity16();
+    if (disp16m.empty() || (u<0) || (u>=disp16m.cols) || (v<0) || (v>=disp16m.rows))
         return point;
-    }
 
-    Mat Q=this->stereo->getQ();
-    CvScalar scal= cvGet2D(&disp16,v,u);
+    const Mat& Q=this->stereo->getQ();
+    IplImage disp16=disp16m;
+    CvScalar scal=cvGet2D(&disp16,v,u);
     double disparity=scal.val[0]/16.0;
 
     uR=u-(int)disparity;
     vR=(int)v;
 
-    Point2f orig= this->stereo->fromRectifiedToOriginal(uR,vR, RIGHT);
-    uR= orig.x;
-    vR= orig.y;
+    Point2f orig=this->stereo->fromRectifiedToOriginal(uR,vR,RIGHT);
+    uR=(int)orig.x;
+    vR=(int)orig.y;
 
-    float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
-    point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
-    point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
-    point.z=(float) Q.at<double>(2,3);
+    float w=(float)(disparity*Q.at<double>(3,2)+Q.at<double>(3,3));
+    point.x=(float)((usign+1)*Q.at<double>(0,0)+Q.at<double>(0,3));
+    point.y=(float)((vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3));
+    point.z=(float)Q.at<double>(2,3);
 
-    point.x=point.x/w;
-    point.y=point.y/w;
-    point.z=point.z/w;
+    point.x/=w;
+    point.y/=w;
+    point.z/=w;
 
     // discard points far more than 10 meters or with not valid disparity (<0)
-    if(point.z>10 || point.z<0) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-        mutexDisp.unlock();
+    if ((point.z>10) || (point.z<0))
         return point;
-    }
 
-    if(drive=="LEFT") {
+    if (drive=="ROOT")
+    {
+        const Mat& RLrect=this->stereo->getRLrect().t();
+        Mat Tfake=Mat::zeros(0,3,CV_64F);
+        Mat P(4,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+        P.at<double>(3,0)=1.0;
+
+        Mat Hrect=buildRotTras(RLrect,Tfake);
+        P=HL_root*Hrect*P;
+        point.x=(float)(P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float)(P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float)(P.at<double>(2,0)/P.at<double>(3,0));
+    }
+    else if (drive=="LEFT")
+    {
         Mat P(3,1,CV_64FC1);
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
 
         P=this->stereo->getRLrect().t()*P;
-
-        point.x=(float) P.at<double>(0,0);
-        point.y=(float) P.at<double>(1,0);
-        point.z=(float) P.at<double>(2,0);
+        point.x=(float)P.at<double>(0,0);
+        point.y=(float)P.at<double>(1,0);
+        point.z=(float)P.at<double>(2,0);
     }
-    if(drive=="RIGHT") {
-        Mat Rright = this->stereo->getRotation();
-        Mat Tright = this->stereo->getTranslation();
-        Mat RRright = this->stereo->getRRrect().t();
-        Mat TRright = Mat::zeros(0,3,CV_64F);
+    else if (drive=="RIGHT")
+    {
+        const Mat& Rright=this->stereo->getRotation();
+        const Mat& Tright=this->stereo->getTranslation();
+        const Mat& RRright=this->stereo->getRRrect().t();
+        Mat TRright=Mat::zeros(0,3,CV_64F);
 
         Mat HRL=buildRotTras(Rright,Tright);
         Mat Hrect=buildRotTras(RRright,TRright);
@@ -703,32 +698,14 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
-        P.at<double>(3,0)=1;
+        P.at<double>(3,0)=1.0;
 
         P=Hrect*HRL*P;
-
-        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
-        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
-        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
-
-    }
-    if(drive=="ROOT") {
-        Mat RLrect=this->stereo->getRLrect().t();
-        Mat Tfake = Mat::zeros(0,3,CV_64F);
-        Mat P(4,1,CV_64FC1);
-        P.at<double>(0,0)=point.x;
-        P.at<double>(1,0)=point.y;
-        P.at<double>(2,0)=point.z;
-        P.at<double>(3,0)=1;
-
-        Mat Hrect=buildRotTras(RLrect,Tfake);
-        P=HL_root*Hrect*P;
-        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
-        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
-        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+        point.x=(float)(P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float)(P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float)(P.at<double>(2,0)/P.at<double>(3,0));
     }
 
-    mutexDisp.unlock();
     return point;
 }
 
@@ -736,27 +713,16 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
 /******************************************************************************/
 Point3f SFM::get3DPoints(int u, int v, const string &drive)
 {
-    Point3f point;
-
-    if(drive!="RIGHT" && drive !="LEFT" && drive!="ROOT") {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
+    Point3f point(0.0f,0.0f,0.0f);
+    if ((drive!="RIGHT") && (drive!="LEFT") && (drive!="ROOT"))
         return point;
-    }
 
-    mutexDisp.lock();
+    LockGuard lg(mutexDisp);
 
     // Mapping from Rectified Cameras to Original Cameras
-    Mat Mapper=this->stereo->getMapperL();
-
-    if(Mapper.empty()) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-        mutexDisp.unlock();
+    const Mat& Mapper=this->stereo->getMapperL();
+    if (Mapper.empty())
         return point;
-    }
 
     float usign=Mapper.ptr<float>(v)[2*u];
     float vsign=Mapper.ptr<float>(v)[2*u+1];
@@ -764,55 +730,61 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    Mat disp16m = this->stereo->getDisparity16();
-    IplImage disp16 = disp16m;
-
-    if(disp16m.empty() || u<0 || u>=disp16m.cols || v<0 || v>=disp16m.rows) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-        mutexDisp.unlock();
+    const Mat& disp16m=this->stereo->getDisparity16();
+    if (disp16m.empty() || (u<0) || (u>=disp16m.cols) || (v<0) || (v>=disp16m.rows))
         return point;
-    }
 
-    Mat Q=this->stereo->getQ();
-    CvScalar scal= cvGet2D(&disp16,v,u);
+    const Mat& Q=this->stereo->getQ();
+    IplImage disp16=disp16m;
+    CvScalar scal=cvGet2D(&disp16,v,u);
     double disparity=scal.val[0]/16.0;
-    float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
-    point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
-    point.y=(float)((float) (vsign+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
-    point.z=(float) Q.at<double>(2,3);
+    float w=(float)(disparity*Q.at<double>(3,2)+Q.at<double>(3,3));
+    point.x=(float)((usign+1)*Q.at<double>(0,0)+Q.at<double>(0,3));
+    point.y=(float)((vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3));
+    point.z=(float)Q.at<double>(2,3);
 
-    point.x=point.x/w;
-    point.y=point.y/w;
-    point.z=point.z/w;
+    point.x/=w;
+    point.y/=w;
+    point.z/=w;
 
     // discard points far more than 10 meters or with not valid disparity (<0)
-    if(point.z>10 || point.z<0) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-        mutexDisp.unlock();
+    if ((point.z>10) || (point.z<0))
         return point;
-    }
 
-    if(drive=="LEFT") {
+    if (drive=="ROOT")
+    {
+        const Mat& RLrect=this->stereo->getRLrect().t();
+        Mat Tfake=Mat::zeros(0,3,CV_64F);
+        Mat P(4,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+        P.at<double>(3,0)=1.0;
+
+        Mat Hrect=buildRotTras(RLrect,Tfake);
+        P=HL_root*Hrect*P;
+        point.x=(float)(P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float)(P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float)(P.at<double>(2,0)/P.at<double>(3,0));
+    }
+    else if (drive=="LEFT")
+    {
         Mat P(3,1,CV_64FC1);
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
 
         P=this->stereo->getRLrect().t()*P;
-
-        point.x=(float) P.at<double>(0,0);
-        point.y=(float) P.at<double>(1,0);
-        point.z=(float) P.at<double>(2,0);
+        point.x=(float)P.at<double>(0,0);
+        point.y=(float)P.at<double>(1,0);
+        point.z=(float)P.at<double>(2,0);
     }
-    if(drive=="RIGHT") {
-        Mat Rright = this->stereo->getRotation();
-        Mat Tright = this->stereo->getTranslation();
-        Mat RRright = this->stereo->getRRrect().t();
-        Mat TRright = Mat::zeros(0,3,CV_64F);
+    else if (drive=="RIGHT")
+    {
+        const Mat& Rright=this->stereo->getRotation();
+        const Mat& Tright=this->stereo->getTranslation();
+        const Mat& RRright=this->stereo->getRRrect().t();
+        Mat TRright=Mat::zeros(0,3,CV_64F);
 
         Mat HRL=buildRotTras(Rright,Tright);
         Mat Hrect=buildRotTras(RRright,TRright);
@@ -821,77 +793,36 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
-        P.at<double>(3,0)=1;
+        P.at<double>(3,0)=1.0;
 
         P=Hrect*HRL*P;
-
-        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
-        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
-        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
-
-    }
-    if(drive=="ROOT") {
-        Mat RLrect=this->stereo->getRLrect().t();
-        Mat Tfake = Mat::zeros(0,3,CV_64F);
-        Mat P(4,1,CV_64FC1);
-        P.at<double>(0,0)=point.x;
-        P.at<double>(1,0)=point.y;
-        P.at<double>(2,0)=point.z;
-        P.at<double>(3,0)=1;
-
-        Mat Hrect=buildRotTras(RLrect,Tfake);
-        P=HL_root*Hrect*P;
-        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
-        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
-        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
+        point.x=(float)(P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float)(P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float)(P.at<double>(2,0)/P.at<double>(3,0));
     }
 
-    mutexDisp.unlock();
     return point;
 }
 
 
 /******************************************************************************/
-Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
-        const string &drive)
+Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, 
+                             const string &drive)
 {
-    Point3f point;
-    if(drive!="RIGHT" && drive !="LEFT" && drive!="ROOT") {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
+    Point3f point(0.0f,0.0f,0.0f);
+    if ((drive!="RIGHT") && (drive!="LEFT") && (drive!="ROOT"))
         return point;
-    }
 
-    mutexDisp.lock();
+    LockGuard lg(mutexDisp);
     // Mapping from Rectified Cameras to Original Cameras
-    Mat MapperL=this->stereo->getMapperL();
-    Mat MapperR=this->stereo->getMapperR();
-
-    if(MapperL.empty() || MapperR.empty()) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-
-        mutexDisp.unlock();
+    const Mat& MapperL=this->stereo->getMapperL();
+    const Mat& MapperR=this->stereo->getMapperR();
+    if (MapperL.empty() || MapperR.empty())
         return point;
-    }
 
-    if(cvRound(u1)<0 || cvRound(u1)>=MapperL.cols || cvRound(v1)<0 || cvRound(v1)>=MapperL.rows) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-        mutexDisp.unlock();
+    if ((cvRound(u1)<0) || (cvRound(u1)>=MapperL.cols) || (cvRound(v1)<0) || (cvRound(v1)>=MapperL.rows) ||
+        (cvRound(u2)<0) || (cvRound(u2)>=MapperL.cols) || (cvRound(v2)<0) || (cvRound(v2)>=MapperL.rows))
         return point;
-    }
-
-    if(cvRound(u2)<0 || cvRound(u2)>=MapperL.cols || cvRound(v2)<0 || cvRound(v2)>=MapperL.rows) {
-        point.x=0.0;
-        point.y=0.0;
-        point.z=0.0;
-        mutexDisp.unlock();
-        return point;
-    }
 
     float urect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)];
     float vrect1=MapperL.ptr<float>(cvRound(v1))[2*cvRound(u1)+1];
@@ -899,34 +830,51 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
     float urect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)];
     float vrect2=MapperR.ptr<float>(cvRound(v2))[2*cvRound(u2)+1];
 
-    Mat Q=this->stereo->getQ();
+    const Mat& Q=this->stereo->getQ();
     double disparity=urect1-urect2;
-    float w= (float) ((float) disparity*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
-    point.x= (float)((float) (urect1+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));
-    point.y=(float)((float) (vrect1+1)*Q.at<double>(1,1)) + ((float) Q.at<double>(1,3));
-    point.z=(float) Q.at<double>(2,3);
+    float w=(float)(disparity*Q.at<double>(3,2)+Q.at<double>(3,3));
+    point.x=(float)((urect1+1)*Q.at<double>(0,0)+Q.at<double>(0,3));
+    point.y=(float)((vrect1+1)*Q.at<double>(1,1)+Q.at<double>(1,3));
+    point.z=(float)Q.at<double>(2,3);
 
-    point.x=point.x/w;
-    point.y=point.y/w;
-    point.z=point.z/w;
+    point.x/=w;
+    point.y/=w;
+    point.z/=w;
 
-    if(drive=="LEFT") {
+    if (drive=="ROOT")
+    {
+        const Mat& RLrect=this->stereo->getRLrect().t();
+        Mat Tfake=Mat::zeros(0,3,CV_64F);
+        Mat P(4,1,CV_64FC1);
+        P.at<double>(0,0)=point.x;
+        P.at<double>(1,0)=point.y;
+        P.at<double>(2,0)=point.z;
+        P.at<double>(3,0)=1.0;
+
+        Mat Hrect=buildRotTras(RLrect,Tfake);
+        P=HL_root*Hrect*P;
+        point.x=(float)(P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float)(P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float)(P.at<double>(2,0)/P.at<double>(3,0));
+    }
+    else if (drive=="LEFT")
+    {
         Mat P(3,1,CV_64FC1);
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
 
         P=this->stereo->getRLrect().t()*P;
-
-        point.x=(float) P.at<double>(0,0);
-        point.y=(float) P.at<double>(1,0);
-        point.z=(float) P.at<double>(2,0);
+        point.x=(float)P.at<double>(0,0);
+        point.y=(float)P.at<double>(1,0);
+        point.z=(float)P.at<double>(2,0);
     }
-    if(drive=="RIGHT") {
-        Mat Rright = this->stereo->getRotation();
-        Mat Tright = this->stereo->getTranslation();
-        Mat RRright = this->stereo->getRRrect().t();
-        Mat TRright = Mat::zeros(0,3,CV_64F);
+    else if (drive=="RIGHT")
+    {
+        const Mat& Rright=this->stereo->getRotation();
+        const Mat& Tright=this->stereo->getTranslation();
+        const Mat& RRright=this->stereo->getRRrect().t();
+        Mat TRright=Mat::zeros(0,3,CV_64F);
 
         Mat HRL=buildRotTras(Rright,Tright);
         Mat Hrect=buildRotTras(RRright,TRright);
@@ -935,43 +883,26 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
         P.at<double>(0,0)=point.x;
         P.at<double>(1,0)=point.y;
         P.at<double>(2,0)=point.z;
-        P.at<double>(3,0)=1;
+        P.at<double>(3,0)=1.0;
 
         P=Hrect*HRL*P;
-        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
-        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
-        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
-
+        point.x=(float)(P.at<double>(0,0)/P.at<double>(3,0));
+        point.y=(float)(P.at<double>(1,0)/P.at<double>(3,0));
+        point.z=(float)(P.at<double>(2,0)/P.at<double>(3,0));
     }
 
-    if(drive=="ROOT") {
-        Mat RLrect=this->stereo->getRLrect().t();
-        Mat Tfake = Mat::zeros(0,3,CV_64F);
-        Mat P(4,1,CV_64FC1);
-        P.at<double>(0,0)=point.x;
-        P.at<double>(1,0)=point.y;
-        P.at<double>(2,0)=point.z;
-        P.at<double>(3,0)=1;
-
-        Mat Hrect=buildRotTras(RLrect,Tfake);
-        P=HL_root*Hrect*P;
-        point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
-        point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
-        point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
-    }
-    mutexDisp.unlock();
     return point;
 }
 
 
 /******************************************************************************/
-Mat SFM::buildRotTras(Mat& R, Mat& T)
+Mat SFM::buildRotTras(const Mat& R, const Mat& T)
 {     
     Mat A=Mat::eye(4,4,CV_64F);
     for (int i=0; i<R.rows; i++)
     {
         double* Mi=A.ptr<double>(i);
-        double* MRi=R.ptr<double>(i);
+        const double* MRi=R.ptr<double>(i);
         for (int j=0; j<R.cols; j++)
             Mi[j]=MRi[j];
     }
@@ -979,7 +910,7 @@ Mat SFM::buildRotTras(Mat& R, Mat& T)
     for (int i=0; i<T.rows; i++)
     {
         double* Mi=A.ptr<double>(i);
-        double* MRi=T.ptr<double>(i);
+        const double* MRi=T.ptr<double>(i);
         Mi[3]=MRi[0];
     }
 
@@ -1338,9 +1269,9 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 Point2f SFM::projectPoint(const string &camera, double x, double y, double z)
 {
     Point3f point3D;
-    point3D.x=x;
-    point3D.y=y;
-    point3D.z=z;
+    point3D.x=(float)x;
+    point3D.y=(float)y;
+    point3D.z=(float)z;
 
     vector<Point3f> points3D;
 
@@ -1361,18 +1292,17 @@ Point2f SFM::projectPoint(const string &camera, double x, double y, double z)
 
 
 /******************************************************************************/
-void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width,
-        int height)
+void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
 {
-    IplImage* img=(IplImage*) worldImg.getIplImage();
-    for (int i=v0; i<(v0+height); i++)
+    IplImage* img=(IplImage*)worldImg.getIplImage();
+    for (int i=0; i<worldImg.height(); i++)
     {
-        for (int j=u0; j<(u0+width); j++)
+        for (int j=0; j<worldImg.width(); j++)
         {
             Point3f point=get3DPoints(j,i,"ROOT");
-            ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 0]=point.x;
-            ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 1]=point.y;
-            ((float *)(img->imageData + (i-v0)*img->widthStep))[(j-u0)*img->nChannels + 2]=point.z;
+            ((float*)(img->imageData+i*img->widthStep))[j*img->nChannels+0]=point.x;
+            ((float*)(img->imageData+i*img->widthStep))[j*img->nChannels+1]=point.y;
+            ((float*)(img->imageData+i*img->widthStep))[j*img->nChannels+2]=point.z;
         }
     }
 }

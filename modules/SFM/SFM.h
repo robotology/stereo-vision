@@ -304,11 +304,11 @@ class SFM: public yarp::os::RFModule
     Mat R0,T0;
 
     bool loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR);
-    Mat buildRotTras(Mat& R, Mat& T);
+    Mat buildRotTras(const Mat& R, const Mat& T);
     Matrix getCameraHGazeCtrl(int camera);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);    
-    void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg, int u0, int v0, int width, int height);
+    void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg);
     void floodFill(const Point &seed,const Point3f &p0, const double dist, set<int> &visited, Bottle &res);
     bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
     bool updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
