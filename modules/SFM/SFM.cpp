@@ -1325,14 +1325,11 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
             float usign=Mapper.ptr<float>(v)[2*u];
             float vsign=Mapper.ptr<float>(v)[2*u+1];
 
-            u=cvRound(usign);
-            v=cvRound(vsign);
-
             x=(usign+1)*Q.at<double>(0,0)+Q.at<double>(0,3);
             y=(vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3);
             z=Q.at<double>(2,3);
 
-            CvScalar scal=cvGet2D(&disp16,v,u);
+            CvScalar scal=cvGet2D(&disp16,cvRound(vsign),cvRound(usign));
             double disparity=scal.val[0]/16.0;            
             double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
             x/=w; y/=w; z/=w;
