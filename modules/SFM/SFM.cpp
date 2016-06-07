@@ -1332,7 +1332,7 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
             z=Q.at<double>(2,3);
 
             CvScalar scal=cvGet2D(&disp16,v_,u_);
-            double disparity=scal.val[0]/16.0;            
+            double disparity=scal.val[0]/16.0;
             double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
             x/=w; y/=w; z/=w;
 
