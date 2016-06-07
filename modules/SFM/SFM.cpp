@@ -1335,7 +1335,7 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
             double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
             x/=w; y/=w; z/=w;
 
-            if (z<0.0)
+            if ((z>10.0) || (z<0.0))
                 continue;
             
             P=Hrect*P;
