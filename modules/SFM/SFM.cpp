@@ -446,7 +446,7 @@ bool SFM::updateModule()
     if (worldPort.getOutputCount()>0)
     {
         ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
-        outim.resize(left->width,left->height);
+        outim.resize(left->width,left->height); outim.zero();
         fillWorld3D(outim);
         worldPort.write();
     }
@@ -653,7 +653,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
     point.z/=w;
 
     // discard points far more than 10 meters or with not valid disparity (<0)
-    if ((point.z>10) || (point.z<0))
+    if ((point.z>10.0f) || (point.z<0.0f))
         return point;
 
     if (drive=="ROOT")
@@ -748,7 +748,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
     point.z/=w;
 
     // discard points far more than 10 meters or with not valid disparity (<0)
-    if ((point.z>10) || (point.z<0))
+    if ((point.z>10.0f) || (point.z<0.0f))
         return point;
 
     if (drive=="ROOT")
@@ -1294,17 +1294,67 @@ Point2f SFM::projectPoint(const string &camera, double x, double y, double z)
 /******************************************************************************/
 void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
 {
+    double t0=Time::now();
+    bool flag=false;
+
+    mutexDisp.lock();
+    const Mat& Mapper=this->stereo->getMapperL();
+    const Mat& disp16m=this->stereo->getDisparity16();
+    IplImage disp16=disp16m;
+    const Mat& Q=this->stereo->getQ();
+    const Mat& RLrect=this->stereo->getRLrect().t();
+    mutexDisp.unlock();
+
+    if (Mapper.empty() || disp16m.empty())
+        return;
+
+    Mat Tfake=Mat::zeros(0,3,CV_64F);
+    Mat Hrect=buildRotTras(RLrect,Tfake);
+    Hrect=HL_root*Hrect;
+    Mat P(4,1,CV_64FC1);
+    P.at<double>(3,0)=1.0;
+
     IplImage* img=(IplImage*)worldImg.getIplImage();
-    for (int i=0; i<worldImg.height(); i++)
+    for (int v=0; v<worldImg.height(); v++)
     {
-        for (int j=0; j<worldImg.width(); j++)
+        for (int u=0; u<worldImg.width(); u++)
         {
-            Point3f point=get3DPoints(j,i,"ROOT");
-            ((float*)(img->imageData+i*img->widthStep))[j*img->nChannels+0]=point.x;
-            ((float*)(img->imageData+i*img->widthStep))[j*img->nChannels+1]=point.y;
-            ((float*)(img->imageData+i*img->widthStep))[j*img->nChannels+2]=point.z;
+            float usign=Mapper.ptr<float>(v)[2*u];
+            float vsign=Mapper.ptr<float>(v)[2*u+1];
+
+            u=cvRound(usign);
+            v=cvRound(vsign);
+
+            P.at<double>(0,0)=(usign+1)*Q.at<double>(0,0)+Q.at<double>(0,3);
+            P.at<double>(1,0)=(vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3);
+            P.at<double>(2,0)=Q.at<double>(2,3);
+
+            CvScalar scal=cvGet2D(&disp16,v,u);
+            double disparity=scal.val[0]/16.0;            
+            double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
+            P.at<double>(0,0)/=w;
+            P.at<double>(1,0)/=w;
+            P.at<double>(2,0)/=w;
+
+            if ((P.at<double>(2,0)>10.0) || (P.at<double>(2,0)<0.0))
+                continue;
+            
+            P=Hrect*P;
+            P.at<double>(0,0)/=P.at<double>(3,0);
+            P.at<double>(1,0)/=P.at<double>(3,0);
+            P.at<double>(2,0)/=P.at<double>(3,0);
+
+            flag|=(fabs(P.at<double>(3,0)-1.0)>1.001);
+
+            ((float*)(img->imageData+v*img->widthStep))[u*img->nChannels+0]=(float)P.at<double>(0,0);
+            ((float*)(img->imageData+v*img->widthStep))[u*img->nChannels+1]=(float)P.at<double>(1,0);
+            ((float*)(img->imageData+v*img->widthStep))[u*img->nChannels+2]=(float)P.at<double>(2,0);
         }
     }
+
+    double t1=Time::now();
+    yDebug()<<"fillWorld3D: elapsed time [s]="<<t1-t0;
+    yDebug()<<"flag="<<(flag?"true":"false");
 }
 
 
