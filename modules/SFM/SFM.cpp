@@ -1294,9 +1294,6 @@ Point2f SFM::projectPoint(const string &camera, double x, double y, double z)
 /******************************************************************************/
 void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
 {
-    double t0=Time::now();
-    bool flag=false;
-
     mutexDisp.lock();
     const Mat& Mapper=this->stereo->getMapperL();
     const Mat& disp16m=this->stereo->getDisparity16();
@@ -1325,33 +1322,27 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
             float usign=Mapper.ptr<float>(v)[2*u];
             float vsign=Mapper.ptr<float>(v)[2*u+1];
 
+            int u_=cvRound(usign); int v_=cvRound(vsign);
+            if ((u_<0) || (u_>=disp16m.cols) || (v_<0) || (v_>=disp16m.rows))
+                continue;
+
             x=(usign+1)*Q.at<double>(0,0)+Q.at<double>(0,3);
             y=(vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3);
             z=Q.at<double>(2,3);
 
-            CvScalar scal=cvGet2D(&disp16,cvRound(vsign),cvRound(usign));
+            CvScalar scal=cvGet2D(&disp16,v_,u_);
             double disparity=scal.val[0]/16.0;            
             double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
             x/=w; y/=w; z/=w;
 
-            if ((z>10.0) || (z<0.0))
+            if (z<0.0)
                 continue;
             
             P=Hrect*P;
-            x/=P.at<double>(3,0);
-            y/=P.at<double>(3,0);
-            z/=P.at<double>(3,0);
-
-            flag|=(fabs(P.at<double>(3,0)-1.0)>1.001);
-
             PixelRgbFloat &px=worldImg.pixel(u,v);
             px.r=(float)x; px.g=(float)y; px.b=(float)z;
         }
     }
-
-    double t1=Time::now();
-    yDebug()<<"fillWorld3D: elapsed time [s]="<<t1-t0;
-    yDebug()<<"flag="<<(flag?"true":"false");
 }
 
 
