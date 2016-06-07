@@ -446,7 +446,7 @@ bool SFM::updateModule()
     if (worldPort.getOutputCount()>0)
     {
         ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
-        outim.resize(left->width,left->height); outim.zero();
+        outim.resize(left->width,left->height);
         fillWorld3D(outim);
         worldPort.write();
     }
@@ -1301,7 +1301,8 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
     const Mat& Q=this->stereo->getQ();
     const Mat& RLrect=this->stereo->getRLrect().t();
     mutexDisp.unlock();
-
+    
+    worldImg.zero();
     if (Mapper.empty() || disp16m.empty())
         return;
 
