@@ -1314,7 +1314,6 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
     Mat P(4,1,CV_64FC1);
     P.at<double>(3,0)=1.0;
 
-    IplImage* img=(IplImage*)worldImg.getIplImage();
     for (int v=0; v<worldImg.height(); v++)
     {
         for (int u=0; u<worldImg.width(); u++)
@@ -1346,9 +1345,10 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
 
             flag|=(fabs(P.at<double>(3,0)-1.0)>1.001);
 
-            ((float*)(img->imageData+v*img->widthStep))[u*img->nChannels+0]=(float)P.at<double>(0,0);
-            ((float*)(img->imageData+v*img->widthStep))[u*img->nChannels+1]=(float)P.at<double>(1,0);
-            ((float*)(img->imageData+v*img->widthStep))[u*img->nChannels+2]=(float)P.at<double>(2,0);
+            PixelRgbFloat &px=worldImg.pixel(u,v);
+            px.r=(float)P.at<double>(0,0);
+            px.g=(float)P.at<double>(1,0);
+            px.b=(float)P.at<double>(2,0);
         }
     }
 
