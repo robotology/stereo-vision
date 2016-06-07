@@ -1314,6 +1314,10 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
     Mat P(4,1,CV_64FC1);
     P.at<double>(3,0)=1.0;
 
+    double &x=P.at<double>(0,0);
+    double &y=P.at<double>(1,0);
+    double &z=P.at<double>(2,0);
+
     for (int v=0; v<worldImg.height(); v++)
     {
         for (int u=0; u<worldImg.width(); u++)
@@ -1324,31 +1328,27 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
             u=cvRound(usign);
             v=cvRound(vsign);
 
-            P.at<double>(0,0)=(usign+1)*Q.at<double>(0,0)+Q.at<double>(0,3);
-            P.at<double>(1,0)=(vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3);
-            P.at<double>(2,0)=Q.at<double>(2,3);
+            x=(usign+1)*Q.at<double>(0,0)+Q.at<double>(0,3);
+            y=(vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3);
+            z=Q.at<double>(2,3);
 
             CvScalar scal=cvGet2D(&disp16,v,u);
             double disparity=scal.val[0]/16.0;            
             double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
-            P.at<double>(0,0)/=w;
-            P.at<double>(1,0)/=w;
-            P.at<double>(2,0)/=w;
+            x/=w; y/=w; z/=w;
 
-            if ((P.at<double>(2,0)>10.0) || (P.at<double>(2,0)<0.0))
+            if ((z>10.0) || (z<0.0))
                 continue;
             
             P=Hrect*P;
-            P.at<double>(0,0)/=P.at<double>(3,0);
-            P.at<double>(1,0)/=P.at<double>(3,0);
-            P.at<double>(2,0)/=P.at<double>(3,0);
+            x/=P.at<double>(3,0);
+            y/=P.at<double>(3,0);
+            z/=P.at<double>(3,0);
 
             flag|=(fabs(P.at<double>(3,0)-1.0)>1.001);
 
             PixelRgbFloat &px=worldImg.pixel(u,v);
-            px.r=(float)P.at<double>(0,0);
-            px.g=(float)P.at<double>(1,0);
-            px.b=(float)P.at<double>(2,0);
+            px.r=(float)x; px.g=(float)y; px.b=(float)z;
         }
     }
 
