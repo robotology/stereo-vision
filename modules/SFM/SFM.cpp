@@ -1311,9 +1311,9 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
     Mat Tfake=Mat::zeros(0,3,CV_64F);
     Mat Hrect=buildRotTras(RLrect,Tfake);
     Hrect=HL_root*Hrect;
+
     Mat P(4,1,CV_64FC1);
     P.at<double>(3,0)=1.0;
-
     double &x=P.at<double>(0,0);
     double &y=P.at<double>(1,0);
     double &z=P.at<double>(2,0);
