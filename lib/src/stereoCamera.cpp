@@ -44,19 +44,19 @@ Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
     return A;
 }
 
-Mat StereoCamera::getKleft() const {
+const Mat& StereoCamera::getKleft() const {
     return this->Kleft;
 }
 
-Mat StereoCamera::getKright() const {
+const Mat& StereoCamera::getKright() const {
     return this->Kright;
 }
 
-vector<Point2f> StereoCamera::getMatchLeft() const {
+const vector<Point2f>& StereoCamera::getMatchLeft() const {
     return this->InliersL;
 }
 
-vector<Point2f> StereoCamera::getMatchRight() const {
+const vector<Point2f>& StereoCamera::getMatchRight() const {
     return this->InliersR;
 }
 
@@ -463,23 +463,23 @@ void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
     fout.close();
 }
 
-Mat StereoCamera::getImLeft() const {
+const Mat& StereoCamera::getImLeft() const {
     return this->imleft;
 }
 
-Mat StereoCamera::getImRight() const {
+const Mat& StereoCamera::getImRight() const {
     return this->imright;
 }
 
-Mat StereoCamera::getDisparity() const {
+const Mat& StereoCamera::getDisparity() const {
     return this->Disparity;
 }
 
-Mat StereoCamera::getDisparity16() const {
+const Mat& StereoCamera::getDisparity16() const {
     return this->Disparity16;
 }
 
-Mat StereoCamera::getQ() const {
+const Mat& StereoCamera::getQ() const {
     return this->Q;
 }
 
@@ -1467,15 +1467,15 @@ void StereoCamera::undistortImages() {
 }
 
 
-Mat StereoCamera::getImLeftUnd() const {
+const Mat& StereoCamera::getImLeftUnd() const {
     return this->imleftund;
 }
 
-Mat StereoCamera::getFundamental() const {
+const Mat& StereoCamera::getFundamental() const {
     return this->F;
 }
 
-Mat StereoCamera::getImRightUnd() const {
+const Mat& StereoCamera::getImRightUnd() const {
     return this->imrightund;
 }
 
@@ -1563,11 +1563,11 @@ void StereoCamera::updatePMatrix()
 
 }
 
-Mat StereoCamera::getTranslation() const {
+const Mat& StereoCamera::getTranslation() const {
     return this->T;
 }
 
-Mat StereoCamera::getRotation() const {
+const Mat& StereoCamera::getRotation() const {
     return this->R;
 }
 
@@ -1872,19 +1872,19 @@ void StereoCamera::savePoints(string pointsLPath,string pointsRPath, vector<Poin
 }
 
 
-Mat StereoCamera::getRLrect() const {
+const Mat& StereoCamera::getRLrect() const {
     return this->RLrect;
 }
 
-Mat StereoCamera::getRRrect() const {
+const Mat& StereoCamera::getRRrect() const {
     return this->RRrect;
 }
 
-Mat StereoCamera::getMapperL() const {
+const Mat& StereoCamera::getMapperL() const {
     return this->MapperL;
 }
 
-Mat StereoCamera::getMapperR() const {
+const Mat& StereoCamera::getMapperR() const {
     return this->MapperR;
 }
 
@@ -2146,12 +2146,12 @@ Point3f StereoCamera::triangulateKnownDisparity(float u, float v, float d, Mat &
     return point;
 }
 
-Mat StereoCamera::getLRectified()
+const Mat& StereoCamera::getLRectified() const
 {
     return this->imgLeftRect;
 }
 
-Mat StereoCamera::getRRectified()
+const Mat& StereoCamera::getRRectified() const
 {
     return this->imgRightRect;
 }
@@ -2268,12 +2268,13 @@ Mat StereoCamera::computeWorldImage(Mat &H)
 
     return worldImg;
 }
-Mat StereoCamera::getDistCoeffLeft()
+
+const Mat& StereoCamera::getDistCoeffLeft() const
 {
     return this->DistL;
 }
 
-Mat StereoCamera::getDistCoeffRight()
+const Mat& StereoCamera::getDistCoeffRight() const
 {
     return this->DistR;
 }

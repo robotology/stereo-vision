@@ -268,7 +268,7 @@ public:
     */
     Point3f triangulation(Point2f& point1, Point2f& point2);
 
-   /**
+    /**
     * It performs the triangulation (HZ Chap 12.2 homogenous solution). The triangulation obtained is not metric! Use the method metricTriangulation if you want a metric triangulation.
     * @param point1 the 2D point coordinates in the first image.
     * @param point2 the 2D point coordinates in the second image.
@@ -277,8 +277,7 @@ public:
     * @return a 3D point wrt the first camera reference system.
     *
     */
-    Point3f triangulation(Point2f& point1, Point2f& point2, Mat Camera1, Mat Camera2); 
-    
+    Point3f triangulation(Point2f& point1, Point2f& point2, Mat Camera1, Mat Camera2);     
     
     /**
     * It performs the least square triangulation (HZ Chap 12.2 Inhomogenous solution). The triangulation obtained is not metric! Use the method metricTriangulation if you want a metric triangulation.
@@ -291,14 +290,15 @@ public:
     */
     Point3f triangulationLS(Point2f& point1, Point2f& point2, Mat Camera1, Mat Camera2); 
 
-  /**
+    /**
     * It performs the metric triangulation given the pixel coordinates on the first image. Run compute disparity before using this method.
     * @param point1 the pixel coordinates in the first image.
     * @return a metric 3D point w.r.t. the first camera reference system.
     *
     */
     Point3f metricTriangulation(Point2f &point1,double thMeters=10);
-  /**
+
+    /**
     * It performs the metric triangulation given the pixel coordinates on the first image. The 3D Point is w.r.t the system defined by the parameter H. Run compute disparity before using this method.
     * @param point1 the pixel coordinates in the first image.
     * @param H the 4x4 rototranslation matrix of the system.
@@ -307,7 +307,7 @@ public:
     */
     Point3f metricTriangulation(Point2f &point1, Mat &H, double thMeters=10);
 
-      /**
+    /**
     * It performs the metric triangulation given the pixel coordinates on the first image and the disparity between the two RECTIFIED images. The 3D Point is w.r.t the system defined by the parameter H.
     * @param u the pixel x coordinate in the first image.
     * @param v the pixel y coordinate in the first image.
@@ -344,114 +344,113 @@ public:
     */
     void chierality( Mat& R1,  Mat& R2,  Mat& t1,  Mat& t2, Mat& R, Mat& t, vector<Point2f> points1, vector<Point2f> points2);
 
-
     /**
     * It returns the left (first) image.
     * @return the left (first) image.
     */
-    Mat getImLeft() const;
+    const Mat& getImLeft() const;
 
     /**
     * It returns the right (second) image.
     * @return the right (second) image.
     */
-    Mat getImRight() const;
+    const Mat& getImRight() const;
 
     /**
     * It returns the left undistorted image.
     * @return the left undistorted image.
     */
-    Mat getImLeftUnd() const;
+    const Mat& getImLeftUnd() const;
 
     /**
     * It returns the right undistorted image.
     * @return the right undistorted image.
     */
-    Mat getImRightUnd() const;
+    const Mat& getImRightUnd() const;
 
     /**
     * It returns the disparity image.
     * @return the disparity image computed via computeDisparity(). The image is 8 bit unsigned.
     */
-    Mat getDisparity() const;
+    const Mat& getDisparity() const;
 
     /**
     * It returns the disparity image.
     * @return the disparity image computed via computeDisparity(). The image is 16 bit signed.
     */
-    Mat getDisparity16() const;
+    const Mat& getDisparity16() const;
 
     /**
     * It returns the 4x4 disparity-to-depth mapping matrix.
     * @return 4x4 disparity-to-depth mapping matrix.
     */
-    Mat getQ() const;
+    const Mat& getQ() const;
 
     /**
     * It returns the 3x3 left camera matrix.
     * @return 3x3 left camera matrix.
     */
-    Mat getKleft() const;
+    const Mat& getKleft() const;
 
     /**
     * It returns the 3x3 right camera matrix.
     * @return 3x3 right camera matrix.
     */
-    Mat getKright() const;
+    const Mat& getKright() const;
 
     /**
     * It returns the 3x3 fundamental matrix.
     * @return 3x3 fundamental matrix.
     */
-    Mat getFundamental() const;
+    const Mat& getFundamental() const;
 
     /**
     * It returns the pixel coordinates of the matches in the left image.
     * @return pixel coordinates of the matches in the left image.
     */
-    vector<Point2f> getMatchLeft() const;
+    const vector<Point2f>& getMatchLeft() const;
 
     /**
     * It returns the pixel coordinates of the matches in the right image.
     * @return pixel coordinates of the matches in the right image.
     */
-    vector<Point2f> getMatchRight() const;
+    const vector<Point2f>& getMatchRight() const;
 
     /**
     * It returns the translation vector between the two cameras.
     * @return 3x1 translation matrix between the first and the second camera.
     */
-    Mat getTranslation() const;
+    const Mat& getTranslation() const;
 
     /**
     * It returns the rotation matrix between the two cameras.
     * @return 3x3 rotation matrix between the first and the second camera.
     */
-    Mat getRotation() const;
+    const Mat& getRotation() const;
 
     /**
     * It returns the mapping between the original left camera and the rectified left camera.
     * @return a 16 bit signed 2 channel image containing the mapping from the original left camera to the rectified left camera.
     */
-    Mat getMapperL() const;
+    const Mat& getMapperL() const;
 
     /**
     * It returns the mapping between the original right camera and the rectified right camera.
     * @return a 16 bit signed 2 channel image containing the mapping from the original right camera to the rectified right camera.
     */
-    Mat getMapperR() const;
+    const Mat& getMapperR() const;
 
     /**
     * It returns the rotation matrix between the original left camera and the rectified left camera.
     * @return 3x3 rotation matrix between the original left camera and the rectified left camera.
     */
-    Mat getRLrect() const;
+    const Mat& getRLrect() const;
 
-   /**
+    /**
     * It returns the rotation matrix between the original right camera and the rectified right camera.
     * @return 3x3 rotation matrix between the original right camera and the rectified right camera.
     */
-    Mat getRRrect() const;
+    const Mat& getRRrect() const;
 
     /**
     * It sets the rotation matrix (if known) between the first and the second camera.
@@ -492,13 +491,13 @@ public:
     * The method returns the first rectified image.
     * @return The first rectified image.
     */
-    Mat getLRectified();
+    const Mat& getLRectified() const;
 
     /**
     * The method returns the second rectified image.
     * @return The second rectified image.
     */
-    Mat getRRectified();
+    const Mat& getRRectified() const;
 
     /**
     * The method returns the 2D projection of a set of 3D points in the cartesian space to the specified camera.
@@ -520,13 +519,13 @@ public:
     * It returns the 5x1 right distortion coefficients.
     * @return 5x1 right distortion coefficients.
     */
-    Mat getDistCoeffRight();
+    const Mat& getDistCoeffRight() const;
 
     /**
     * It returns the 5x1 left distortion coefficients.
     * @return 5x1 left distortion coefficients.
     */
-    Mat getDistCoeffLeft();
+    const Mat& getDistCoeffLeft() const;
 
     /**
     * Given the u,v pixel coordinates in the undistorted image the method returns the original position of the pixel in the distorted frame.
@@ -573,5 +572,4 @@ public:
     * @return the pixel position in the non-rectified image.
     */
     Point2f fromRectifiedToOriginal(int u, int v, int camera);
-
 };
