@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 RobotCub Consortium
  * Author: Sean Ryan Fanello, Giulia Pasquale
  * email:   sean.fanello@iit.it giulia.pasquale@iit.it
@@ -20,52 +20,52 @@
 \defgroup SFM SFM
 
 Structure From Motion (SFM) module for estimation of estrinsics
-parameter and computation of depth map. 
+parameter and computation of depth map.
 
 Copyright (C) 2015 RobotCub Consortium
- 
+
 Author: Sean Ryan Fanello, Giulia Pasquale
- 
+
 Date: first release around 24/07/2013
 
 CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 \section intro_sec Description
-The module uses a complete Structure From Motion (SFM) pipeline 
-for the computation of the extrinsics parameters between two 
-different views. These parameters are then used to rectify the 
-images and to compute a depth map using either the H. Hirschmuller 
+The module uses a complete Structure From Motion (SFM) pipeline
+for the computation of the extrinsics parameters between two
+different views. These parameters are then used to rectify the
+images and to compute a depth map using either the H. Hirschmuller
 Algorithm (CVPR 2006), implemented since Opencv 2.2, or
 <a href="http://www.cvlibs.net/software/libelas/">LIBELAS
 (Library for Efficient Large-scale Stereo Matching)</a>.
-The Kinematics of the iCub is used to guess the current camera positions, 
+The Kinematics of the iCub is used to guess the current camera positions,
 then visual features are used to refine this model.
-Before starting, make sure you have calibrated the intrinsics 
-parameters. For the stereo calibration see the module <a 
-href="http://wiki.icub.org/iCub/main/dox/html/group__icub__stereoCalib.html">stereoCalib</a>. 
-This module provides five output ports: the first one is the
-disparity map in grayscale values, the second port is the 
-WorldImage, that is a 3-channels float image, where in each 
-pixel are stored the three X Y Z coordinates with respect to 
-robot root reference frame. The third port outputs the current 
-keypoints match. Non valid points are handled with the special 
+Before starting, make sure you have calibrated the intrinsics
+parameters. For the stereo calibration see the module <a
+href="http://wiki.icub.org/iCub/main/dox/html/group__icub__stereoCalib.html">stereoCalib</a>.
+This module provides six output ports: the first one is the
+disparity map in grayscale values, the second and the third port
+are the WorldImage, which are a 3-channels float images, where in each
+pixel are stored the three Cartesian and the Cylindrical coordinates
+with respect to robot root reference frame. The fourth port outputs the current
+keypoints match. Non valid points are handled with the special
 value (0,0,0). The last two ports output the rectified images used to compute
 the horizontal disparity map. In addition, a rpc port supports requests for
-3D/2D points computation (see below). 
+3D/2D points computation (see below).
 
-\section lib_sec Libraries 
+\section lib_sec Libraries
 YARP libraries and OpenCV 2.4 (at least). \n
-For better performance, we suggest you to run the module on a 
-machine equipped with GPU functionality along with the 
-<a href="http://cs.unc.edu/~ccwu/siftgpu">SiftGPU</a> library 
+For better performance, we suggest you to run the module on a
+machine equipped with GPU functionality along with the
+<a href="http://cs.unc.edu/~ccwu/siftgpu">SiftGPU</a> library
 installed. This module now uses <a href="http://www.cvlibs.net/software/libelas/">LIBELAS </a>
 by default to compute the horizontal disparity map from the rectified left and right images.
 The source code of LIBELAS is compiled with the stereoVisionLib (with no particular dependences).
 The OpenMP accelerated version of the LIBELAS is used under UNIX systems, if OpenMP is available.
 
 \section parameters_sec Parameters
---name \e SFM 
-- The parameter \e stemName specifies the stem name of ports 
+--name \e SFM
+- The parameter \e stemName specifies the stem name of ports
   created by the module.
 
 --robot \e robotName
@@ -76,24 +76,25 @@ The OpenMP accelerated version of the LIBELAS is used under UNIX systems, if Ope
 
 --rightPort \e /right:i
 - The parameter \e inputRight specifies the right image input port.
- 
+
 --outLeftRectImgPort \e /rect_left:o
 - Specifies the left rectified image output port.
 
 --outRightRectImgPort \e /rect_right:o
 - Specifies the right rectified image output port.
 
---outDispPort \e /disp:o 
+--outDispPort \e /disp:o
 - The parameter \e /disparity:o specifies the output port for the disparity image.
 
---outMatchPort \e /match:o 
+--outMatchPort \e /match:o
 - The parameter \e /match:o specifies the output port for the match image.
 
---outWorldPort \e /world:o 
-- The parameter \e /world:o  specifies the output port for the world image.
+--outWorldPort \e /world
+- The parameter \e /world specifies the output suffix for the world images. The final
+tags \e /cartesian:o and \e /cylindrical:o are appended.
 
---CommandPort \e comm 
-- The parameter \e comm specifies the command port for rpc protocol. 
+--CommandPort \e comm
+- The parameter \e comm specifies the command port for rpc protocol.
 
 --skipBLF
 - Disable Bilateral filter.
@@ -168,14 +169,15 @@ set to \e true in \e MIDDLEBURY and \e false in \e ROBOTICS.
 
 --elas_filter_adaptive_mean \e true
 - This is the \e filter_adaptive_mean parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
-set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS. 
- 
+set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
+
 \section portsc_sec Ports Created
 - <i> /SFM/left:i </i> accepts the incoming images from the left eye.
 - <i> /SFM/right:i </i> accepts the incoming images from the right eye.
 
 - <i> /SFM/disp:o </i> outputs the disparity map in grayscale values.
-- <i> /SFM/world:o</i> outputs the world image (3-channel float with X Y Z values).
+- <i> /SFM/world/cartesian:o</i> outputs the world image (3-channel float with X Y Z values).
+- <i> /SFM/world/cylindrical:o</i> outputs the world image (3-channel float with R Theta Z values).
 - <i> /SFM/match:o</i> outputs the match image.
 
 - <i> /SFM/rect_left:o</i> outputs the rectified left image.
@@ -213,8 +215,8 @@ against OpenCV versions: 2.4.
 \author Sean Ryan Fanello, Giulia Pasquale
 */
 
-#include <string>
 #include <cstdio>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <set>
@@ -240,9 +242,9 @@ against OpenCV versions: 2.4.
 
 using namespace std;
 using namespace yarp::os;
+using namespace yarp::dev;
 using namespace yarp::sig;
 using namespace yarp::math;
-using namespace yarp::dev;
 using namespace iCub::ctrl;
 using namespace iCub::iKin;
 
@@ -251,7 +253,7 @@ class SFM: public yarp::os::RFModule
 {
     IplImage*     left;
     IplImage*     right;
-    StereoCamera* stereo;    
+    StereoCamera* stereo;
     IplImage*     output_match;
     Mat           outputDm;
 
@@ -265,7 +267,8 @@ class SFM: public yarp::os::RFModule
     yarp::os::Port rpc;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > leftImgPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > rightImgPort;
-    BufferedPort<ImageOf<PixelRgbFloat> > worldPort;
+    BufferedPort<ImageOf<PixelRgbFloat> > worldCartPort;
+    BufferedPort<ImageOf<PixelRgbFloat> > worldCylPort;
     Port handlerPort;
 
     BufferedPort<ImageOf<PixelMono> > outDisp;
@@ -273,11 +276,11 @@ class SFM: public yarp::os::RFModule
 
     BufferedPort<ImageOf<PixelRgb> >  outLeftRectImgPort;
     BufferedPort<ImageOf<PixelRgb> >  outRightRectImgPort;
-    
+
     int numberOfTrials;
     string camCalibFile;
     bool useBestDisp;
-    int uniquenessRatio; 
+    int uniquenessRatio;
     int speckleWindowSize;
     int speckleRange;
     int numberOfDisparities;
@@ -293,7 +296,7 @@ class SFM: public yarp::os::RFModule
     yarp::os::Mutex mutexRecalibration;
     Event calibEndEvent;
     yarp::os::Mutex mutexDisp;
-    
+
     PolyDriver headCtrl,gazeCtrl;
     IEncoders* iencs;
     IGazeControl* igaze;
@@ -307,15 +310,15 @@ class SFM: public yarp::os::RFModule
     Mat buildRotTras(const Mat& R, const Mat& T);
     Matrix getCameraHGazeCtrl(int camera);
     void convert(Matrix& matrix, Mat& mat);
-    void convert(Mat& mat, Matrix& matrix);    
-    void fillWorld3D(ImageOf<PixelRgbFloat> &worldImg);
+    void convert(Mat& mat, Matrix& matrix);
+    void fillWorld3D(ImageOf<PixelRgbFloat> &worldCartImg, ImageOf<PixelRgbFloat> &worldCylImg);
     void floodFill(const Point &seed,const Point3f &p0, const double dist, set<int> &visited, Bottle &res);
     bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
     bool updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
     void updateViaGazeCtrl(const bool update);
     void updateViaKinematics(const yarp::sig::Vector& deyes);
     bool init;
-    
+
 public:
 
     bool configure(ResourceFinder &rf);
@@ -330,9 +333,7 @@ public:
                            int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
     Point3f get3DPoints(int u, int v, const string &drive="LEFT");
     Point3f get3DPointsAndDisp(int u, int v, int &uR, int &vR, const string &drive);
-  
+
     Point3f get3DPointMatch(double u1, double v1, double u2, double v2, const string &drive="LEFT");
-    Point2f projectPoint(const string &camera, double x, double y, double z);    
+    Point2f projectPoint(const string &camera, double x, double y, double z);
 };
-
-

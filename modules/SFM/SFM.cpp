@@ -16,6 +16,7 @@
  * Public License for more details
  */
 
+#include <cmath>
 #include <algorithm>
 #include "SFM.h"
 
@@ -55,7 +56,7 @@ bool SFM::configure(ResourceFinder &rf)
     outRightRectImgPortName=sname+outRightRectImgPortName;
 
     string rpc_name=sname+"/rpc";
-    string world_name=sname+rf.check("outWorldPort",Value("/world:o")).asString().c_str();
+    string world_name=sname+rf.check("outWorldPort",Value("/world")).asString().c_str();
 
     int calib=rf.check("useCalibrated",Value(1)).asInt();
     bool useCalibrated=(calib!=0);
@@ -65,7 +66,8 @@ bool SFM::configure(ResourceFinder &rf)
     outMatch.open(outMatchName.c_str());
     outDisp.open(outDispName.c_str());
     handlerPort.open(rpc_name.c_str());
-    worldPort.open(world_name.c_str());
+    worldCartPort.open((world_name+"/cartesian:o").c_str());
+    worldCylPort.open((world_name+"/cylindrical:o").c_str());
     attach(handlerPort);
 
     outLeftRectImgPort.open(outLeftRectImgPortName.c_str());
@@ -244,7 +246,8 @@ bool SFM::interruptModule()
     outDisp.interrupt();
     handlerPort.interrupt();
     outMatch.interrupt();
-    worldPort.interrupt();
+    worldCartPort.interrupt();
+    worldCylPort.interrupt();
 
     outLeftRectImgPort.interrupt();
     outRightRectImgPort.interrupt();
@@ -261,7 +264,8 @@ bool SFM::close()
     outDisp.close();
     outMatch.close();
     handlerPort.close();
-    worldPort.close();
+    worldCartPort.close();
+    worldCylPort.close();
 
     if (output_match!=NULL)
         cvReleaseImage(&output_match);
@@ -443,13 +447,16 @@ bool SFM::updateModule()
         }
     }
 
-    if (worldPort.getOutputCount()>0)
-    {
-        ImageOf<PixelRgbFloat>& outim=worldPort.prepare();
-        outim.resize(left->width,left->height);
-        fillWorld3D(outim);
-        worldPort.write();
-    }
+    ImageOf<PixelRgbFloat>& outcart=worldCartPort.prepare();
+    ImageOf<PixelRgbFloat>& outcyl=worldCylPort.prepare();
+    
+    outcart.resize(left->width,left->height);
+    outcyl.resize(left->width,left->height);
+
+    fillWorld3D(outcart,outcyl);
+
+    worldCartPort.write();
+    worldCylPort.write();
 
     return true;
 }
@@ -1292,7 +1299,8 @@ Point2f SFM::projectPoint(const string &camera, double x, double y, double z)
 
 
 /******************************************************************************/
-void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
+void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldCartImg,
+                      ImageOf<PixelRgbFloat> &worldCylImg)
 {
     mutexDisp.lock();
     const Mat& Mapper=this->stereo->getMapperL();
@@ -1302,8 +1310,10 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
     const Mat& RLrect=this->stereo->getRLrect().t();
     mutexDisp.unlock();
     
-    worldImg.zero();
-    if (Mapper.empty() || disp16m.empty())
+    worldCartImg.zero(); worldCylImg.zero();
+    if (Mapper.empty() || disp16m.empty() ||
+        (worldCartImg.width()!=worldCylImg.width()) ||
+        (worldCartImg.height()!=worldCylImg.height()))
         return;
 
     Mat Tfake=Mat::zeros(0,3,CV_64F);
@@ -1316,9 +1326,9 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
     double &y=P.at<double>(1,0);
     double &z=P.at<double>(2,0);
 
-    for (int v=0; v<worldImg.height(); v++)
+    for (int v=0; v<worldCartImg.height(); v++)
     {
-        for (int u=0; u<worldImg.width(); u++)
+        for (int u=0; u<worldCartImg.width(); u++)
         {
             float usign=Mapper.ptr<float>(v)[2*u];
             float vsign=Mapper.ptr<float>(v)[2*u+1];
@@ -1340,8 +1350,16 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldImg)
                 continue;
             
             P=Hrect*P;
-            PixelRgbFloat &px=worldImg.pixel(u,v);
-            px.r=(float)x; px.g=(float)y; px.b=(float)z;
+
+            PixelRgbFloat &pxCart=worldCartImg.pixel(u,v);
+            pxCart.r=(float)x;
+            pxCart.g=(float)y;
+            pxCart.b=(float)z;
+
+            PixelRgbFloat &pxCyl=worldCylImg.pixel(u,v);
+            pxCyl.r=(float)sqrt(x*x+y*y);
+            pxCyl.g=(float)atan2(y,x);
+            pxCyl.b=(float)z;
         }
     }
 }

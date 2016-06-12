@@ -7,9 +7,6 @@ project(SFM)
 set(source SFM.cpp)
 set(header SFM.h)
 
-source_group("Source Files" FILES ${source})
-source_group("Header Files" FILES ${header})
-
 include_directories(${stereoVision_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
@@ -28,3 +25,4 @@ if(USE_SIFT_GPU)
 endif()
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+
