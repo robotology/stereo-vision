@@ -198,9 +198,7 @@ set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
 - <i> /SFM/rect_right:o</i> outputs the rectified right image.
 
 - <i> /SFM/rpc </i> for terminal commands communication.
-    - [calibrate]: It recomputes the camera positions once.
-    - [save]: It saves the current camera positions and uses it when the module starts.
-    - [getH]: It returns the calibrated stereo matrix.
+    - [calibrate step max]: It finds out extrinsics parameters of eyes kinematics. Optional values \e step and \e max specify range for the vergence exploration.
     - [setNumDisp NumOfDisparities]: It sets the expected number of disparity (in pixel). Values must be divisible by 32. Good values are 64 for 320x240 images and 128 for 640x480 images.
     - [setMinDisp minDisparity]: It sets the minimum disparity (in pixel).
     - [Point x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
@@ -245,7 +243,7 @@ against OpenCV versions: 2.4.
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/stereoVision/stereoCamera.h>
 
-#include "fastBilateral.hpp"
+#include "fastBilateral.h"
 
 #ifdef USING_GPU
     #include <iCub/stereoVision/utils.h>
@@ -291,9 +289,11 @@ class SFM: public yarp::os::RFModule
     BufferedPort<ImageOf<PixelRgb> >  outLeftRectImgPort;
     BufferedPort<ImageOf<PixelRgb> >  outRightRectImgPort;
 
-    int numberOfTrials;
-    string camCalibFile;
+    string name;
+    string robot;
+    string eyesCalibFile;
     bool useBestDisp;
+    int numberOfTrials;
     int uniquenessRatio;
     int speckleWindowSize;
     int speckleRange;
@@ -306,32 +306,28 @@ class SFM: public yarp::os::RFModule
     bool calibUpdated;
     double sigmaColorBLF;
     double sigmaSpaceBLF;
+    bool init;
     bool doBLF;
     yarp::os::Mutex mutexRecalibration;
     Event calibEndEvent;
     yarp::os::Mutex mutexDisp;
 
-    PolyDriver headCtrl,gazeCtrl;
-    IEncoders* iencs;
+    PolyDriver gazeCtrl;
     IGazeControl* igaze;
-    yarp::sig::Vector eyes0,eyes;
-    int nHeadAxes;
     Mat HL_root;
     Mat HR_root;
-    Mat R0,T0;
 
     bool loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR);
     Mat buildRotTras(const Mat& R, const Mat& T);
     Matrix getCameraHGazeCtrl(int camera);
     void convert(Matrix& matrix, Mat& mat);
     void convert(Mat& mat, Matrix& matrix);
+    bool pushExtrinsics(const string &eye, const Matrix &H);
+    bool doSFMOnce();
+    Vector calibrate(const Bottle &options);
     void fillWorld3D(ImageOf<PixelRgbFloat> &worldCartImg, ImageOf<PixelRgbFloat> &worldCylImg);
     void floodFill(const Point &seed,const Point3f &p0, const double dist, set<int> &visited, Bottle &res);
-    bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
-    bool updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
-    void updateViaGazeCtrl(const bool update);
-    void updateViaKinematics(const yarp::sig::Vector& deyes);
-    bool init;
+    void updateViaGazeCtrl();
 
 public:
 

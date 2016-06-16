@@ -4,24 +4,26 @@
 
 project(SFM)
 
-set(source SFM.cpp)
-set(header SFM.h)
+file(GLOB header ${PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB source ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
-include_directories(${stereoVision_INCLUDE_DIRS}
+include_directories(${PROJECT_SOURCE_DIR}/include
+                    ${stereoVision_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS})
 
 if(USE_SIFT_GPU)
-    include_directories(${SIFTGPU_INCLUDE_DIRS})
-    add_definitions(-DUSING_GPU)
+   include_directories(${SIFTGPU_INCLUDE_DIRS})
+   add_definitions(-DUSING_GPU)
 endif()
 
+add_definitions(-D_USE_MATH_DEFINES)
 add_executable(${PROJECT_NAME} ${source} ${header})
 target_link_libraries(${PROJECT_NAME} stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
 
 if(USE_SIFT_GPU)
-	target_link_libraries(${PROJECT_NAME} ${SIFTGPU_LIBRARIES})
+   target_link_libraries(${PROJECT_NAME} ${SIFTGPU_LIBRARIES})
 endif()
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
