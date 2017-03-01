@@ -53,6 +53,14 @@ value (0,0,0). The last two ports output the rectified images used to compute
 the horizontal disparity map. In addition, a rpc port supports requests for
 3D/2D points computation (see below).
 
+\note <b>If you're going to use this module for your work,
+      please quote it within any resulting publication</b>:
+      Fanello S.R., Pattacini U., Gori I., Tikhanoff V., Randazzo M.,
+      Roncone A., Odone F., Metta G., "3D Stereo Estimation and Fully Automated
+      Learning of Eye-Hand Coordination in Humanoid Robots", <i>Proceedings of
+      IEEE-RAS International Conference on Humanoid Robots</i>, Madrid, Spain,
+      November 18-20, 2014.
+
 \section lib_sec Libraries
 YARP libraries and OpenCV 2.4 (at least). \n
 For better performance, we suggest you to run the module on a
