@@ -42,7 +42,7 @@ bool SFM::configure(ResourceFinder &rf)
     string outRightRectImgPortName=rf.check("outRightRectImgPort",Value("/rect_right:o")).asString().c_str();
 
     ResourceFinder localCalibration;
-    localCalibration.setContext("cameraCalibration");
+    localCalibration.setDefaultContext("cameraCalibration");
     localCalibration.setDefaultConfigFile(SFMFile.c_str());
     localCalibration.configure(0,NULL);
 

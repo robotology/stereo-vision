@@ -79,7 +79,7 @@ DisparityThread::DisparityThread(const string &name, yarp::os::ResourceFinder &r
     success=loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
 
     ResourceFinder localCalibration;
-    localCalibration.setContext("cameraCalibration");
+    localCalibration.setDefaultContext("cameraCalibration");
     localCalibration.setDefaultConfigFile("SFM.ini");
     localCalibration.setVerbose();
     localCalibration.configure(0,NULL);
