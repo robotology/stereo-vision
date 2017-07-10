@@ -23,6 +23,9 @@
 # Build products
 /build*/
 
+# Editor project files
+*.kdev4
+
 # Linux temp files
 *~
 

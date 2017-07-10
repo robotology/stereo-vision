@@ -38,6 +38,7 @@ include(YarpInstallationHelpers)
 add_subdirectory(lib)
 
 ## then modules
+add_subdirectory(msgs)
 add_subdirectory(modules)
 
 ## then apps

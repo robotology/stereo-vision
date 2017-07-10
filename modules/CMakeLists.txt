@@ -9,3 +9,4 @@ project(${PROJECTNAME})
 
 add_subdirectory(SFM)
 add_subdirectory(sceneFlow)
+add_subdirectory(pointCloudConversion)
