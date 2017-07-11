@@ -32,10 +32,11 @@ include(ICUBcontribOptions)
 icubcontrib_set_default_prefix()
 
 add_definitions(${YARP_DEFINES})
+include(YarpIDL)
 include(YarpInstallationHelpers)
 
 ## add libraries
-add_subdirectory(lib)
+#add_subdirectory(lib)
 
 ## then modules
 add_subdirectory(msgs)
@@ -44,5 +45,5 @@ add_subdirectory(modules)
 ## then apps
 add_subdirectory(app)
 
-icubcontrib_finalize_export(stereoVision)
+#icubcontrib_finalize_export(stereoVision)
 icubcontrib_add_uninstall_target()

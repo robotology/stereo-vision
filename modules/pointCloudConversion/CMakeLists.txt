@@ -2,6 +2,8 @@
 # Authors: Alberto Cardellino (alberto.cardellino@iit.it)
 # CopyPolicy: Released under the terms of the GNU GPL v3.0.
 
+cmake_minimum_required(VERSION 2.8)
+
 project(RGBD2pointCloud)
 
 
@@ -12,11 +14,19 @@ project(RGBD2pointCloud)
 # headers
 set( msg_include_dirs ${msgs_root_SOURCE_DIR})
 
+# idl for thirft
+find_package(YARP REQUIRED)
+list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
+include(YarpIDL)
+include(YarpInstallationHelpers)
+
+yarp_add_idl(IDL_GEN_FILES idl.thrift)
+source_group("IDL Files" FILES idl.thrift)
 
 # include directories list
 include_directories( ${YARP_INCLUDE_DIRS} ${msg_include_dirs} )
 
-add_executable(${PROJECT_NAME} PointCloudConverter.cpp RGBD2PointCloud.cpp)
+add_executable(${PROJECT_NAME} PointCloudConverter.cpp RGBD2PointCloud.cpp idl.thrift ${IDL_GEN_FILES})
 
 ##########
 ## Link ##

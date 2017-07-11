@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <yarp/conf/numeric.h>
 
@@ -44,6 +45,41 @@ RGBD2PointCloud::RGBD2PointCloud()
 RGBD2PointCloud::~RGBD2PointCloud()
 {
 
+}
+
+Bottle RGBD2PointCloud::get_3D_points(const vector<Vector> &pixels, const bool &color)
+{
+    int index;
+    Bottle point_cloud;
+    Bottle &points=point_cloud.addList();
+
+    for (size_t i=0; i<pixels.size(); i++)
+    {
+        Vector pixel=pixels[i];
+        int u=pixel[0];
+        int v=pixel[1];
+        index=rosPC_data.width*(v-1) + u;
+        PC_Point *iter = (PC_Point*) &rosPC_data.data[index];
+
+        Bottle &pp=points.addList();
+        pp.addDouble(iter->x);
+        pp.addDouble(iter->y);
+        pp.addDouble(iter->z);
+
+        if (color)
+        {
+            pp.addDouble(iter->rgba[0]);
+            pp.addDouble(iter->rgba[1]);
+            pp.addDouble(iter->rgba[2]);
+        }
+    }
+
+    return point_cloud;
+}
+
+bool RGBD2PointCloud::attach(RpcServer &source)
+{
+    return this->yarp().attachAsServer(source);
 }
 
 bool RGBD2PointCloud::configure(ResourceFinder& rf)
