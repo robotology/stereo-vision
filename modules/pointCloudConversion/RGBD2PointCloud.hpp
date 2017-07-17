@@ -27,6 +27,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelFloat>  depthImage;
     yarp::os::Port                             imageFrame_inputPort;   // rgb input
     yarp::os::Port                             depthFrame_inputPort;   // depth input
+    yarp::os::RpcServer                        rpcPort;
 
     yarp::os::Stamp colorStamp, depthStamp;
 
@@ -62,7 +63,7 @@ public:
     double getPeriod();
     bool interruptModule();
     bool close();
-    yarp::os::Bottle get_3D_points(const std::vector<yarp::sig::Vector> &pixels, const bool &color);
+    yarp::os::Bottle get_3D_points(const std::vector<yarp::sig::Vector> &pixels,  bool color);
     bool attach(yarp::os::RpcServer &source);
 };
 
