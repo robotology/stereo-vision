@@ -35,8 +35,11 @@ add_definitions(${YARP_DEFINES})
 include(YarpIDL)
 include(YarpInstallationHelpers)
 
+set(COMPILE_LIB FALSE CACHE BOOL "Select false not to compile library")
 ## add libraries
-#add_subdirectory(lib)
+if(COMPILE_LIB)
+    add_subdirectory(lib)
+endif()
 
 ## then modules
 add_subdirectory(msgs)

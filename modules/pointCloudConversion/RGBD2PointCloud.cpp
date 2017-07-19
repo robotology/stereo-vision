@@ -61,10 +61,6 @@ Bottle RGBD2PointCloud::get_3D_points(const vector<Vector> &pixels, bool color)
         int v=pixel[1];
         index=rosPC_data.width*(v) + u;
 
-        yDebug()<<"u "<<u;
-        yDebug()<<"v "<<v;
-        yDebug()<<"rosPC_data.width "<<rosPC_data.width;
-        yDebug()<<"index "<<index;
         char *pointer = (char*) &rosPC_data.data[0];
         PC_Point *iter = (PC_Point*) &pointer[index*sizeof(PC_Point)];
 
@@ -72,12 +68,6 @@ Bottle RGBD2PointCloud::get_3D_points(const vector<Vector> &pixels, bool color)
         pp.addDouble(iter->x);
         pp.addDouble(iter->y);
         pp.addDouble(iter->z);
-
-
-        printf("0x%0X %d\n", iter->rgba[0], iter->rgba[0]);
-        printf("0x%0X %d\n", iter->rgba[1], iter->rgba[1]);
-        printf("0x%0X %d\n", iter->rgba[2], iter->rgba[2]);
-        printf("0x%0X %d\n", iter->rgba[2], iter->rgba[2]);
 
         if (color)
         {
@@ -90,8 +80,6 @@ Bottle RGBD2PointCloud::get_3D_points(const vector<Vector> &pixels, bool color)
             a = iter->rgba[2];
             pp.addInt(a);
         }
-  
-          yDebug()<<"pp "<<pp.toString();
     }
 
     return point_cloud;
