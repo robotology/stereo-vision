@@ -71,13 +71,11 @@ Bottle RGBD2PointCloud::get_3D_points(const vector<Vector> &pixels, bool color)
 
         if (color)
         {
-            uint8_t a = iter->rgba[0];
-            c = (uint32_t) a;
-            printf("a %d, c %d\n", a, c);
+            uint8_t a = iter->rgba[2];
             pp.addInt(a);
             a = iter->rgba[1];
             pp.addInt(a);
-            a = iter->rgba[2];
+            a = iter->rgba[0];
             pp.addInt(a);
         }
     }
