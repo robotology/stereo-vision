@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <yarp/conf/numeric.h>
 
@@ -44,6 +45,47 @@ RGBD2PointCloud::RGBD2PointCloud()
 RGBD2PointCloud::~RGBD2PointCloud()
 {
 
+}
+
+Bottle RGBD2PointCloud::get_3D_points(const vector<Vector> &pixels, bool color)
+{
+    int index;
+    Bottle point_cloud;
+    Bottle &points=point_cloud.addList();
+    uint32_t c;
+
+    for (size_t i=0; i<pixels.size(); i++)
+    {
+        Vector pixel=pixels[i];
+        int u=pixel[0];
+        int v=pixel[1];
+        index=rosPC_data.width*(v) + u;
+
+        char *pointer = (char*) &rosPC_data.data[0];
+        PC_Point *iter = (PC_Point*) &pointer[index*sizeof(PC_Point)];
+
+        Bottle &pp=points.addList();
+        pp.addDouble(iter->x);
+        pp.addDouble(iter->y);
+        pp.addDouble(iter->z);
+
+        if (color)
+        {
+            uint8_t a = iter->rgba[2];
+            pp.addInt(a);
+            a = iter->rgba[1];
+            pp.addInt(a);
+            a = iter->rgba[0];
+            pp.addInt(a);
+        }
+    }
+
+    return point_cloud;
+}
+
+bool RGBD2PointCloud::attach(RpcServer &source)
+{
+    return this->yarp().attachAsServer(source);
 }
 
 bool RGBD2PointCloud::configure(ResourceFinder& rf)
@@ -139,12 +181,15 @@ bool RGBD2PointCloud::configure(ResourceFinder& rf)
         bool ret = true;
         ret &= imageFrame_inputPort.open("/RGBD2PointCloud/rgb/in:i");
         ret &= depthFrame_inputPort.open("/RGBD2PointCloud/depth/in:i");
+        ret &= rpcPort.open("/RGBD2PointCloud/rpc");
 
         if(!ret)
         {
             yError() << "Cannot open required ports";
             return false;
         }
+
+        attach(rpcPort);
 
         // TBD: make ports opened by this device to use custom names
         ret &= yarp::os::Network::connect(remoteImagePort_name, "/RGBD2PointCloud/rgb/in:i");
@@ -370,6 +415,7 @@ bool RGBD2PointCloud::interruptModule()
     depthFrame_inputPort.close();
 
     pointCloud_outTopic.close();
+    rpcPort.close();
 }
 
 bool RGBD2PointCloud::close()

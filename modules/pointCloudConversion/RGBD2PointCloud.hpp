@@ -2,6 +2,7 @@
 #define RGBD_2_POINT_CLOUD_H
 
 #include <cmath>
+#include <yarp/os/Bottle.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/dev/PolyDriver.h>
@@ -12,7 +13,10 @@
 #include <yarp/os/Stamp.h>
 #include <sensor_msgs_PointCloud2.h>
 
-class RGBD2PointCloud : public yarp::os::RFModule
+#include "RGBD2PointCloud_IDL.h"
+
+class RGBD2PointCloud : public yarp::os::RFModule,
+                        public RGBD2PointCloud_IDL
 {
 private:
     bool use_RGBD_client;
@@ -23,6 +27,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelFloat>  depthImage;
     yarp::os::Port                             imageFrame_inputPort;   // rgb input
     yarp::os::Port                             depthFrame_inputPort;   // depth input
+    yarp::os::RpcServer                        rpcPort;
 
     yarp::os::Stamp colorStamp, depthStamp;
 
@@ -58,6 +63,8 @@ public:
     double getPeriod();
     bool interruptModule();
     bool close();
+    yarp::os::Bottle get_3D_points(const std::vector<yarp::sig::Vector> &pixels,  bool color);
+    bool attach(yarp::os::RpcServer &source);
 };
 
 
