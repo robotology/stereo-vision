@@ -76,6 +76,12 @@ The OpenMP accelerated version of the LIBELAS is used under UNIX systems, if Ope
 - The parameter \e stemName specifies the stem name of ports
   created by the module.
 
+--from \e stereoCalibFile
+- The parameter \e stereoCalibFile specifies the stereo calibration file to configure the module with. Default is icubEyes.ini
+
+--context \e stereoCalibContext
+- The parameter \e stereoCalibContext defines the YARP context to search for the stereo calibration file in. Default is cameraCalibration
+
 --robot \e robotName
 - The parameter \e robotName specifies the name of the robot.
 
