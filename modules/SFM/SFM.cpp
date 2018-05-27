@@ -24,29 +24,29 @@
 /******************************************************************************/
 bool SFM::configure(ResourceFinder &rf)
 {
-    string name=rf.check("name",Value("SFM")).asString().c_str();
-    string robot=rf.check("robot",Value("icub")).asString().c_str();
-    string left=rf.check("leftPort",Value("/left:i")).asString().c_str();
-    string right=rf.check("rightPort",Value("/right:i")).asString().c_str();
-    string SFMFile=rf.check("SFMFile",Value("SFM.ini")).asString().c_str();
+    string name=rf.check("name",Value("SFM")).asString();
+    string robot=rf.check("robot",Value("icub")).asString();
+    string left=rf.check("leftPort",Value("/left:i")).asString();
+    string right=rf.check("rightPort",Value("/right:i")).asString();
+    string SFMFile=rf.check("SFMFile",Value("SFM.ini")).asString();
 
     string sname;
     sname="/"+name;
     left=sname+left;
     right=sname+right;
 
-    string outDispName=rf.check("outDispPort",Value("/disp:o")).asString().c_str();
-    string outMatchName=rf.check("outMatchPort",Value("/match:o")).asString().c_str();
+    string outDispName=rf.check("outDispPort",Value("/disp:o")).asString();
+    string outMatchName=rf.check("outMatchPort",Value("/match:o")).asString();
 
-    string outLeftRectImgPortName=rf.check("outLeftRectImgPort",Value("/rect_left:o")).asString().c_str();
-    string outRightRectImgPortName=rf.check("outRightRectImgPort",Value("/rect_right:o")).asString().c_str();
+    string outLeftRectImgPortName=rf.check("outLeftRectImgPort",Value("/rect_left:o")).asString();
+    string outRightRectImgPortName=rf.check("outRightRectImgPort",Value("/rect_right:o")).asString();
 
     ResourceFinder localCalibration;
     localCalibration.setDefaultContext("cameraCalibration");
     localCalibration.setDefaultConfigFile(SFMFile.c_str());
     localCalibration.configure(0,NULL);
 
-    this->camCalibFile=localCalibration.getHomeContextPath().c_str();
+    this->camCalibFile=localCalibration.getHomeContextPath();
     this->camCalibFile+="/"+SFMFile;
 
     outMatchName=sname+outMatchName;
@@ -56,22 +56,22 @@ bool SFM::configure(ResourceFinder &rf)
     outRightRectImgPortName=sname+outRightRectImgPortName;
 
     string rpc_name=sname+"/rpc";
-    string world_name=sname+rf.check("outWorldPort",Value("/world")).asString().c_str();
+    string world_name=sname+rf.check("outWorldPort",Value("/world")).asString();
 
     int calib=rf.check("useCalibrated",Value(1)).asInt();
     bool useCalibrated=(calib!=0);
 
-    leftImgPort.open(left.c_str());
-    rightImgPort.open(right.c_str());
-    outMatch.open(outMatchName.c_str());
-    outDisp.open(outDispName.c_str());
-    handlerPort.open(rpc_name.c_str());
-    worldCartPort.open((world_name+"/cartesian:o").c_str());
-    worldCylPort.open((world_name+"/cylindrical:o").c_str());
+    leftImgPort.open(left);
+    rightImgPort.open(right);
+    outMatch.open(outMatchName);
+    outDisp.open(outDispName);
+    handlerPort.open(rpc_name);
+    worldCartPort.open(world_name+"/cartesian:o");
+    worldCylPort.open(world_name+"/cylindrical:o");
     attach(handlerPort);
 
-    outLeftRectImgPort.open(outLeftRectImgPortName.c_str());
-    outRightRectImgPort.open(outRightRectImgPortName.c_str());
+    outLeftRectImgPort.open(outLeftRectImgPortName);
+    outRightRectImgPort.open(outRightRectImgPortName);
 
     this->stereo = new StereoCamera(true);
 
@@ -129,8 +129,8 @@ bool SFM::configure(ResourceFinder &rf)
 
     Property optionHead;
     optionHead.put("device","remote_controlboard");
-    optionHead.put("remote",("/"+robot+"/head").c_str());
-    optionHead.put("local",(sname+"/headClient").c_str());
+    optionHead.put("remote","/"+robot+"/head");
+    optionHead.put("local",sname+"/headClient");
     if (headCtrl.open(optionHead))
     {
         headCtrl.view(iencs);
@@ -145,7 +145,7 @@ bool SFM::configure(ResourceFinder &rf)
     Property optionGaze;
     optionGaze.put("device","gazecontrollerclient");
     optionGaze.put("remote","/iKinGazeCtrl");
-    optionGaze.put("local",(sname+"/gazeClient").c_str());
+    optionGaze.put("local",sname+"/gazeClient");
     if (gazeCtrl.open(optionGaze))
         gazeCtrl.view(igaze);
     else
@@ -485,7 +485,7 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::s
             eyes[i]=bEyes->get(i).asDouble();
     }
 
-    cout<<"read eyes configuration = ("<<eyes.toString(3,3).c_str()<<")"<<endl;
+    cout<<"read eyes configuration = ("<<eyes.toString(3,3)<<")"<<endl;
 
     if (Bottle *pXo=extrinsics.find("HN").asList())
     {
@@ -580,7 +580,7 @@ bool SFM::updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes,
     {
         out << endl;
         out << "["+groupname+"]" << endl;
-        out << "eyes (" << eyes.toString().c_str() << ")" << endl;
+        out << "eyes (" << eyes.toString() << ")" << endl;
         out << "HN (" << Rot.at<double>(0,0) << " " << Rot.at<double>(0,1) << " " << Rot.at<double>(0,2) << " " << Tr.at<double>(0,0) << " "
                 << Rot.at<double>(1,0) << " " << Rot.at<double>(1,1) << " " << Rot.at<double>(1,2) << " " << Tr.at<double>(1,0) << " "
                 << Rot.at<double>(2,0) << " " << Rot.at<double>(2,1) << " " << Rot.at<double>(2,2) << " " << Tr.at<double>(2,0) << " "

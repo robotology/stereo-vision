@@ -23,10 +23,10 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
     string localPortL="/SceneFlow/left:i";
     string localPortR="/SceneFlow/right:i";
 
-    string inputL=rf.check("leftCamera",Value("/icub/camcalib/left/out")).asString().c_str();
-    string inputR=rf.check("rightCamera",Value("/icub/camcalib/right/out")).asString().c_str();
+    string inputL=rf.check("leftCamera",Value("/icub/camcalib/left/out")).asString();
+    string inputR=rf.check("rightCamera",Value("/icub/camcalib/right/out")).asString();
 
-    string configFileDisparity=rf.check("ConfigDisparity",Value("icubEyes.ini")).asString().c_str();
+    string configFileDisparity=rf.check("ConfigDisparity",Value("icubEyes.ini")).asString();
     imageL=new ImageOf<PixelRgb>;
     imageR=new ImageOf<PixelRgb>;
 
@@ -34,13 +34,13 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10)
     init=true;
     initL=initR=false;
 
-    success=success & imagePortInLeft.open(localPortL.c_str());
-    success=success & imagePortInRight.open(localPortR.c_str());
+    success=success & imagePortInLeft.open(localPortL);
+    success=success & imagePortInRight.open(localPortR);
 
     flowSem=new Semaphore(1);
 
-    success=success & Network::connect(inputL.c_str(),localPortL.c_str());
-    success=success & Network::connect(inputR.c_str(),localPortR.c_str());    
+    success=success & Network::connect(inputL,localPortL);
+    success=success & Network::connect(inputR,localPortR);    
 
     if(success)
     {

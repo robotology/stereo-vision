@@ -30,7 +30,7 @@ bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat&
             eyes[i]=bEyes->get(i).asDouble();
     }
 
-    cout<<"read eyes configuration = ("<<eyes.toString(3,3).c_str()<<")"<<endl;
+    cout<<"read eyes configuration = ("<<eyes.toString(3,3)<<")"<<endl;
 
     if (Bottle *pXo=extrinsics.find("HN").asList())
     {
@@ -56,7 +56,7 @@ DisparityThread::DisparityThread(const string &name, yarp::os::ResourceFinder &r
 {
     moduleName=name;
     Bottle pars=rf.findGroup("STEREO_DISPARITY");    
-    robotName=pars.check("robotName",Value("icub")).asString().c_str();    
+    robotName=pars.check("robotName",Value("icub")).asString();    
 
     if (Bottle *pXo=pars.find("QL").asList()) 
     {
@@ -332,7 +332,7 @@ bool DisparityThread::threadInit()
     Property option;
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");
-    option.put("local",("/"+moduleName+"/gaze").c_str());
+    option.put("local","/"+moduleName+"/gaze");
     if (gazeCtrl.open(option))
     {
         mutexDisp.lock();
@@ -350,8 +350,8 @@ bool DisparityThread::threadInit()
 
     Property optHead;
     optHead.put("device","remote_controlboard");
-    optHead.put("remote",("/"+robotName+"/head").c_str());
-    optHead.put("local",("/"+moduleName+"/head").c_str());
+    optHead.put("remote","/"+robotName+"/head");
+    optHead.put("local","/"+moduleName+"/head");
     if (polyHead.open(optHead))
     {
         polyHead.view(posHead);
@@ -367,8 +367,8 @@ bool DisparityThread::threadInit()
 
     Property optTorso;
     optTorso.put("device","remote_controlboard");
-    optTorso.put("remote",("/"+robotName+"/torso").c_str());
-    optTorso.put("local",("/"+moduleName+"/torso").c_str());
+    optTorso.put("remote","/"+robotName+"/torso");
+    optTorso.put("local","/"+moduleName+"/torso");
     if (polyTorso.open(optTorso))
     {
         polyTorso.view(posTorso);
@@ -388,8 +388,8 @@ bool DisparityThread::threadInit()
     headType << "v";
     headType << vHead;
 
-    LeyeKin=new iCubEye(("left_"+headType.str()).c_str());
-    ReyeKin=new iCubEye(("right_"+headType.str()).c_str());
+    LeyeKin=new iCubEye("left_"+headType.str());
+    ReyeKin=new iCubEye("right_"+headType.str());
     LeyeKin->releaseLink(0);
     LeyeKin->releaseLink(1);
     LeyeKin->releaseLink(2);
@@ -712,7 +712,7 @@ Matrix DisparityThread::getCameraH(yarp::sig::Vector &head_angles,
     {
         /*q=q*CTRL_RAD2DEG;
         cout << " Q Chain" << endl;
-        cout << q.toString(5,5).c_str() << endl;*/
+        cout << q.toString(5,5) << endl;*/
         convert(H_curr,HL_root);
     }
     else if(camera==RIGHT)

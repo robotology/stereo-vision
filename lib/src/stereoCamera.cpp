@@ -115,7 +115,7 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
 {
     use_elas = true;
 
-    string elas_string = rf.check("elas_setting",Value("ROBOTICS")).asString().c_str();
+    string elas_string = rf.check("elas_setting",Value("ROBOTICS")).asString();
 
     double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asDouble();
 

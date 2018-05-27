@@ -1,4 +1,5 @@
 #include <cmath>
+#include <string>
 #include <iostream>
 #include <yarp/conf/numeric.h>
 
@@ -154,8 +155,8 @@ bool RGBD2PointCloud::configure(ResourceFinder& rf)
     // TBD: This is for debug only. Implement later
 //     tf_broadcaster  = new tf::TransformBroadcaster;
 
-    yarp::os::ConstString remoteImagePort_name = rf.find("remoteImagePort").asString();
-    yarp::os::ConstString remoteDepthPort_name = rf.find("remoteDepthPort").asString();
+    std::string remoteImagePort_name = rf.find("remoteImagePort").asString();
+    std::string remoteDepthPort_name = rf.find("remoteDepthPort").asString();
 
     // cannot use because OpenNI2DeviceServer does not uses RGBDSensorWrapper yet
     if(use_RGBD_client)
