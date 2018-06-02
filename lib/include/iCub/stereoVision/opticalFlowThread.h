@@ -30,7 +30,7 @@ using namespace cv;
 * The base class defining the 2D optical flow.
 * It computes the 2D motion field in the image.
 */
-class OpticalFlowThread : public yarp::os::RateThread
+class OpticalFlowThread : public yarp::os::PeriodicThread
 {
 private:
 

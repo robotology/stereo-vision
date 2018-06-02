@@ -42,7 +42,7 @@ using namespace iCub::iKin;
 * The class defining the disparity computation.
 * It computes the depth map and it updates the icub's eye relative positions.
 */
-class DisparityThread : public RateThread
+class DisparityThread : public PeriodicThread
 {
 private:
     StereoCamera *stereo;

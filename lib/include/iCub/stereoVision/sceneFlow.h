@@ -39,7 +39,7 @@ using namespace iCub::iKin;
 * It computes the 3D motion field of a stereo pairs.
 */
 
-class SceneFlow : public RateThread
+class SceneFlow : public PeriodicThread
 {
 private:
 

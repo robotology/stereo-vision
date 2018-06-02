@@ -52,7 +52,7 @@ bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat&
 
 
 DisparityThread::DisparityThread(const string &name, yarp::os::ResourceFinder &rf,
-                                 bool useHorn, bool updateCamera, bool rectify) : RateThread(10)
+                                 bool useHorn, bool updateCamera, bool rectify) : PeriodicThread(0.01)
 {
     moduleName=name;
     Bottle pars=rf.findGroup("STEREO_DISPARITY");    

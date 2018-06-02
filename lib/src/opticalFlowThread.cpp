@@ -21,7 +21,7 @@
 using namespace cv;
 using namespace yarp::os;
 
-OpticalFlowThread::OpticalFlowThread(yarp::os::ResourceFinder &rf) : RateThread(10) 
+OpticalFlowThread::OpticalFlowThread(yarp::os::ResourceFinder &rf) : PeriodicThread(0.01) 
 {
     work=false;
     done=true;

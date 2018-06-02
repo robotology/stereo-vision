@@ -18,7 +18,7 @@
 
 #include "iCub/stereoVision/sceneFlow.h"
 
-SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10) 
+SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : PeriodicThread(0.01) 
 {
     string localPortL="/SceneFlow/left:i";
     string localPortR="/SceneFlow/right:i";
