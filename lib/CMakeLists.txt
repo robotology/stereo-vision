@@ -71,7 +71,7 @@ source_group("Source Files" FILES ${folder_source})
 source_group("ELAS Source Files" FILES ${folder_source_elas})
 source_group("Header Files" FILES ${folder_header})
 
-include_directories(${OpenCV_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
 
 if(USE_SIFT_GPU)
     include_directories(${SIFTGPU_INCLUDE_DIRS})
@@ -91,13 +91,13 @@ endif()
 
 if(USE_SIFT_GPU)
    icubcontrib_export_library(${PROJECT_NAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas
-                                              EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS}
+                                              EXTERNAL_INCLUDE_DIRS ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS}
                                               DESTINATION include/iCub/${PROJECT_NAME}
                                               FILES_WITH_PATH ${folder_header}
                                               PATH_TO_EXCLUDE include/iCub/stereoVision)
 else()
    icubcontrib_export_library(${PROJECT_NAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas
-                                              EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES}
+                                              EXTERNAL_INCLUDE_DIRS ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES}
                                               DESTINATION include/iCub/${PROJECT_NAME}
                                               FILES_WITH_PATH ${folder_header}
                                               PATH_TO_EXCLUDE include/iCub/stereoVision)

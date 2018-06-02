@@ -24,7 +24,7 @@ yarp_add_idl(IDL_GEN_FILES idl.thrift)
 source_group("IDL Files" FILES idl.thrift)
 
 # include directories list
-include_directories( ${YARP_INCLUDE_DIRS} ${msg_include_dirs} )
+include_directories( ${msg_include_dirs} )
 
 add_executable(${PROJECT_NAME} PointCloudConverter.cpp RGBD2PointCloud.cpp idl.thrift ${IDL_GEN_FILES})
 

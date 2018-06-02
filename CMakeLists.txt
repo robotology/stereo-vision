@@ -31,7 +31,6 @@ include(ICUBcontribHelpers)
 include(ICUBcontribOptions)
 icubcontrib_set_default_prefix()
 
-add_definitions(${YARP_DEFINES})
 include(YarpIDL)
 include(YarpInstallationHelpers)
 
