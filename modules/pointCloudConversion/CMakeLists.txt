@@ -2,7 +2,7 @@
 # Authors: Alberto Cardellino (alberto.cardellino@iit.it)
 # CopyPolicy: Released under the terms of the GNU GPL v3.0.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 project(RGBD2pointCloud)
 
@@ -32,7 +32,7 @@ add_executable(${PROJECT_NAME} PointCloudConverter.cpp RGBD2PointCloud.cpp idl.t
 ## Link ##
 ##########
 
-target_link_libraries( ${PROJECT_NAME} ${YARP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
 
 #############

@@ -2,7 +2,7 @@
 # Authors: Sean Fanello
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template)
 file(GLOB conf    ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
