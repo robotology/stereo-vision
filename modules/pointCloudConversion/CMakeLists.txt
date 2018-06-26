@@ -15,11 +15,6 @@ project(RGBD2pointCloud)
 set( msg_include_dirs ${msgs_root_SOURCE_DIR})
 
 # idl for thirft
-find_package(YARP REQUIRED)
-list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
-include(YarpIDL)
-include(YarpInstallationHelpers)
-
 yarp_add_idl(IDL_GEN_FILES idl.thrift)
 source_group("IDL Files" FILES idl.thrift)
 
@@ -32,7 +27,7 @@ add_executable(${PROJECT_NAME} PointCloudConverter.cpp RGBD2PointCloud.cpp idl.t
 ## Link ##
 ##########
 
-target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES} YARP::YARP_rosmsg)
 
 
 #############

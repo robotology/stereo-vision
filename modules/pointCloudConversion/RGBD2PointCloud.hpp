@@ -11,7 +11,7 @@
 #include <yarp/os/Node.h>
 #include <yarp/os/Publisher.h>
 #include <yarp/os/Stamp.h>
-#include <sensor_msgs_PointCloud2.h>
+#include <yarp/rosmsg/sensor_msgs/PointCloud2.h>
 
 #include "RGBD2PointCloud_IDL.h"
 
@@ -45,8 +45,8 @@ private:
     // ROS stuff
     std::string                                          frame_id;
     yarp::os::Node                                      *rosNode;
-    sensor_msgs_PointCloud2                              rosPC_data;
-    yarp::os::Publisher<sensor_msgs_PointCloud2>         pointCloud_outTopic;
+    yarp::rosmsg::sensor_msgs::PointCloud2               rosPC_data;
+    yarp::os::Publisher<yarp::rosmsg::sensor_msgs::PointCloud2>    pointCloud_outTopic;
 
     // Publishing TF is useful only for debugging purposes. In real use case, someone else
     // robot-aware should publish the tf. Here I just need to publish the frame_id
