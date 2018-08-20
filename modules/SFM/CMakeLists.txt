@@ -7,8 +7,7 @@ project(SFM)
 set(source SFM.cpp)
 set(header SFM.h)
 
-include_directories(${stereoVision_INCLUDE_DIRS}
-                    ${OpenCV_INCLUDE_DIRS})
+include_directories(${stereoVision_INCLUDE_DIRS})
 
 if(USE_SIFT_GPU)
     include_directories(${SIFTGPU_INCLUDE_DIRS})

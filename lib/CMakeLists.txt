@@ -71,8 +71,6 @@ source_group("Source Files" FILES ${folder_source})
 source_group("ELAS Source Files" FILES ${folder_source_elas})
 source_group("Header Files" FILES ${folder_header})
 
-include_directories(${OpenCV_INCLUDE_DIRS})
-
 if(USE_SIFT_GPU)
     include_directories(${SIFTGPU_INCLUDE_DIRS})
     add_definitions(-DUSING_GPU)
