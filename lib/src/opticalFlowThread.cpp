@@ -123,8 +123,8 @@ void OpticalFlowThread::computeFlowSparse(IplImage* previous, IplImage* current,
     cvGoodFeaturesToTrack(leftPrevGray,eigImg,tmpImg,prevCorners,&corner_count,0.001,5.0,0,3,0,0.04);
 
     cvCalcOpticalFlowPyrLK(leftPrevGray,leftNextGray,prevPyr,currPyr,prevCorners,currCorners,corner_count,
-                                cvSize(winSize,winSize),5,features_found,feature_errors,
-                                cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, .3 ),0);
+                           cvSize(winSize,winSize),5,features_found,feature_errors,
+                           cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, .3 ),0);
     for(int k=0; k<corner_count; k++)
     {
         if(features_found[k]!=0 && feature_errors[k]<lk_error_thresh)

@@ -113,7 +113,7 @@ public:
     DisparityThread(const string &name, yarp::os::ResourceFinder &rf, bool useHorn=true, bool updateCamera=false, bool rectify=true);
     ~DisparityThread() { };
 
-    void setImages(Mat &left, Mat &right);
+    void setImages(const Mat &left, const Mat &right);
     void getDisparity(Mat &Disp);
     Point3f get3DPointMatch(double u1, double v1, double u2, double v2, string drive);
     void getDisparityFloat(Mat &Disp);

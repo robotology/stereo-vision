@@ -10,9 +10,9 @@ endif(COMMAND cmake_policy)
 
 project(stereo-vision)
 
-find_package(YARP 3.0.0 COMPONENTS OS sig dev math rosmsg idl_tools REQUIRED)
-find_package(ICUB REQUIRED)
 find_package(ICUBcontrib REQUIRED)
+find_package(YARP 3.1.100 COMPONENTS OS sig dev math cv rosmsg idl_tools REQUIRED)
+find_package(ICUB REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH}
                               ${ICUBCONTRIB_MODULE_PATH}

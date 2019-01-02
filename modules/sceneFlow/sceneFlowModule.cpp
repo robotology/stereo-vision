@@ -63,7 +63,6 @@ bool sceneFlowModule::updateModule()
 
     if(!flow3D.empty())
     {
-
         Pflow3D.x=flow3D.ptr<float>(v)[2*u]; // Flow DeltaX
         Pflow3D.y=flow3D.ptr<float>(v)[2*u+1]; // Flow DeltaY
         Pflow3D.z=flow3D.ptr<float>(v)[2*u+2]; // Flow DeltaZ
@@ -71,20 +70,15 @@ bool sceneFlowModule::updateModule()
         fprintf(stdout,"3D Motion of Pixel (%i,%i): (%f, %f, %f) \n",u,v,Pflow3D.x,Pflow3D.y,Pflow3D.z);
 
         // Compute and show motion field and flow module
-
-        IplImage* module=cvCreateImage(cvSize(sceneFlow->getImgWidth(),sceneFlow->getImgHeight()),8,3);
-        IplImage* flowField=sceneFlow->draw2DMotionField();
+        Mat module=Mat::zeros(cv::Size(sceneFlow->getImgWidth(),sceneFlow->getImgHeight()),CV_8UC3);
+        Mat flowField=sceneFlow->draw2DMotionField();
         sceneFlow->drawFlowModule(module);
         
-        if(flowField!=NULL)
-            cvShowImage("flowField", flowField);
-        cvShowImage("Module", module);
-        cvWaitKey(5);
-
-        cvReleaseImage(&flowField);
-        cvReleaseImage(&module);
+        if(!flowField.empty())
+            imshow("flowField",flowField);
+        imshow("Module",module);
+        waitKey(5);
     }
-
 
     return true;
 }

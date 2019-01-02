@@ -228,10 +228,8 @@ void DisparityThread::run()
         #ifdef USING_GPU
             Mat leftMat=this->stereo->getImLeft();
             Mat rightMat=this->stereo->getImRight();
-            IplImage left=leftMat;
-            IplImage right=rightMat;
-            this->stereo->setImages(&left,&right);
-            utils->extractMatch_GPU( leftMat, rightMat);
+            this->stereo->setImages(leftMat,rightMat);
+            utils->extractMatch_GPU(leftMat,rightMat);
             vector<Point2f> leftM,rightM;
             utils->getMatches(leftM,rightM);
             this->stereo->setMatches(leftM,rightM);
@@ -263,17 +261,14 @@ void DisparityThread::run()
 }
 
 
-void DisparityThread::setImages(Mat &left, Mat &right) 
+void DisparityThread::setImages(const Mat &left, const Mat &right) 
 {
-    IplImage l=left;
-    IplImage r=right;
+    stereo->setImages(left,right);
 
-    stereo->setImages(&l,&r);
-
-    if (l.width!=widthInit)
+    if (left.size().width!=widthInit)
     {
-        this->numberOfDisparities=(l.width<=320)?96:128;
-        widthInit=l.width;
+        this->numberOfDisparities=(left.size().width<=320)?96:128;
+        widthInit=left.size().width;
     }
 
     this->done=false;

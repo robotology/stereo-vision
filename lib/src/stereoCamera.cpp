@@ -177,9 +177,9 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
     cout << endl;
 }
 
-void StereoCamera::setImages(IplImage * left, IplImage * right) {
-    this->imleft=cvarrToMat(left);
-    this->imright=cvarrToMat(right);
+void StereoCamera::setImages(const Mat &left, const Mat &right) {
+    this->imleft=left;
+    this->imright=right;
 }
 
 

@@ -265,12 +265,8 @@ using namespace iCub::iKin;
 
 class SFM: public yarp::os::RFModule
 {
-    IplImage*     left;
-    IplImage*     right;
     StereoCamera* stereo;
-    IplImage*     output_match;
     Mat           outputDm;
-
     Mat leftMat, rightMat;
 
 #ifdef USING_GPU

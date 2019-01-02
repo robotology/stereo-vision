@@ -16,7 +16,11 @@
  * Public License for more details
  */
 
+#include <vector>
+#include <yarp/cv/Cv.h>
 #include "iCub/stereoVision/sceneFlow.h"
+
+using namespace yarp::cv;
 
 SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : PeriodicThread(0.01) 
 {
@@ -97,7 +101,6 @@ void SceneFlow::threadRelease()
     delete imageR;
     delete flowSem;
     delete opt;
-
 }
 
 void SceneFlow::run()
@@ -122,22 +125,18 @@ void SceneFlow::run()
         initR=true;
     }
 
-    if(initL && initR )
+    if(initL && initR)
     {
         if (init)
         {
             fprintf(stdout, "Initializing Scene Flow..\n");
             flowSem->wait();
-            imgLNext= (IplImage*) imageL->getIplImage();
-            imgRNext= (IplImage*) imageR->getIplImage();
-            imgLPrev=NULL;
-            imgRPrev=NULL;
-            width=imgLNext->width;
-            height=imgLNext->height;
+            imgLNext=toCvMat(*imageL);
+            imgRNext=toCvMat(*imageR);
+            width=imgLNext.size().width;
+            height=imgLNext.size().height;
 
-            Mat tmpLNext=cvarrToMat(imgLNext);
-            Mat tmpRNext=cvarrToMat(imgRNext);
-            disp->setImages(tmpLNext,tmpRNext);
+            disp->setImages(imgLNext,imgRNext);
             while (!disp->checkDone())
                 Time::delay(0.01);
 
@@ -147,43 +146,29 @@ void SceneFlow::run()
             disp->getQMat(QNew);
             disp->getDisparityFloat(dispFloatNew);
 
-
             init=false;
             initL=initR=false;
 
-            IplImage IplDispNew=dispNew;
-
-            if (imgLPrev!=NULL)
-                cvReleaseImage(&imgLPrev);
-            if (imgRPrev!=NULL)
-                cvReleaseImage(&imgRPrev);
-
-            imgLPrev=(IplImage*)cvClone(imgLNext);
-            imgRPrev=(IplImage*)cvClone(imgRNext);
+            imgLPrev=imgLNext.clone();
+            imgRPrev=imgRNext.clone();
             flowSem->post();
             fprintf(stdout, "Init Scene Flow Done...\n");
         }
         else
         {
-        
             flowSem->wait();
-            imgLNext= (IplImage*) imageL->getIplImage();
-            imgRNext= (IplImage*) imageR->getIplImage();
-
+            imgLNext=toCvMat(*imageL);
+            imgRNext=toCvMat(*imageR);
 
             RLOld=RLNew.clone();
             QOld=QNew.clone();
             mapperOld=mapperNew.clone();
             dispOld=dispNew.clone();
             dispFloatOld=dispFloatNew.clone();
-            Mat tmpLNext=cvarrToMat(imgLNext);
-            Mat tmpRNext=cvarrToMat(imgRNext);
-            Mat tmpLPrev=cvarrToMat(imgLPrev);
-            disp->setImages(tmpLNext,tmpRNext);
-            opt->setImages(tmpLPrev,tmpLNext);
+            disp->setImages(imgLNext,imgRNext);
+            opt->setImages(imgLPrev,imgLNext);
             opt->resume();
 
-            
             if(disp==NULL || opt==NULL)
                 return;
                 
@@ -197,21 +182,12 @@ void SceneFlow::run()
             disp->getQMat(QNew);            
             opt->getOptFlow(optFlow);
 
-                        
-
-            if (imgLPrev!=NULL)
-                cvReleaseImage(&imgLPrev);
-            if (imgRPrev!=NULL)
-                cvReleaseImage(&imgRPrev);
-
-            imgLPrev=(IplImage*)cvClone(imgLNext);
-            imgRPrev=(IplImage*)cvClone(imgRNext);
+            imgLPrev=imgLNext.clone();
+            imgRPrev=imgRNext.clone();
             flowSem->post();
         }
     }
-
 }
-
 
 
 void SceneFlow::triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disparity, Mat &Q, Mat &RLrect) 
@@ -280,7 +256,6 @@ void SceneFlow::triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disp
         buildRotTras(RLrecttemp,Tfake,Hrect);
       
         P=HL_root*Hrect*P;
-        
 
         point.x=(float) ((float) P.at<double>(0,0)/P.at<double>(3,0));
         point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
@@ -288,6 +263,7 @@ void SceneFlow::triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disp
         //fprintf(stdout, "Point After Trans: %f %f %f \n",point.x,point.y,point.z);
     }
 }
+
 
 void SceneFlow::buildRotTras(Mat & R, Mat & T, Mat & A) 
 {
@@ -305,7 +281,6 @@ void SceneFlow::buildRotTras(Mat & R, Mat & T, Mat & A)
         Mi[3]=MRi[0];
      }
 }
-
 
 
 Point3f SceneFlow::getSceneFlowPixel(int u, int v)
@@ -441,7 +416,7 @@ void SceneFlow::getSceneFlow(Mat &flow3D)
 }
 
 
-IplImage* SceneFlow::draw2DMotionField()
+Mat SceneFlow::draw2DMotionField()
 {
     flowSem->wait();
     int xSpace=7;
@@ -453,14 +428,13 @@ IplImage* SceneFlow::draw2DMotionField()
     CvPoint p0 = cvPoint(0,0);
     CvPoint p1 = cvPoint(0,0);
 
-    if(optFlow.empty() || imgLPrev==NULL)
+    if(optFlow.empty() || imgLPrev.empty())
     {
         flowSem->post();
-        return NULL;
+        return Mat();
     }
-    
 
-    IplImage* imgMotion=(IplImage*) cvClone(imgLPrev);
+    Mat imgMotion=imgLPrev.clone();
     
     float deltaX, deltaY, angle, hyp;
 
@@ -478,15 +452,14 @@ IplImage* SceneFlow::draw2DMotionField()
             if(hyp > cutoff){
                 p1.x = p0.x + cvRound(multiplier*hyp*cos(angle));
                 p1.y = p0.y + cvRound(multiplier*hyp*sin(angle));
-                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+                line( imgMotion, p0, p1, color,1, CV_AA, 0);
                 p0.x = p1.x + cvRound(3*cos(angle-CV_PI + CV_PI/4));
                 p0.y = p1.y + cvRound(3*sin(angle-CV_PI + CV_PI/4));
-                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
+                line( imgMotion, p0, p1, color,1, CV_AA, 0);
 
                 p0.x = p1.x + cvRound(3*cos(angle-CV_PI - CV_PI/4));
                 p0.y = p1.y + cvRound(3*sin(angle-CV_PI - CV_PI/4));
-                cvLine( imgMotion, p0, p1, color,1, CV_AA, 0);
-                
+                line( imgMotion, p0, p1, color,1, CV_AA, 0);
             }
         }
     }
@@ -494,30 +467,26 @@ IplImage* SceneFlow::draw2DMotionField()
     return imgMotion;
 }
 
-void SceneFlow::drawFlowModule(IplImage* imgMotion)
+void SceneFlow::drawFlowModule(Mat &imgMotion)
 {
     flowSem->wait();
-    IplImage * module =cvCreateImage(cvSize(imgMotion->width,imgMotion->height),32,1);
-    IplImage * moduleU =cvCreateImage(cvSize(imgMotion->width,imgMotion->height),8,1);
-    Mat vel[2];
+    Mat module=Mat::zeros(imgMotion.size(),CV_32FC1);
+    Mat moduleU=Mat::zeros(imgMotion.size(),CV_8UC1);
+
+    Mat vel[2],velp[2];
     split(optFlow,vel);
-    IplImage tx=(Mat)vel[0];
-    IplImage ty=(Mat)vel[1];
+    velp[0]=vel[0].clone();
+    velp[1]=vel[1].clone();
 
-    IplImage* velxpow=cvCloneImage(&tx);
-    IplImage* velypow=cvCloneImage(&ty);
+    pow(vel[0],2.0,velp[0]);
+    pow(vel[1],2.0,velp[1]);
 
-    cvPow(&tx, velxpow, 2);
-    cvPow(&ty, velypow, 2);
-
-    cvAdd(velxpow, velypow, module, NULL);
-    cvPow(module, module, 0.5);
-    cvNormalize(module, module, 0.0, 1.0, CV_MINMAX, NULL);
-    cvZero(imgMotion);
-    cvConvertScale(module,moduleU,255,0);
-    cvMerge(moduleU,moduleU,moduleU,NULL,imgMotion);
-    cvReleaseImage(&module);
-    cvReleaseImage(&moduleU);
+    module=velp[0]+velp[1];
+    pow(module,0.5,module);
+    normalize(module,module,0.0,1.0,NORM_MINMAX);
+    imgMotion.setTo(Scalar::all(0));
+    convertScaleAbs(module,moduleU,255.0,0.0);
+    merge(vector<Mat>(3,moduleU),imgMotion);
     flowSem->post();
 }
 

@@ -216,7 +216,7 @@ public:
     * @param firstImg the images acquired from the first (main) camera
     * @param secondImg the images acquired from the second (secondary) camera
     */
-    void setImages(IplImage* firstImg, IplImage* secondImg);
+    void setImages(const Mat &firstImg, const Mat &secondImg);
 
     /**
     * It finds matches between two images. SIFT detector and descriptor is used.

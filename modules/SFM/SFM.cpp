@@ -18,7 +18,10 @@
 
 #include <cmath>
 #include <algorithm>
+#include <yarp/cv/Cv.h>
 #include "SFM.h"
+
+using namespace yarp::cv;
 
 
 /******************************************************************************/
@@ -106,7 +109,6 @@ bool SFM::configure(ResourceFinder &rf)
     this->sigmaColorBLF = 10.0;
     this->sigmaSpaceBLF = 10.0;
 
-
     this->HL_root=Mat::zeros(4,4,CV_64F);
     this->HR_root=Mat::zeros(4,4,CV_64F);
 
@@ -118,7 +120,6 @@ bool SFM::configure(ResourceFinder &rf)
         this->stereo->setIntrinsics(KL,KR,zeroDist,zeroDist);
     }
 
-    output_match=NULL;
     init=true;
     numberOfTrials=0;
 
@@ -267,9 +268,6 @@ bool SFM::close()
     worldCartPort.close();
     worldCylPort.close();
 
-    if (output_match!=NULL)
-        cvReleaseImage(&output_match);
-
     outLeftRectImgPort.close();
     outRightRectImgPort.close();
 
@@ -307,23 +305,19 @@ bool SFM::updateModule()
     updateViaKinematics(eyes-eyes0);
     updateViaGazeCtrl(false);
 
-    left=(IplImage*)yarp_imgL->getIplImage();
-    right=(IplImage*)yarp_imgR->getIplImage();
+    leftMat=toCvMat(*yarp_imgL);
+    rightMat=toCvMat(*yarp_imgR);
 
     if (init)
     {
-        output_match=cvCreateImage(cvSize(left->width*2,left->height),8,3);
-        this->numberOfDisparities=(left->width<=320)?96:128;
-
+        this->numberOfDisparities=(leftMat.size().width<=320)?96:128;
         init=false;
     }
 
     getCameraHGazeCtrl(LEFT);
     getCameraHGazeCtrl(RIGHT);
 
-    Mat leftMat=cvarrToMat(left);
-    Mat rightMat=cvarrToMat(right);
-    this->stereo->setImages(left,right);
+    this->stereo->setImages(leftMat,rightMat);
 
     mutexRecalibration.lock();
     if (doSFM)
@@ -366,13 +360,6 @@ bool SFM::updateModule()
             this->minDisparity,this->preFilterCap,this->disp12MaxDiff);
     mutexDisp.unlock();
 
-    // DEBUG
-    /*int uR,vR;
-    Point3f point = this->get3DPointsAndDisp(160,120,uR,vR,"ROOT");
-    circle(leftMat,cvPoint(160,120),2,cvScalar(255,0,0),2);
-    circle(rightMat,cvPoint(uR,vR),2,cvScalar(0,255,0),2);
-     */
-
     if (outLeftRectImgPort.getOutputCount()>0)
     {
         Mat rectLeft = this->stereo->getLRectified();
@@ -380,7 +367,7 @@ bool SFM::updateModule()
         ImageOf<PixelRgb>& rectLeftImage = outLeftRectImgPort.prepare();
         rectLeftImage.resize(rectLeft.cols,rectLeft.rows);
 
-        Mat rectLeftImageMat=cvarrToMat((IplImage*)rectLeftImage.getIplImage());
+        Mat rectLeftImageMat=toCvMat(rectLeftImage);
         rectLeft.copyTo(rectLeftImageMat);
 
         outLeftRectImgPort.setEnvelope(stamp_left);
@@ -394,7 +381,7 @@ bool SFM::updateModule()
         ImageOf<PixelRgb>& rectRightImage = outRightRectImgPort.prepare();
         rectRightImage.resize(rectRight.cols,rectRight.rows);
 
-        Mat rectRightImageMat=cvarrToMat((IplImage*)rectRightImage.getIplImage());
+        Mat rectRightImageMat=toCvMat(rectRightImage);
         rectRight.copyTo(rectRightImageMat);
 
         outRightRectImgPort.setEnvelope(stamp_right);
@@ -403,26 +390,11 @@ bool SFM::updateModule()
 
     if (outMatch.getOutputCount()>0)
     {
-        /*Mat F= this->stereo->getFundamental();
-
-        if(matchtmp.size()>0)
-        {
-            Mat m(matchtmp);
-            vector<Vec3f> lines;
-            cv::computeCorrespondEpilines(m,2,F,lines);
-            for (cv::vector<cv::Vec3f>::const_iterator it = lines.begin(); it!=lines.end(); ++it)
-            {
-                cv::line(matMatches, cv::Point(0,-(*it)[2]/(*it)[1]), cv::Point(left->width,-((*it)[2] + (*it)[0]*left->width)/(*it)[1]),cv::Scalar(0,0,255));
-            }        
-        }*/
-
         Mat matches=this->stereo->drawMatches();
         cvtColor(matches,matches,CV_BGR2RGB);
         ImageOf<PixelBgr>& imgMatch=outMatch.prepare();
         imgMatch.resize(matches.cols,matches.rows);
-        IplImage tmpR=matches;
-
-        cvCopy(&tmpR,(IplImage*)imgMatch.getIplImage());
+        matches.copyTo(toCvMat(imgMatch));
         outMatch.write();
     }
 
@@ -433,16 +405,16 @@ bool SFM::updateModule()
         if (!outputDm.empty())
         {
             ImageOf<PixelMono> &outim = outDisp.prepare();
+            Mat outimMat = toCvMat(outim);
             if (doBLF)
             {
                 Mat outputDfiltm;
                 cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
-                IplImage outputDfilt = outputDfiltm;
-                outim.wrapIplImage(&outputDfilt);
-            } else
+                outimMat = outputDfiltm;
+            }
+            else
             {
-                IplImage outputD = outputDm;
-                outim.wrapIplImage(&outputD);
+                outimMat = outputDm;
             }
             outDisp.write();
         }
@@ -451,8 +423,8 @@ bool SFM::updateModule()
     ImageOf<PixelRgbFloat>& outcart=worldCartPort.prepare();
     ImageOf<PixelRgbFloat>& outcyl=worldCylPort.prepare();
     
-    outcart.resize(left->width,left->height);
-    outcyl.resize(left->width,left->height);
+    outcart.resize(leftMat.size().width,leftMat.size().height);
+    outcyl.resize(leftMat.size().width,leftMat.size().height);
 
     fillWorld3D(outcart,outcyl);
 

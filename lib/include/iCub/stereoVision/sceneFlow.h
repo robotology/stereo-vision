@@ -50,11 +50,11 @@ private:
     yarp::os::Stamp TSRight;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* imageL;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* imageR;
-    IplImage* imgLPrev;
-    IplImage* imgRPrev;
-    IplImage* imgLNext;
-    IplImage* imgRNext;
 
+    Mat imgLNext;
+    Mat imgRNext;
+    Mat imgLPrev;
+    Mat imgRPrev;
     Mat optFlow;
     Mat dispOld;
     Mat dispNew;
@@ -84,18 +84,14 @@ public:
     SceneFlow(yarp::os::ResourceFinder &rf);
     ~SceneFlow(void) {};
 
-
     bool isOpen();
-
-
-
     bool threadInit(void);
     void run(void); 
     void onStop(void);
     void close();
     Point3f getSceneFlowPixel(int u, int v);
-    IplImage* draw2DMotionField();
-    void drawFlowModule(IplImage* imgMotion);
+    Mat draw2DMotionField();
+    void drawFlowModule(Mat &imgMotion);
     int getImgWidth();
     int getImgHeight();
     void getSceneFlow(Mat &flow3D);
