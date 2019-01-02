@@ -18,6 +18,9 @@ set( msg_include_dirs ${msgs_root_SOURCE_DIR})
 yarp_add_idl(IDL_GEN_FILES idl.thrift)
 source_group("IDL Files" FILES idl.thrift)
 
+# import math symbols from standard cmath
+add_definitions(-D_USE_MATH_DEFINES)
+
 # include directories list
 include_directories( ${msg_include_dirs} )
 

@@ -417,11 +417,13 @@ bool RGBD2PointCloud::interruptModule()
 
     pointCloud_outTopic.close();
     rpcPort.close();
+    return true;
 }
 
 bool RGBD2PointCloud::close()
 {
     yTrace();
     interruptModule();
+    return true;
 }
 
