@@ -60,10 +60,6 @@ if(USE_SIFT_GPU)
     list(APPEND folder_header include/iCub/stereoVision/utils.h)
 endif()
 
-if(OpenCV_VERSION_MAJOR GREATER 2)
-  add_definitions(-DOPENCV_GREATER_2)
-endif()
-
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas)
 
@@ -73,10 +69,18 @@ source_group("Header Files" FILES ${folder_header})
 
 if(USE_SIFT_GPU)
     include_directories(${SIFTGPU_INCLUDE_DIRS})
-    add_definitions(-DUSING_GPU)
 endif()
 
 add_library(${PROJECT_NAME} ${folder_source} ${folder_source_elas} ${folder_header})
+
+if(OpenCV_VERSION_MAJOR GREATER 2)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OPENCV_GREATER_2)
+endif()
+
+if(USE_SIFT_GPU)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USING_GPU)
+endif()
+
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES})
 
 if(USE_SIFT_GPU)

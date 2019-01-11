@@ -11,10 +11,14 @@ include_directories(${stereoVision_INCLUDE_DIRS})
 
 if(USE_SIFT_GPU)
     include_directories(${SIFTGPU_INCLUDE_DIRS})
-    add_definitions(-DUSING_GPU)
 endif()
 
 add_executable(${PROJECT_NAME} ${source} ${header})
+
+if(USE_SIFT_GPU)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USING_GPU)
+endif()
+
 target_link_libraries(${PROJECT_NAME} stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
 
 if(USE_SIFT_GPU)
