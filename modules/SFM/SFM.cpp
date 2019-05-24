@@ -405,17 +405,18 @@ bool SFM::updateModule()
         if (!outputDm.empty())
         {
             ImageOf<PixelMono> &outim = outDisp.prepare();
-            Mat outimMat = toCvMat(outim);
+            Mat outimMat;
             if (doBLF)
             {
                 Mat outputDfiltm;
-                cv_extend::bilateralFilter(outputDm,outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
+                cv_extend::bilateralFilter(outputDm, outputDfiltm, sigmaColorBLF, sigmaSpaceBLF);
                 outimMat = outputDfiltm;
             }
             else
             {
                 outimMat = outputDm;
             }
+            outim = fromCvMat<PixelMono>(outimMat);
             outDisp.write();
         }
     }
