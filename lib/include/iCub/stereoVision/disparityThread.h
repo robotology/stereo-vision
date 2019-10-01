@@ -16,6 +16,8 @@
  * Public License for more details
  */
 
+#include <mutex>
+
 #include <iCub/stereoVision/stereoCamera.h>
 #include <yarp/dev/PolyDriver.h>
 #include <iCub/iKin/iKinFwd.h>
@@ -76,7 +78,7 @@ private:
 
     Matrix yarp_initLeft,yarp_initRight;
     Matrix yarp_H0;
-    yarp::os::Mutex mutexDisp;
+    mutex mutexDisp;
     PolyDriver gazeCtrl;
     IGazeControl* igaze;
 

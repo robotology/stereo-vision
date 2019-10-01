@@ -595,7 +595,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
     if ((drive!="RIGHT") && (drive!="LEFT") && (drive!="ROOT"))
         return point;
 
-    LockGuard lg(mutexDisp);
+    lock_guard<mutex> lg(mutexDisp);
 
     // Mapping from Rectified Cameras to Original Cameras
     const Mat& Mapper=this->stereo->getMapperL();
@@ -698,7 +698,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
     if ((drive!="RIGHT") && (drive!="LEFT") && (drive!="ROOT"))
         return point;
 
-    LockGuard lg(mutexDisp);
+    lock_guard<mutex> lg(mutexDisp);
 
     // Mapping from Rectified Cameras to Original Cameras
     const Mat& Mapper=this->stereo->getMapperL();
@@ -794,7 +794,7 @@ Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
     if ((drive!="RIGHT") && (drive!="LEFT") && (drive!="ROOT"))
         return point;
 
-    LockGuard lg(mutexDisp);
+    lock_guard<mutex> lg(mutexDisp);
     // Mapping from Rectified Cameras to Original Cameras
     const Mat& MapperL=this->stereo->getMapperL();
     const Mat& MapperR=this->stereo->getMapperR();

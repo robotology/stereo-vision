@@ -23,7 +23,6 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/Time.h>
-#include <yarp/os/Semaphore.h>
 #include <yarp/os/Event.h>
 #include <yarp/os/Stamp.h>
 #include <cv.h>

@@ -36,6 +36,7 @@
  */ 
 #include <iostream>
 #include <fstream>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -136,7 +137,7 @@ private:
     
     double epipolarTh; //threshold for the constraint x'Fx=0 -> x'Fx<epipolarTh
 
-    Semaphore* mutex;
+    mutex mtx;
     bool cameraChanged;
     bool rectify;
     bool readStringList( const string& filename, vector<string>& l );
@@ -169,7 +170,7 @@ public:
     */
     StereoCamera(bool rectify=true);
 
-    ~StereoCamera() { delete mutex;}
+    ~StereoCamera() { }
 
     /**
     * Costructor for initialization from file.

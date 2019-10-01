@@ -16,6 +16,8 @@
  * Public License for more details
  */
 
+#include <mutex>
+
 #include <iCub/iKin/iKinFwd.h>
 #include <yarp/os/all.h>
 #include "iCub/stereoVision/disparityThread.h"
@@ -73,7 +75,7 @@ private:
     bool initL,initR;
     bool init;
 
-    Semaphore* flowSem;
+    mutex flowSem;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortInLeft;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortInRight;
     void triangulate(Point2f &pixel,Point3f &point,Mat &Mapper, Mat &disparity, Mat &Q, Mat &RLrect);

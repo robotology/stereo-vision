@@ -41,8 +41,6 @@ SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : PeriodicThread(0.01)
     success=success & imagePortInLeft.open(localPortL);
     success=success & imagePortInRight.open(localPortR);
 
-    flowSem=new Semaphore(1);
-
     success=success & Network::connect(inputL,localPortL);
     success=success & Network::connect(inputR,localPortR);    
 
@@ -79,13 +77,13 @@ bool SceneFlow::isOpen()
 
 void SceneFlow::close()
 {
-    flowSem->wait();
+    flowSem.lock();
     disp->suspend();
     disp->stop();
 
     opt->suspend();
     opt->stop();
-    flowSem->post();
+    flowSem.unlock();
     
     imagePortInLeft.interrupt();
     imagePortInLeft.close();
@@ -99,7 +97,6 @@ void SceneFlow::threadRelease()
     delete disp;
     delete imageL;
     delete imageR;
-    delete flowSem;
     delete opt;
 }
 
@@ -129,8 +126,8 @@ void SceneFlow::run()
     {
         if (init)
         {
+            lock_guard<mutex> lg(flowSem);
             fprintf(stdout, "Initializing Scene Flow..\n");
-            flowSem->wait();
             imgLNext=toCvMat(*imageL);
             imgRNext=toCvMat(*imageR);
             width=imgLNext.size().width;
@@ -151,12 +148,11 @@ void SceneFlow::run()
 
             imgLPrev=imgLNext.clone();
             imgRPrev=imgRNext.clone();
-            flowSem->post();
             fprintf(stdout, "Init Scene Flow Done...\n");
         }
         else
         {
-            flowSem->wait();
+            lock_guard<mutex> lg(flowSem);
             imgLNext=toCvMat(*imageL);
             imgRNext=toCvMat(*imageR);
 
@@ -184,7 +180,6 @@ void SceneFlow::run()
 
             imgLPrev=imgLNext.clone();
             imgRPrev=imgRNext.clone();
-            flowSem->post();
         }
     }
 }
@@ -285,7 +280,7 @@ void SceneFlow::buildRotTras(Mat & R, Mat & T, Mat & A)
 
 Point3f SceneFlow::getSceneFlowPixel(int u, int v)
 {
-    flowSem->wait();
+    lock_guard<mutex> lg(flowSem);
     Point3f flowPoint;
     flowPoint.x=0.0;
     flowPoint.y=0.0;
@@ -293,7 +288,6 @@ Point3f SceneFlow::getSceneFlowPixel(int u, int v)
 
     if(v>=dispFloatNew.rows || u>=dispFloatNew.cols || optFlow.empty())
     {
-        flowSem->post();
         return flowPoint;
     }
 
@@ -302,7 +296,6 @@ Point3f SceneFlow::getSceneFlowPixel(int u, int v)
 
     if (valOld==0 || valNew==0)
     {
-        flowSem->post();
         return flowPoint;
     }
 
@@ -313,7 +306,6 @@ Point3f SceneFlow::getSceneFlowPixel(int u, int v)
     triangulate(point2Dold,point3Dold,mapperOld,dispFloatOld,QOld,RLOld);
     if (point3Dold.x==0.0)
     {
-        flowSem->post();
         return flowPoint;
     }
 
@@ -324,20 +316,18 @@ Point3f SceneFlow::getSceneFlowPixel(int u, int v)
     triangulate(point2Dnew,point3Dnew,mapperNew,dispFloatNew,QNew,RLNew);
     if (point3Dnew.x==0.0)
     {
-        flowSem->post();
         return flowPoint;
     }
 
     flowPoint.x=point3Dnew.x-point3Dold.x;
     flowPoint.y=point3Dnew.y-point3Dold.y;
     flowPoint.z=point3Dnew.z-point3Dold.z;
-    flowSem->post();
     return flowPoint;
 
 }
 void SceneFlow::getSceneFlow(Mat &flow3D, int U1, int V1, int U2, int V2)
 {
-    flowSem->wait();
+    lock_guard<mutex> lg(flowSem);
     flow3D.create(optFlow.rows,optFlow.cols,CV_32FC3);
     flow3D.setTo(Scalar(0));
     Point3f flowPoint;
@@ -347,7 +337,6 @@ void SceneFlow::getSceneFlow(Mat &flow3D, int U1, int V1, int U2, int V2)
 
     if(optFlow.empty())
     {
-        flowSem->post();
         return;
     }
     
@@ -404,9 +393,6 @@ void SceneFlow::getSceneFlow(Mat &flow3D, int U1, int V1, int U2, int V2)
             flow3D.ptr<float>(v)[2*u+2]=(float)flowPoint.z;
             }
     }
-
-    flowSem->post();
-
 }
 
 
@@ -418,7 +404,7 @@ void SceneFlow::getSceneFlow(Mat &flow3D)
 
 Mat SceneFlow::draw2DMotionField()
 {
-    flowSem->wait();
+    lock_guard<mutex> lg(flowSem);
     int xSpace=7;
     int ySpace=7;
     float cutoff=1;
@@ -430,7 +416,6 @@ Mat SceneFlow::draw2DMotionField()
 
     if(optFlow.empty() || imgLPrev.empty())
     {
-        flowSem->post();
         return Mat();
     }
 
@@ -463,13 +448,12 @@ Mat SceneFlow::draw2DMotionField()
             }
         }
     }
-    flowSem->post();
     return imgMotion;
 }
 
 void SceneFlow::drawFlowModule(Mat &imgMotion)
 {
-    flowSem->wait();
+    lock_guard<mutex> lg(flowSem);
     Mat module=Mat::zeros(imgMotion.size(),CV_32FC1);
     Mat moduleU=Mat::zeros(imgMotion.size(),CV_8UC1);
 
@@ -487,7 +471,6 @@ void SceneFlow::drawFlowModule(Mat &imgMotion)
     imgMotion.setTo(Scalar::all(0));
     convertScaleAbs(module,moduleU,255.0,0.0);
     merge(vector<Mat>(3,moduleU),imgMotion);
-    flowSem->post();
 }
 
 
