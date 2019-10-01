@@ -340,7 +340,7 @@ bool SFM::updateModule()
         {
             calibUpdated=true;
             doSFM=false;
-            calibEndEvent.signal();
+            cv_calibEndEvent.notify_all();
         }
         else
         {
@@ -348,7 +348,7 @@ bool SFM::updateModule()
             {
                 calibUpdated=false;
                 doSFM=false;
-                calibEndEvent.signal();
+                cv_calibEndEvent.notify_all();
             }
         }
     }
@@ -998,8 +998,8 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
         doSFM=true;
         mutexRecalibration.unlock();
 
-        calibEndEvent.reset();
-        calibEndEvent.wait();
+        unique_lock<mutex> lck(mtx_calibEndEvent);
+        cv_calibEndEvent.wait(lck);
 
         if (calibUpdated)
         {

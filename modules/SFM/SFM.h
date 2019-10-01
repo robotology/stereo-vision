@@ -231,6 +231,7 @@ against OpenCV versions: 2.4.
 
 #include <cstdio>
 #include <mutex>
+#include <condition_variable>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -305,8 +306,9 @@ class SFM: public yarp::os::RFModule
     double sigmaSpaceBLF;
     bool doBLF;
     mutex mutexRecalibration;
-    Event calibEndEvent;
     mutex mutexDisp;
+    mutex mtx_calibEndEvent;
+    condition_variable cv_calibEndEvent;
 
     PolyDriver headCtrl,gazeCtrl;
     IEncoders* iencs;
