@@ -1,9 +1,11 @@
 Stereo Vision
-============
+=============
 
 A C++ [YARP](https://github.com/robotology/yarp) library that provides the **iCub** robot with stereo vision capabilities.
 
 [![ZenHub](https://img.shields.io/badge/Shipping_faster_with-ZenHub-435198.svg)](https://zenhub.com)
+
+![gh-pages](https://github.com/robotology/stereo-vision/workflows/GitHub%20Pages/badge.svg)
 
 ## Installation
 
