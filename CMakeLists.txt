@@ -18,16 +18,24 @@ list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH}
                               ${ICUBCONTRIB_MODULE_PATH}
                               ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-find_package(OpenCV REQUIRED)
+#find_package(OpenCV REQUIRED)
 
-set(USE_SIFT_GPU FALSE CACHE BOOL "Select false to run without GPU, or true for GPU acceleration")
-if(USE_SIFT_GPU)
-    find_package(SIFTGPU REQUIRED)
-endif()
+
+#set(USE_SIFT_GPU FALSE CACHE BOOL "Select false to run without GPU, or true for GPU acceleration")
+#if(USE_SIFT_GPU)
+#    find_package(SIFTGPU REQUIRED)
+#endif()
 
 include(ICUBcontribHelpers)
 include(ICUBcontribOptions)
 icubcontrib_set_default_prefix()
+
+set(OpenCV_INCLUDE_DIR "/usr/local/src/robot/opencv/include" "/usr/local/src/robot/opencv_contrib/modules/xfeatures2d/include") 
+include_directories(${OpenCV_INCLUDE_DIR})
+
+set(OpenCV_LIBRARIES "opencv_features2d;opencv_imgproc;opencv_core;opencv_cudastereo;opencv_ximgproc;opencv_xfeatures2d")
+link_directories("/usr/local/src/robot/opencv/build-cuda/lib")
+
 
 set(COMPILE_LIB FALSE CACHE BOOL "Select false not to compile library")
 ## add libraries

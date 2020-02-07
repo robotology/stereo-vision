@@ -1,0 +1,541 @@
+/*
+ * Copyright (C) 2015 RobotCub Consortium
+ * Author: Sean Ryan Fanello, Giulia Pasquale
+ * email:   sean.fanello@iit.it giulia.pasquale@iit.it
+ * website: www.robotcub.org
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+*/
+
+/**
+\defgroup SFM SFM
+
+Structure From Motion (SFM) module for estimation of estrinsics
+parameter and computation of depth map.
+
+Copyright (C) 2015 RobotCub Consortium
+
+Author: Sean Ryan Fanello, Giulia Pasquale
+
+Date: first release around 24/07/2013
+
+CopyPolicy: Released under the terms of the GNU GPL v2.0.
+
+\section intro_sec Description
+The module uses a complete Structure From Motion (SFM) pipeline
+for the computation of the extrinsics parameters between two
+different views. These parameters are then used to rectify the
+images and to compute a depth map using either the H. Hirschmuller
+Algorithm (CVPR 2006), implemented since Opencv 2.2, or
+<a href="http://www.cvlibs.net/software/libelas/">LIBELAS
+(Library for Efficient Large-scale Stereo Matching)</a>.
+The Kinematics of the iCub is used to guess the current camera positions,
+then visual features are used to refine this model.
+Before starting, make sure you have calibrated the intrinsics
+parameters. For the stereo calibration see the module <a
+href="http://wiki.icub.org/iCub/main/dox/html/group__icub__stereoCalib.html">stereoCalib</a>.
+This module provides six output ports: the first one is the
+disparity map in grayscale values, the second and the third port
+are the WorldImage, which are a 3-channels float images, where in each
+pixel are stored the three Cartesian and the Cylindrical coordinates
+with respect to robot root reference frame. The fourth port outputs the current
+keypoints match. Non valid points are handled with the special
+value (0,0,0). The last two ports output the rectified images used to compute
+the horizontal disparity map. In addition, a rpc port supports requests for
+3D/2D points computation (see below).
+
+\note <b>If you're going to use this module for your work,
+      please quote it within any resulting publication</b>:
+      Fanello S.R., Pattacini U., Gori I., Tikhanoff V., Randazzo M.,
+      Roncone A., Odone F., Metta G., "3D Stereo Estimation and Fully Automated
+      Learning of Eye-Hand Coordination in Humanoid Robots", <i>Proceedings of
+      IEEE-RAS International Conference on Humanoid Robots</i>, Madrid, Spain,
+      November 18-20, 2014.
+
+\section lib_sec Libraries
+YARP libraries and OpenCV 2.4 (at least). \n
+For better performance, we suggest you to run the module on a
+machine equipped with GPU functionality along with the
+<a href="http://cs.unc.edu/~ccwu/siftgpu">SiftGPU</a> library
+installed. This module now uses <a href="http://www.cvlibs.net/software/libelas/">LIBELAS </a>
+by default to compute the horizontal disparity map from the rectified left and right images.
+The source code of LIBELAS is compiled with the stereoVisionLib (with no particular dependences).
+The OpenMP accelerated version of the LIBELAS is used under UNIX systems, if OpenMP is available.
+
+\section parameters_sec Parameters
+--name \e SFM
+- The parameter \e stemName specifies the stem name of ports
+  created by the module.
+
+--from \e stereoCalibFile
+- The parameter \e stereoCalibFile specifies the stereo calibration file to configure the module with. Default is icubEyes.ini
+
+--context \e stereoCalibContext
+- The parameter \e stereoCalibContext defines the YARP context to search for the stereo calibration file in. Default is cameraCalibration
+
+--robot \e robotName
+- The parameter \e robotName specifies the name of the robot.
+
+--leftPort \e /left:i
+- The parameter \e inputLeft specifies the left image input port.
+
+--rightPort \e /right:i
+- The parameter \e inputRight specifies the right image input port.
+
+--outLeftRectImgPort \e /rect_left:o
+- Specifies the left rectified image output port.
+
+--outRightRectImgPort \e /rect_right:o
+- Specifies the right rectified image output port.
+
+--outDispPort \e /disp:o
+- The parameter \e /disparity:o specifies the output port for the disparity image.
+
+--outMatchPort \e /match:o
+- The parameter \e /match:o specifies the output port for the match image.
+
+--outWorldPort \e /world
+- The parameter \e /world specifies the output suffix for the world images. The final
+tags \e /cartesian:o and \e /cylindrical:o are appended.
+
+--CommandPort \e comm
+- The parameter \e comm specifies the command port for rpc protocol.
+
+--skipBLF
+- Disable Bilateral filter.
+
+--use_sgbm
+- By default LIBELAS is used to compute the disparity. However, if you prefer to continue using the
+OpenCV's SGBM algorithm, you just need to pass the parameter \e use_sgbm.
+
+If you use LIBELAS, there is the possibility of setting the following parameters:
+
+--disp_scaling_factor \e 1.0
+- This parameter provides the option of resizing the left and right images
+before computing the disparity map (and finally resize again
+the resulting map to the original size). It is a multiplicative factor.
+For example, if a low-resolution (also less accurate!) disparity map
+is sufficient, but needed at high rate, you can set this parameter to 1/N
+so that the images width and height are divided by a factor N,
+LIBELAS computes the disparity of the downsampled images,
+and finally the disparity map's size is rescaled by N before returning.
+
+--elas_setting \e ROBOTICS
+- The parameter \e ROBOTICS or \e MIDDLEBURY allow to choose between the two settings
+of parameters defined in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>.
+This module gives the possibility of modifying (eventually tuning to individual needs)
+those parameters which differ between the two settings, plus a couple of others
+(\e elas_subsampling and \e elas_add_corners). The remaining parameters are supposed to be
+fixed to the values proposed by the authors of LIBELAS.
+
+Here we list those LIBELAS parameters that can be passed to this module;
+see <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>
+for the complete list of parameters, their definitions and default values.
+
+--elas_subsampling
+- Pass the parameter \e elas_subsampling if you want to set the \e subsampling parameter to \e true
+in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+to speedup the computation (at the expenses of accuracy).
+
+--elas_add_corners
+- Pass the parameter \e elas_add_corners if you want to set \e add_corners parameter to \e true
+in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+to consider also the image corners in the computation of the disparity map.
+
+--elas_ipol_gap_width \e 40
+- This is the only parameter for which we set a default value different from the ones provided
+in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>, where
+the \e ipol_gap_width parameter is set to \e 3 in \e ROBOTICS and \e 5000 in \e MIDDLEBURY. It is the radius of interpolation (in pixel)
+of the disparity values found in the keypoints. Small values result in sparser disparity maps (with more
+black holes); high values result in denser maps, with the black regions filled with interpolated values.
+
+Also the following LIBELAS parameters can be modified by the user,
+however we stick with the values provided by the authors.
+
+--elas_support_threshold \e 0.85
+- This is the \e support_threshold parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to 0.95 in \e MIDDLEBURY and 0.85 in \e ROBOTICS.
+
+--elas_gamma \e 3
+- This is the \e gamma parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to 5 in \e MIDDLEBURY and 3 in \e ROBOTICS.
+
+--elas_sradius \e 2
+- This is the \e sradius parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to 3 in \e MIDDLEBURY and 2 in \e ROBOTICS.
+
+--elas_match_texture \e true
+- This is the \e match_texture parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
+
+--elas_filter_median \e false
+- This is the \e filter_median parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to \e true in \e MIDDLEBURY and \e false in \e ROBOTICS.
+
+--elas_filter_adaptive_mean \e true
+- This is the \e filter_adaptive_mean parameter in <a href="https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h">elas.h</a>,
+set to \e false in \e MIDDLEBURY and \e true in \e ROBOTICS.
+
+\section portsc_sec Ports Created
+- <i> /SFM/left:i </i> accepts the incoming images from the left eye.
+- <i> /SFM/right:i </i> accepts the incoming images from the right eye.
+
+- <i> /SFM/disp:o </i> outputs the disparity map in grayscale values.
+- <i> /SFM/world/cartesian:o</i> outputs the world image (3-channel float with X Y Z values).
+- <i> /SFM/world/cylindrical:o</i> outputs the world image (3-channel float with R Theta Z values).
+- <i> /SFM/match:o</i> outputs the match image.
+
+- <i> /SFM/rect_left:o</i> outputs the rectified left image.
+- <i> /SFM/rect_right:o</i> outputs the rectified right image.
+
+- <i> /SFM/rpc </i> for terminal commands communication.
+    - [calibrate]: It recomputes the camera positions once.
+    - [save]: It saves the current camera positions and uses it when the module starts.
+    - [getH]: It returns the calibrated stereo matrix.
+    - [setNumDisp NumOfDisparities]: It sets the expected number of disparity (in pixel). Values must be divisible by 32. Good values are 64 for 320x240 images and 128 for 640x480 images.
+    - [setMinDisp minDisparity]: It sets the minimum disparity (in pixel).
+    - [Point x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
+    - [x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z ur vr computed using the depth map wrt the the ROOT reference system; (ur vr) is the corresponding pixel in the Right image. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
+    - [Left x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the LEFT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
+    - [Right x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the RIGHT eye. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
+    - [Root x y]: Given the pixel coordinate x,y in the Left image the response is the 3D Point: X Y Z computed using the depth map wrt the ROOT reference system. Points with non valid disparity (i.e. occlusions) are handled with the value (0.0,0.0,0.0).
+    - [Rect tlx tly w h step]: Given the pixels in the rectangle defined by {(tlx,tly) (tlx+w,tly+h)} (parsed by columns), the response contains the corresponding 3D points in the ROOT frame. The optional parameter step defines the sampling quantum; by default step=1.
+    - [Points u_1 v_1 ... u_n v_n]: Given a list of n pixels, the response contains the corresponding 3D points in the ROOT frame.
+    - [Flood3D x y dist]: Perform 3D flood-fill on the seed point (x,y), returning the following info: [u_1 v_1 x_1 y_1 z_1 ...]. The optional parameter dist expressed in meters regulates the fill (by default = 0.004).
+    - [uL_1 vL_1 uR_1 vR_1 ... uL_n vL_n uR_n vR_n]: Given n quadruples uL_i vL_i uR_i vR_i, where uL_i vL_i are the pixel coordinates in the Left image and uR_i vR_i are the coordinates of the matched pixel in the Right image, the response is a set of 3D points (X1 Y1 Z1 ... Xn Yn Zn) wrt the ROOT reference system.
+    - [cart2stereo X Y Z]: Given a world point X Y Z wrt to ROOT reference frame the response is the projection (uL vL uR vR) in the Left and Right images.
+    - [doBLF flag]: activate Bilateral filter for flag = true, and skip it for flag = false (default by config).
+    - [bilatfilt sigmaColor sigmaSpace]: Set the parameters for the bilateral filer (default sigmaColor = 10.0, sigmaSpace = 10.0 .
+
+\section in_files_sec Input Data Files
+None.
+
+\section out_data_sec Output Data Files
+None.
+
+\section tested_os_sec Tested OS
+Linux (Ubuntu 9.04, Debian Squeeze) and Windows 7. Tested
+against OpenCV versions: 2.4.
+
+\author Sean Ryan Fanello, Giulia Pasquale
+*/
+
+#include <cstdio>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <set>
+#include <deque>
+
+#include <yarp/os/all.h>
+#include <yarp/dev/all.h>
+#include <yarp/sig/all.h>
+#include <yarp/math/Math.h>
+
+#include <iCub/ctrl/math.h>
+#include <iCub/iKin/iKinFwd.h>
+#include <iCub/stereoVision/stereoCamera.h>
+
+
+#ifdef USE_GUI
+    #include "cvgui.h"
+#endif
+
+#include "common.h"
+#include "StereoMatcher.h"
+
+#ifdef USING_GPU
+    #include <iCub/stereoVision/utils.h>
+#endif
+
+#define LEFT    0
+#define RIGHT   1
+
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::dev;
+using namespace yarp::sig;
+using namespace yarp::math;
+using namespace iCub::ctrl;
+using namespace iCub::iKin;
+
+using namespace cv::ximgproc;
+
+class DispModule: public yarp::os::RFModule
+{
+    StereoCamera* stereo;
+    Mat outputDm, outputDepth;
+    Mat leftMat, rightMat;
+
+#ifdef USING_GPU
+    /* pointer to the utilities class */
+    Utilities *utils;
+#endif
+
+    // input YARP ports
+    yarp::os::Port rpc;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > leftImgPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > rightImgPort;
+    Port handlerPort;
+
+    // output YARP ports
+    BufferedPort<ImageOf<PixelFloat> > outDepth;
+    BufferedPort<ImageOf<PixelMono> >  outDisp;
+
+    // number of trials to consider when recalibrating the system
+    int numberOfTrials;
+
+    // path of the camCalib configuration file 
+    string camCalibFile;
+
+    // stereo matching and calibration auxiliary parameters
+    bool useBestDisp;
+    bool runRecalibration;
+    bool calibUpdated;
+    bool debugWindow;
+    bool doBLF;
+
+    // structures meant to hold the stereo parameters
+    Params stereo_parameters, original_parameters;
+
+    // mutex and other handles needed by the module
+    yarp::os::Mutex mutexRecalibration;
+    Event calibEndEvent;
+    yarp::os::Mutex mutexDisp;
+
+    ResourceFinder localCalibration;
+
+    // objects to interface with the robot's state
+    PolyDriver headCtrl,gazeCtrl;
+    IEncoders* iencs;
+    IGazeControl* igaze;
+    yarp::sig::Vector eyes0,eyes;
+    int nHeadAxes;
+    Mat HL_root;
+    Mat HR_root;
+    Mat R0,T0;
+
+    // objects used in the refinement of the disparity map
+    cv::Mat old_d, old_de;
+    cv::Mat orig;
+
+    bool init;
+
+    // parameters for the CUDA implementation of SGBM
+    SGM_PARAMS cuda_params, params_right;
+
+    // object handling the stereo matching algorithms
+    StereoMatcherNew * matcher;
+
+    /**
+    * Loads the cameras intrinsic matrices
+    * @param rf the ResourceFinder object
+    * @param KL left camera intrinsic parameters matrix
+    * @param KR right camera intrinsic parameters matrix
+    * @param DistL left camera distortion parameters
+    * @param DistR right camera distortion parameters
+    * @return True if the loading is successfull, False otherwise
+    *
+    */
+    bool loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR);
+
+
+    /**
+    * Loads the cameras intrinsic matrices and the stereo disparity parameters
+    * @param rf the ResourceFinder object
+    * @param Ro the rotation of the right eye with respect to the left one
+    * @param To the translation of the right eye with respect to the left one
+    * @param eyes the state of the eyes
+    * @return True if the loading is successfull, False otherwise
+    *
+    */
+    bool loadConfigurationFile(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
+
+    /**
+    * Loads the cameras intrinsic matrices and the stereo disparity parameters
+    * @param rf the ResourceFinder object
+    * @param Ro left camera intrinsic parameters matrix
+    * @param To right camera intrinsic parameters matrix
+    * @param eyes left camera distortion parameters
+    * @return True if the loading is successfull, False otherwise
+    *
+    */
+    // bool loadStereoParameters(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
+
+    /**
+    * Builds a 4x4 rototraslation matrix starting from the corresponding rotation matrix and translation vector
+    * @param R the 3x3 rotation matrix
+    * @param T the 3x1 translation vector
+    * @return the 4x4 rototraslation matrix resulting from the merging of the two input ones
+    *
+    */
+    Mat buildRotTras(const Mat& R, const Mat& T);
+
+    Matrix getCameraHGazeCtrl(int camera);
+
+    /**
+    * Converts a matrix from YARP format to OpenCV format
+    * @param matrix input YARP matrix
+    * @param mat output cv::Mat object
+    *
+    */
+    void convert(Matrix& matrix, Mat& mat);
+
+    /**
+    * Converts a matrix from OpenCV formato to YARP format
+    * @param mat input cv::Mat object
+    * @param matrix output YARP matrix
+    *
+    */
+    void convert(Mat& mat, Matrix& matrix);
+
+    /**
+    * Loads the extrinsics parameters of the camera system, via the ResourceFinder
+    * @param rf the ResourceFinder object
+    * @param Ro the rotation of the right eye with respect to the left one
+    * @param To the translation of the right eye with respect to the left one
+    * @param eyes the state of the eyes
+    * @return
+    *
+    */
+    bool loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes);
+
+    /**
+    * Updates the extrinsics parameters within the local configuration file
+    * @param Rot estimated rotation  of the right camera with respect to the Left one
+    * @param Tr estimated translation of the right camera with respect to the Left one
+    * @param eyes the eyes state when the last calibration has been executed
+    * @param groupname Nname of the properties associated with the stereo system to be written within the configuration file
+    * @return
+    *
+    */
+    bool updateExtrinsics(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
+
+    /**
+    * Updates the extrinsics parameters and the stereo parameters within the local configuration file
+    * @param Rot estimated rotation  of the right camera with respect to the Left one
+    * @param Tr estimated translation of the right camera with respect to the Left one
+    * @param eyes the eyes state when the last calibration has been executed
+    * @param groupname Nname of the properties associated with the stereo system to be written within the configuration file
+    * @return
+    *
+    */
+    bool updateConfigurationFile(Mat& Rot, Mat& Tr, yarp::sig::Vector& eyes, const string& groupname);
+
+    /**
+    * Updates the stereo system translation and rotation parameters by getting the pose of the eyes with respect to the ROOT reference frame
+    *
+    */
+    void updateViaGazeCtrl(const bool update);
+
+    /**
+    * Updates the stereo system translation and rotation parameters by acquiring the state of the eyes (version and vergence)
+    * @param deyes the delta of the eyes state with respect to the one associated with the last calibration which has been carried out
+    *
+    */
+    void updateViaKinematics(const yarp::sig::Vector& deyes);
+
+    /**
+    * Initializes the parameters used by the stereo matching algorithms.
+    *
+    */
+    void initializeStereoParams();
+
+    /**
+    * Computes the depth map starting from the disparity map
+    * @param disp the disparity map
+    * @param Q the transformation matrix resulting from the rectification process
+    * @param R the rectification trasform for the left camera
+    * @return a matrix containing the depth values associated with every point in the disparity map
+    *
+    */
+    Mat depthFromDisparity(Mat disp, Mat Q, Mat R);
+
+    /**
+    * Checks the status of the GUI, and if there are additional operations to carry out
+    *
+    */
+    void handleGuiUpdate();
+
+    /**
+    * Run the calibration process for the stereo camera
+    *
+    */
+    void recalibrate();
+
+#ifdef USE_GUI
+    GUI gui;
+#endif
+
+public:
+
+    // module methods
+
+    bool configure(ResourceFinder &rf);
+    bool close();
+    bool updateModule();
+    double getPeriod();
+    bool interruptModule();
+    bool respond(const Bottle& command, Bottle& reply);
+
+    /**
+    * ZZZZZZZZZZZZZZZZZZZZZZZZZZ
+    * @param PARNAME XXXXXXXXXXXXXXXXXXXXX
+    * @param PARNAME XXXXXXXXXXXXXXXXXXXXX
+    * @param PARNAME XXXXXXXXXXXXXXXXXXXXX
+    * @return XXXXXXXXXXXX
+    *
+    */
+    void setDispParameters(bool _useBestDisp, int _uniquenessRatio, int _speckleWindowSize,
+                           int _speckleRange, int _numberOfDisparities, int _SADWindowSize,
+                           int _minDisparity, int _preFilterCap, int _disp12MaxDiff);
+
+    /**
+    * Calculates the 3D coordinates for a point (u,v) with respect to a specified reference frame
+    * @param u X coordinate of the point on the image plane
+    * @param v Y coordinate of the point on the image plane
+    * @param drive Reference frame considered for this calculation
+    * @return The 3D point representing corresponding to the (u,v) 2D point
+    *
+    */
+    Point3f get3DPoints(int u, int v, const string &drive="LEFT");
+
+    /**
+    * Projects a 3D point onto one of the two image planes
+    * @param camera Camera plane to project the point to, can be "left" or "right"
+    * @param x first coordinate of the 3D point
+    * @param y second coordinate of the 3D point
+    * @param z third coordinate of the 3D point
+    * @return the 2D Coordinates of the projected point, on the selected image plane
+    *
+    */
+    Point2f projectPoint(const string &camera, double x, double y, double z);
+
+    DispModule();
+    ~DispModule();
+
+    /**
+    * Prints the stereo matching parameters to standard output
+    *
+    */
+    void printParameters();
+
+    /**
+    * Rough polishing of the disparity map, cleans away the pixel which values flickered too much w.r.t. the previous frame 
+    * @param old_disp disparity map computed in the previous step
+    * @param new_disp current disparity map
+    * @param th threshold value, the higher the value, the higher the tolerance to the flickering of the disparity map
+    * 
+    */
+    cv::Mat refineDisparity(cv::Mat old_disp, cv::Mat new_disp, int th);
+
+};

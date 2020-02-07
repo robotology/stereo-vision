@@ -54,7 +54,7 @@ public:
     elasWrapper();
     elasWrapper(double scaling_factor, string elas_setting);
 
-    bool compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL, int num_disparities);
+    bool compute_disparity(const cv::Mat &imL, const cv::Mat &imR, cv::Mat &dispL, int num_disparities);
 
     int get_disp_min();
     int get_disp_max();

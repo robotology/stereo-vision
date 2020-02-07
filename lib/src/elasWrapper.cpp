@@ -45,7 +45,7 @@ elasWrapper::elasWrapper() : Elas(parameters(ROBOTICS))
     io_scaling_factor = 1.0;
 }
 
-bool elasWrapper::compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL, int num_disparities)
+bool elasWrapper::compute_disparity(const cv::Mat &imL, const cv::Mat &imR, cv::Mat &dispL, int num_disparities)
 {
 
     // check for correct size

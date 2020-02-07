@@ -33,7 +33,11 @@
  * The library relies on OpenCV 2.4 or greater. It implements 
  * the Camera and StereoCamera classes. 
  *  
- */ 
+ */
+
+#ifndef _ICUB_STEREOVISION_STEREOCAMERA_H_
+#define _ICUB_STEREOVISION_STEREOCAMERA_H_
+
 #include <iostream>
 #include <fstream>
 #include <mutex>
@@ -46,6 +50,8 @@
 #include <iCub/stereoVision/elasWrapper.h>
 
 #include <yarp/os/all.h>
+
+//using namespace cv::ximgproc;
 
 #define LEFT    0
 #define RIGHT   1
@@ -159,10 +165,22 @@ private:
     bool loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T);
     void updateExpectedCameraMatrices();
 
+
+
     bool use_elas;
     elasWrapper*  elaswrap;
 
+    // DEBUG
+    int debug_timings[10];
+    int debug_count;
+
+    cv::Mat right_disp, right_disp16;
+
+
+
 public:
+
+    Mat filtered_disp;
 
     /**
     * Default Constructor. You should initialize all the intrinsic and extrinsic parameters
@@ -573,4 +591,20 @@ public:
     * @return the pixel position in the non-rectified image.
     */
     Point2f fromRectifiedToOriginal(int u, int v, int camera);
+
+    /**
+    * Remaps the disparity map on the basis of the mapping previously computed
+    * @param disp the disparity map to be remapped
+    * @return the remapped disparity map
+    */
+    cv::Mat remapDisparity(cv::Mat disp);
+
+    /**
+    * XXXXXXXXXXXXXXXXXXXX
+    * @return XXXXXXXXXXXXXXXXXXXX
+    */
+    void updateMappings();
+
 };
+
+#endif // _ICUB_STEREOVISION_STEREOCAMERA_H_
