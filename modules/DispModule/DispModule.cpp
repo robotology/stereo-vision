@@ -738,9 +738,10 @@ bool DispModule::updateModule()
 
         cv::Mat disp_vis = matcher->getDisparity("wls");
 
-#ifdef USE_GUI
         if(!disp_vis.empty())
         {
+
+#ifdef USE_GUI
             if(gui.toRefine())
            {
                 orig = disp_vis.clone();
@@ -1415,6 +1416,33 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
                                 disp12MaxDiff);
 
         reply.addString("ACK");
+    }
+    else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" )
+    {
+        int u = command.get(1).asInt();
+        int v = command.get(2).asInt();
+        Point3f point = this->get3DPoints(u,v);
+        reply.addDouble(point.x);
+        reply.addDouble(point.y);
+        reply.addDouble(point.z);
+    }
+    else if (command.get(0).asString()=="Right")
+    {
+        int u = command.get(1).asInt();
+        int v = command.get(2).asInt();
+        Point3f point = this->get3DPoints(u,v,"RIGHT");
+        reply.addDouble(point.x);
+        reply.addDouble(point.y);
+        reply.addDouble(point.z);
+    }
+    else if (command.get(0).asString()=="Root")
+    {
+        int u = command.get(1).asInt();
+        int v = command.get(2).asInt();
+        Point3f point = this->get3DPoints(u,v,"ROOT");
+        reply.addDouble(point.x);
+        reply.addDouble(point.y);
+        reply.addDouble(point.z);
     }
     else if (command.get(0).asString()=="Rect")
     {

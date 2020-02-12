@@ -7,9 +7,6 @@ if(COMMAND cmake_policy)
         cmake_policy(SET CMP0015 OLD)
 endif(COMMAND cmake_policy)
 
-#SET(EXECUTABLE_OUTPUT_PATH ".")
-
-#set(OpenCV_DIR "/usr/local/opencv3.2/share/OpenCV")
 
 find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
@@ -19,8 +16,7 @@ message(STATUS "OpenCVInclude:" ${OpenCV_INCLUDE_DIRS})
 message(STATUS "OpenCVInclude:" ${OPENCV_INCLUDE_DIRS})
 message(STATUS "OpenCVLibraries:" ${OpenCV_LIBRARIES})
 message(STATUS "OpenCVLibs:" ${OpenCV_LIBS})
-message(STATUS "OpenCVLibDIR:" ${OpenCV_LIBRARY_DIRS})
-set(OpenCV_LIBRARY_DIRS "/opt/disk/install/lib")
+#message(STATUS "OpenCVLibDIR:" ${OpenCV_LIBRARY_DIRS})
 
 
 IF(NOT WIN32)
@@ -32,7 +28,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-link_directories(${OpenCV_LIBRARY_DIRS})
+#link_directories(${OpenCV_LIBRARY_DIRS})
 link_directories(${CUDA_LIBRARY_DIRS})
 
 FILE(GLOB SRC_FILES *.cpp)
