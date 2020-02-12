@@ -16,12 +16,10 @@ if(USE_DISPMODULE_GUI)
     list(APPEND header cvgui.h)
 endif()
 
-#find_package(OpenCV REQUIRED)
-set(OpenCV_INCLUDE_DIR "/usr/local/src/robot/opencv/include" "/usr/local/src/robot/opencv/modules/cudaimgproc/include") 
+find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIR})
 
 set(OpenCV_LIBRARIES "opencv_features2d;opencv_imgproc;opencv_core;opencv_cudastereo;opencv_ximgproc;opencv_xfeatures2d")
-link_directories("/usr/local/src/robot/opencv/build-cuda/lib")
 
 find_package(CUDA REQUIRED)
 

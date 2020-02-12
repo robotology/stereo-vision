@@ -22,7 +22,6 @@
 
 # Build products
 /build*/
-modules/DispModule/sgbm_cuda/build/
 
 # Editor project files
 *.kdev4
