@@ -50,7 +50,7 @@ cv::Mat compute_disparity(cv::Mat *left_img, cv::Mat *right_img, float *cost_tim
 	static bool is_first_called = true;
 	if(is_first_called)
 	{
-		std::cout<<"First Called\n";
+//		std::cout<<"First Called\n";
 		is_first_called = false;
 		rows = left_img->rows;
 		cols = left_img->cols;

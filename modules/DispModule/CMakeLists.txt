@@ -19,8 +19,6 @@ endif()
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIR})
 
-set(OpenCV_LIBRARIES "opencv_features2d;opencv_imgproc;opencv_core;opencv_cudastereo;opencv_ximgproc;opencv_xfeatures2d")
-
 find_package(CUDA REQUIRED)
 
 include_directories(${CUDA_INCLUDE_DIRS})
