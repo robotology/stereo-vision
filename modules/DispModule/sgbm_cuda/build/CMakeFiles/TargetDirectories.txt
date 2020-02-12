@@ -1,3 +1,0 @@
-/home/damiano/Downloads/Libraries/sgbm_cuda/build/CMakeFiles/rebuild_cache.dir
-/home/damiano/Downloads/Libraries/sgbm_cuda/build/CMakeFiles/ZED_with_OpenCV.dir
-/home/damiano/Downloads/Libraries/sgbm_cuda/build/CMakeFiles/edit_cache.dir
