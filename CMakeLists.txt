@@ -18,18 +18,20 @@ list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH}
                               ${ICUBCONTRIB_MODULE_PATH}
                               ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-find_package(OpenCV REQUIRED)
-
-set(USE_SIFT_GPU FALSE CACHE BOOL "Select false to run without GPU, or true for GPU acceleration")
-if(USE_SIFT_GPU)
-    find_package(SIFTGPU REQUIRED)
-endif()
+#set(USE_SIFT_GPU FALSE CACHE BOOL "Select false to run without GPU, or true for GPU acceleration")
+#if(USE_SIFT_GPU)
+#    find_package(SIFTGPU REQUIRED)
+#endif()
 
 include(ICUBcontribHelpers)
 include(ICUBcontribOptions)
 icubcontrib_set_default_prefix()
 
+## locate OpenCV libraries
+find_package(OpenCV REQUIRED)
+
 set(COMPILE_LIB FALSE CACHE BOOL "Select false not to compile library")
+
 ## add libraries
 if(COMPILE_LIB)
     add_subdirectory(lib)

@@ -400,10 +400,18 @@ bool SFM::updateModule()
 
     if (outDisp.getOutputCount()>0)
     {
+
+        //std::cout << "WITHIN OUTDISP.GETOUC" << std::endl;
+
         outputDm = stereo->getDisparity();
 
         if (!outputDm.empty())
         {
+
+            //std::cout << "OUTPUT SIZE AND CHANNELS" << std::endl;
+            //std::cout << outputDm.size() << std::endl;
+            //std::cout << outputDm.channels() << std::endl;
+
             ImageOf<PixelMono> &outim = outDisp.prepare();
             Mat outimMat;
             if (doBLF)
@@ -414,6 +422,7 @@ bool SFM::updateModule()
             }
             else
             {
+
                 outimMat = outputDm;
             }
             outim = fromCvMat<PixelMono>(outimMat);
@@ -787,7 +796,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
 
 
 /******************************************************************************/
-Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2, 
+Point3f SFM::get3DPointMatch(double u1, double v1, double u2, double v2,
                              const string &drive)
 {
     Point3f point(0.0f,0.0f,0.0f);
@@ -958,7 +967,7 @@ void SFM::convert(Mat& mat, Matrix& matrix)
 
 
 /******************************************************************************/
-bool SFM::respond(const Bottle& command, Bottle& reply) 
+bool SFM::respond(const Bottle& command, Bottle& reply)
 {
     if(command.size()==0)
         return false;
@@ -1340,7 +1349,7 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldCartImg,
 
 
 /******************************************************************************/
-void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist, 
+void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
                     set<int> &visited, Bottle &res)
 {
     for (int x=seed.x-1; x<=seed.x+1; x++)
