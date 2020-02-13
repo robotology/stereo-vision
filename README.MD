@@ -1,38 +1,45 @@
-# **Last updates to the DisparityModule**
+Stereo Vision
+============
 
-The following is a list of the last updates to the `DisparityModule` code, which has been refactored a little with respect to its original state under the name of `SFM`. The GUI proposed in the previous iterations has changed, so to avoid additional dependencies to be added to the `stereo-vision` repository.
+A C++ [YARP](https://github.com/robotology/yarp) library that provides the **iCub** robot with stereo vision capabilities.
 
-These items are not the full list, but give a general overview of the last changes made to the code.
+[![ZenHub](https://img.shields.io/badge/Shipping_faster_with-ZenHub-435198.svg)](https://zenhub.com)
 
----
+## Installation
 
-## **Code Refactoring**
+##### Dependencies
+- [YARP](https://github.com/robotology/yarp)
+- [iCub](https://github.com/robotology/icub-main)
+- [icub-contrib-common](https://github.com/robotology/icub-contrib-common)
+- [OpenCV](http://opencv.org/downloads.html) (**>=2.4** and with **SIFT** features available)
+- [SiftGPU](http://cs.unc.edu/~ccwu/siftgpu) (optional but suggested for better performance)
+- [CUDA](https://developer.nvidia.com/cuda-downloads) 
 
-In the previous versions of the SFM module, a few functionalities were spread around in the code. The `StereoCamera` also carried out the stereo matching phase, making the code more bloated than needed.
+We also make use of [libelas](http://www.cvlibs.net/software/libelas/) for computing disparity maps, but there is no need to download it, since it is embedded inside the code.
 
-Things were moved a little, with the following organization:
+## Documentation
 
-- `StereoCamera`: handles everything related to the geometry of the stereo system (as before), has been cleaned of everything related to the computation of the disparity maps
-- `DisparityModule`: this module implements the main logic driving the computation of the disparity map, exposing the ports through which an user can obtain both the disparity and depth maps. This is the only object which interfaces itself with the (optional) graphical user interface.
-- `StereoMatcherNew`: is the newly included element which job is to carry out the computation and post-processing operations of the disparity map, by getting the rectified images directly from the `StereoCamera` being used.
+Online documentation is available here: [http://robotology.github.com/stereo-vision](http://robotology.github.com/stereo-vision).
 
----
+## Implementation Details
 
-## **Handling of the Stereo Parameters**
+The main classes introduced by this repository are the following ones:
 
-The stereo parameters were [directly enforced](https://github.com/robotology/stereo-vision/blob/9cbc03ae5d7983bc908d2089abfb5cfae5e55f42/modules/SFM/SFM.cpp#L28) within the code at startup. This choice didn't allow flexibility, for an user which wanted to change the default values had to recompile the whole module.
+- `StereoCamera`: handles everything related to the geometry of the stereo system.
+- `DisparityModule`: implements the main logic driving the computation of the disparity map, exposing the ports through which an user can obtain both the disparity and depth maps. This is the only object which interfaces itself with the (optional) graphical user interface.
+- `StereoMatcherNew`: carries out the computation and post-processing operations of the disparity map, by getting the rectified images directly from the `StereoCamera` being used.
 
-The stereo parameters are now saved within the configuration file `SFM.ini`, and are loaded and saved at runtime. In case the parameters are not available in the configuration file (as in the case you run this new module on a PC for the first time), the usual default values are loaded.
+### **Handling of the Stereo Parameters**
 
-(in addition, the name of the `SFM.ini` file should be updated to match the new name of the module)
+The stereo parameters are saved within the configuration file `SFM.ini`, and are loaded and saved at runtime. In case the parameters are not available in the configuration file (as in the case you run this new module on a PC for the first time), the usual default values are loaded.
 
----
+### **Use of the Module with 640x480 images**
 
-## **GUI**
+The module expects 320x240 images by default. It can be used with 640x480 images by invoking it with the `--use640` flag.
 
-The former graphical interface based on `imgui` has been replaced by [another one](https://github.com/Dovyski/cvui) which only exploits OpenCV's draw primitives to draw the GUI and to handle the interaction with the user.
+### **GUI**
 
-The choice to maintain a GUI is due to the non-trivial amount of fine-tuning which might be needed to carry out every time the DisparityModule is run.
+This repository comes with a [GUI](https://github.com/Dovyski/cvui) which helps the user during the fine-tuning of the parameters of this module. 
 
 The components (and the code related to) the GUI can be disabled by means of a toggle in the CMake configuration, named `USE_DISPMODULE_GUI`. Disabling it, takes away the single header file representing the GUI base code, together with all the other bits of source related to it. Thus, compiling the module without the GUI included actually removes everything about it from the final result.
 
@@ -42,17 +49,9 @@ The components (and the code related to) the GUI can be disabled by means of a t
 
 The GUI makes it now easier to recalibrate the stereo system, to save the calibration, to load default stereo parameters and to save the current ones. Once it is not useful anymore, it can be quitted, closing it for the rest of the execution.
 
----
+When compiled with GUI functionalities, the module can be launched with the graphical interface by invoking it with the flag `--gui`.
 
-## **Support connection script**
-
-The code is now shipped with a `connect.sh` bash script, which simply connects the output camCalib ports to the ones used by the `DisparityModule` as input for the left and right images. 
-
-In case the user invokes the `connect.sh` script with an additional parameter `port_name`, the script also connects the disparity output port of the module to the port `port_name`.
-
----
-
-## **Inserting a novel stereo matching algorithm**
+### **Inserting a novel stereo matching algorithm**
 
 It is possible to add a new stereo matching method by editing the content of just a few files. These are the steps to follow:
 
@@ -64,7 +63,7 @@ It is possible to add a new stereo matching method by editing the content of jus
 
    ```
 
-   - add a new item to the enumeration used to represent the different matching algorithms available:
+   - add a new item to the [enumeration](https://github.com/damianomal/stereo-vision/blob/01ba763f6220d9bdcea31aaa50fd88538154a455/modules/DispModule/StereoMatcher.h#L27) used to represent the different matching algorithms available:
 
    ```cpp
    enum SM_MATCHING_ALG {
@@ -104,7 +103,7 @@ It is possible to add a new stereo matching method by editing the content of jus
 
 4. file `StereoMatcher.cpp`:
 
-   - add the handling of the new matching algorithm in the `switch` within the `StereoMatcherNew::compute()` function:
+   - add the handling of the new matching algorithm in the [`switch`](https://github.com/damianomal/stereo-vision/blob/01ba763f6220d9bdcea31aaa50fd88538154a455/modules/DispModule/StereoMatcher.cpp#L67) within the `StereoMatcherNew::compute()` function:
 
    ```cpp
    case SM_MATCHING_ALG::METHODX:
@@ -114,7 +113,7 @@ It is possible to add a new stereo matching method by editing the content of jus
 
 The following additional step is optional, and meant to be considered only if you plan to use this module with also the GUI functionalities:
 
-1. (optional) file `cvgui.cpp`:
+5. (optional) file `cvgui.cpp`:
 
    - add a new checkbox to the radioButtons call at [line 114](https://github.com/damianomal/stereo-vision/blob/01ba763f6220d9bdcea31aaa50fd88538154a455/modules/DispModule/cvgui.cpp#L114):
 
@@ -153,42 +152,17 @@ The following additional step is optional, and meant to be considered only if yo
            break;
    }
    ```
----
 
-## **Known (negligible) issues**
+### **Known (negligible) issues**
 
 A few things are not complete (however, they don't compromise the functionality of the module), and still require a quick correction each one:
 
-   1. the correction of the implementation of the left-right consistency for the WLS filtering
+   1. the implementation of the left-right consistency for the WLS filtering
    2. saving and loading the disparity map refinement threshold from the configuration file
-   3. the original bilateral filtering is not working as supposed to, since when the code has been moved on the iCub PC, the filtering is run but it looks like that the sigmaColor and sigmaSpace parameters are ignored. This is not critical at all, since that filtering process is very slow, and it can be substituted with the CUDA implementation of the bilateral filtering, which is now available. however this issue should be fixed at some point
+   3. the original bilateral filtering is not working as supposed, since when the code has been moved on the iCub PC, the filtering is run but it looks like that the sigmaColor and sigmaSpace parameters are ignored. This is not critical at all, since that filtering process is very slow, and it can be substituted with the CUDA implementation of the bilateral filtering, which is now available. however this issue should be fixed at some point
 
----
-# OLD README.MD SECTION
-
-Stereo Vision
-============
-
-A C++ [YARP](https://github.com/robotology/yarp) library that provides the **iCub** robot with stereo vision capabilities.
-
-[![ZenHub](https://img.shields.io/badge/Shipping_faster_with-ZenHub-435198.svg)](https://zenhub.com)
-
-## Installation
-
-##### Dependencies
-- [YARP](https://github.com/robotology/yarp)
-- [iCub](https://github.com/robotology/icub-main)
-- [icub-contrib-common](https://github.com/robotology/icub-contrib-common)
-- [OpenCV](http://opencv.org/downloads.html) (**>=2.4** and with **SIFT** features available)
-- [SiftGPU](http://cs.unc.edu/~ccwu/siftgpu) (optional but suggested for better performance)
-
-We also make use of [libelas](http://www.cvlibs.net/software/libelas/) for computing
-disparity maps, but there is no need to download it, since it is embedded inside the code.
-
-## Documentation
-
-Online documentation is available here: [http://robotology.github.com/stereo-vision](http://robotology.github.com/stereo-vision).
 
 ## License
 
 Material included here is Copyright of _iCub Facility - Istituto Italiano di Tecnologia_ and is released under the terms of the GPL v2.0 or later. See the file LICENSE for details.
+

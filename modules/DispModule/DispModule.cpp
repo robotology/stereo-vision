@@ -269,7 +269,7 @@ bool DispModule::configure(ResourceFinder & rf)
     // it or not
 
 #ifdef USE_GUI
-    this->debugWindow = rf.check("debug");
+    this->debugWindow = rf.check("gui");
 
     if(this->debugWindow)
     {
@@ -1586,7 +1586,7 @@ DispModule::~DispModule()
 
 DispModule::DispModule()
 {
-    
+    this->debugWindow = false;
 }
 
 
