@@ -401,16 +401,16 @@ bool SFM::updateModule()
     if (outDisp.getOutputCount()>0)
     {
 
-        std::cout << "WITHIN OUTDISP.GETOUC" << std::endl;
+        //std::cout << "WITHIN OUTDISP.GETOUC" << std::endl;
 
         outputDm = stereo->getDisparity();
 
         if (!outputDm.empty())
         {
 
-            std::cout << "OUTPUT SIZE AND CHANNELS" << std::endl;
-            std::cout << outputDm.size() << std::endl;
-            std::cout << outputDm.channels() << std::endl;
+            //std::cout << "OUTPUT SIZE AND CHANNELS" << std::endl;
+            //std::cout << outputDm.size() << std::endl;
+            //std::cout << outputDm.channels() << std::endl;
 
             ImageOf<PixelMono> &outim = outDisp.prepare();
             Mat outimMat;
