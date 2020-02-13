@@ -29,10 +29,6 @@ icubcontrib_set_default_prefix()
 
 ## locate OpenCV libraries
 find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIR})
-
-set(OpenCV_LIBRARIES "opencv_features2d;opencv_imgproc;opencv_core;opencv_cudastereo;opencv_ximgproc;opencv_xfeatures2d")
-
 
 set(COMPILE_LIB FALSE CACHE BOOL "Select false not to compile library")
 
