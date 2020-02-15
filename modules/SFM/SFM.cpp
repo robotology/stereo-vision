@@ -622,8 +622,7 @@ Point3f SFM::get3DPointsAndDisp(int u, int v, int& uR, int& vR, const string &dr
         return point;
 
     const Mat& Q=this->stereo->getQ();
-    IplImage disp16=disp16m;
-    CvScalar scal=cvGet2D(&disp16,v,u);
+    CvScalar scal=cvGet2D(&disp16m,v,u);
     double disparity=scal.val[0]/16.0;
 
     uR=u-(int)disparity;
@@ -725,8 +724,7 @@ Point3f SFM::get3DPoints(int u, int v, const string &drive)
         return point;
 
     const Mat& Q=this->stereo->getQ();
-    IplImage disp16=disp16m;
-    CvScalar scal=cvGet2D(&disp16,v,u);
+    CvScalar scal=cvGet2D(&disp16m,v,u);
     double disparity=scal.val[0]/16.0;
     float w=(float)(disparity*Q.at<double>(3,2)+Q.at<double>(3,3));
     point.x=(float)((usign+1)*Q.at<double>(0,0)+Q.at<double>(0,3));
@@ -1288,7 +1286,6 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldCartImg,
     mutexDisp.lock();
     const Mat& Mapper=this->stereo->getMapperL();
     const Mat& disp16m=this->stereo->getDisparity16();
-    IplImage disp16=disp16m;
     const Mat& Q=this->stereo->getQ();
     const Mat& RLrect=this->stereo->getRLrect().t();
     mutexDisp.unlock();
@@ -1324,7 +1321,7 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldCartImg,
             y=(vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3);
             z=Q.at<double>(2,3);
 
-            CvScalar scal=cvGet2D(&disp16,v_,u_);
+            CvScalar scal=cvGet2D(&disp16m,v_,u_);
             double disparity=scal.val[0]/16.0;
             double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
             x/=w; y/=w; z/=w;

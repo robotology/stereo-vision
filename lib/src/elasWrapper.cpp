@@ -16,6 +16,7 @@
  * Public License for more details
  */
 
+#include <opencv2/core/core_c.h>
 #include <iCub/stereoVision/elasWrapper.h>
 
 int64 elasWrapper::workBegin()
@@ -84,8 +85,8 @@ bool elasWrapper::compute_disparity(const cv::Mat &imL, const cv::Mat &imR, cv::
     // prepare input images
     if (imL_scaled.channels() == 3)
     {
-        cv::cvtColor(imL_scaled, imL_scaled, CV_BGR2GRAY);
-        cv::cvtColor(imR_scaled, imR_scaled, CV_BGR2GRAY);
+        cv::cvtColor(imL_scaled, imL_scaled, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(imR_scaled, imR_scaled, cv::COLOR_BGR2GRAY);
     }
     if (!imL_scaled.isContinuous())
         imL_scaled = imL_scaled.clone();

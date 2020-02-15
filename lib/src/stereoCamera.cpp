@@ -16,6 +16,12 @@
  * Public License for more details
  */
 
+#include <opencv2/core/base.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/core/core_c.h>
+#include <opencv2/calib3d/calib3d_c.h>
+
 #ifndef USING_GPU
     #ifdef OPENCV_GREATER_2
         #include <opencv2/xfeatures2d/nonfree.hpp>
@@ -155,6 +161,72 @@ StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
 
 }
 
+void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
+{
+    use_elas = true;
+
+    string elas_string = rf.check("elas_setting",Value("ROBOTICS")).asString();
+
+    double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asDouble();
+
+    elaswrap = new elasWrapper(disp_scaling_factor, elas_string);
+
+
+    if (rf.check("elas_subsampling"))
+        elaswrap->set_subsampling(true);
+
+    if (rf.check("elas_add_corners"))
+        elaswrap->set_add_corners(true);
+
+
+    elaswrap->set_ipol_gap_width(40);
+    if (rf.check("elas_ipol_gap_width"))
+        elaswrap->set_ipol_gap_width(rf.find("elas_ipol_gap_width").asInt());
+
+
+    if (rf.check("elas_support_threshold"))
+        elaswrap->set_support_threshold(rf.find("elas_support_threshold").asDouble());
+
+    if(rf.check("elas_gamma"))
+        elaswrap->set_gamma(rf.find("elas_gamma").asDouble());
+
+    if (rf.check("elas_sradius"))
+        elaswrap->set_sradius(rf.find("elas_sradius").asDouble());
+
+    if (rf.check("elas_match_texture"))
+        elaswrap->set_match_texture(rf.find("elas_match_texture").asInt());
+
+    if (rf.check("elas_filter_median"))
+        elaswrap->set_filter_median(rf.find("elas_filter_median").asBool());
+
+    if (rf.check("elas_filter_adaptive_mean"))
+        elaswrap->set_filter_adaptive_mean(rf.find("elas_filter_adaptive_mean").asBool());
+
+    cout << endl << "ELAS parameters:" << endl << endl;
+
+    cout << "disp_scaling_factor: " << disp_scaling_factor << endl;
+
+    cout << "setting: " << elas_string << endl;
+
+    cout << "postprocess_only_left: " << elaswrap->get_postprocess_only_left() << endl;
+    cout << "subsampling: " << elaswrap->get_subsampling() << endl;
+
+    cout << "add_corners: " << elaswrap->get_add_corners() << endl;
+
+    cout << "ipol_gap_width: " << elaswrap->get_ipol_gap_width() << endl;
+
+    cout << "support_threshold: " << elaswrap->get_support_threshold() << endl;
+    cout << "gamma: " << elaswrap->get_gamma() << endl;
+    cout << "sradius: " << elaswrap->get_sradius() << endl;
+
+    cout << "match_texture: " << elaswrap->get_match_texture() << endl;
+
+    cout << "filter_median: " << elaswrap->get_filter_median() << endl;
+    cout << "filter_adaptive_mean: " << elaswrap->get_filter_adaptive_mean() << endl;
+
+    cout << endl;
+}
+
 
 void StereoCamera::setImages(const Mat &left, const Mat &right) {
     this->imleft=left;
@@ -263,7 +335,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 else
                     resize(img, timg, Size(), scale, scale);
                 found = findChessboardCorners(timg, boardSize, corners,
-                        CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+                        cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE);
                 if( found )
                 {
                     if( scale > 1 )
@@ -278,7 +350,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
             {
                 cout << filename << endl;
                 Mat cimg, cimg1;
-                cvtColor(img, cimg, CV_GRAY2BGR);
+                cvtColor(img, cimg, cv::COLOR_GRAY2BGR);
                 drawChessboardCorners(cimg, boardSize, corners, found);
                 imshow("corners", cimg);
                 char c = (char)cv::waitKey(500);
@@ -328,8 +400,8 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 this->Kright, this->DistR,
                 imageSize, this->R, this->T, E, F,
             #ifdef OPENCV_GREATER_2
-                CV_CALIB_FIX_ASPECT_RATIO+CV_CALIB_ZERO_TANGENT_DIST+CV_CALIB_SAME_FOCAL_LENGTH+
-                CV_CALIB_RATIONAL_MODEL+CV_CALIB_FIX_K3+CV_CALIB_FIX_K4+CV_CALIB_FIX_K5,
+                cv::CALIB_FIX_ASPECT_RATIO+cv::CALIB_ZERO_TANGENT_DIST+cv::CALIB_SAME_FOCAL_LENGTH+
+                cv::CALIB_RATIONAL_MODEL+cv::CALIB_FIX_K3+cv::CALIB_FIX_K4+cv::CALIB_FIX_K5,
                 TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 1e-5));
             #else
                 TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 1e-5),
@@ -344,7 +416,7 @@ void StereoCamera::runStereoCalib(const vector<string>& imagelist, Size boardSiz
                 this->Kright, this->DistR,
                 imageSize, this->R, this->T, E, F,
             #ifdef OPENCV_GREATER_2
-                CV_CALIB_FIX_INTRINSIC,
+                cv::CALIB_FIX_INTRINSIC,
                 TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 1e-5));
             #else
                 TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 1e-5),
@@ -402,7 +474,7 @@ void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
         return;
     }
 
-    FileStorage fs(intrinsicFilePath+".yml", CV_STORAGE_WRITE);
+    FileStorage fs(intrinsicFilePath+".yml", FileStorage::WRITE);
     if( fs.isOpened() )
     {
         fs << "M1" << Kleft << "D1" << DistL << "M2" << Kright << "D2" << DistR;
@@ -411,7 +483,7 @@ void StereoCamera::saveCalibration(string extrinsicFilePath, string intrinsicFil
     else
         cout << "Error: can not save the intrinsic parameters\n";
 
-    fs.open(extrinsicFilePath+".yml", CV_STORAGE_WRITE);
+    fs.open(extrinsicFilePath+".yml", FileStorage::WRITE);
     if( fs.isOpened() )
     {
         fs << "R" << R << "T" << T <<"Q" << Q;
@@ -503,6 +575,147 @@ void StereoCamera::rectifyImages()
 
     cameraChanged = false;
 
+}
+
+
+void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleWindowSize,
+        int speckleRange, int numberOfDisparities, int SADWindowSize,
+        int minDisparity, int preFilterCap, int disp12MaxDiff)
+{
+
+    if (this->Kleft.empty() || this->DistL.empty() || this->Kright.empty() || this->DistR.empty())
+    {
+        cout <<" Cameras are not calibrated! Run the Calibration first!" << endl;
+        return;
+    }
+
+    if (this->imleft.empty() || this->imright.empty())
+    {
+        cout << "Images are not set! set the images first!" << endl;
+        return;
+    }
+
+    Size img_size=this->imleft.size();
+
+    if (cameraChanged)
+    {
+        lock_guard<mutex> lg(mtx);
+        stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size,
+                this->R, this->T, this->RLrect, this->RRrect, this->PLrect,
+                this->PRrect, this->Q, -1);
+
+        if (!rectify)
+        {
+            this->RLrect=Mat::eye(3,3,CV_32FC1);
+            this->RRrect=Mat::eye(3,3,CV_32FC1);
+            this->PLrect=this->Kleft;
+            this->PRrect=this->Kright;
+        }
+    }
+
+    if (cameraChanged)
+    {
+        initUndistortRectifyMap(this->Kleft, this->DistL, this->RLrect, this->PLrect,
+                img_size, CV_32FC1, this->map11, this->map12);
+        initUndistortRectifyMap(this->Kright,  this->DistR, this->RRrect, this->PRrect,
+                img_size, CV_32FC1, this->map21, this->map22);
+    }
+
+    Mat img1r, img2r;
+    remap(this->imleft, img1r, this->map11, this->map12, cv::INTER_LINEAR);
+    remap(this->imright, img2r, this->map21,this->map22, cv::INTER_LINEAR);
+
+    imgLeftRect = img1r;
+    imgRightRect = img2r;
+
+    Mat disp,disp8,map,dispTemp;
+
+    bool success;
+
+    if (use_elas)
+    {
+        success = elaswrap->compute_disparity(img1r, img2r, disp, numberOfDisparities);
+        if (success)
+        {
+            map = disp * (255.0 / numberOfDisparities);
+            //threshold(map, map, 0, 255.0, THRESH_TOZERO);
+        }
+    } else
+    {
+        int cn=this->imleft.channels();
+    #ifdef OPENCV_GREATER_2
+        Ptr<StereoSGBM> sgbm=cv::StereoSGBM::create(minDisparity,numberOfDisparities,SADWindowSize,
+                                                    8*cn*SADWindowSize*SADWindowSize,
+                                                    32*cn*SADWindowSize*SADWindowSize,
+                                                    disp12MaxDiff,preFilterCap,uniquenessRatio,
+                                                    speckleWindowSize,speckleRange,
+                                                    best?StereoSGBM::MODE_HH:StereoSGBM::MODE_SGBM);
+        sgbm->compute(img1r, img2r, disp);
+    #else
+        StereoSGBM sgbm;
+        sgbm.preFilterCap =         preFilterCap; //63
+        sgbm.SADWindowSize =        SADWindowSize;        
+        sgbm.P1 =                   8*cn*SADWindowSize*SADWindowSize;
+        sgbm.P2 =                   32*cn*SADWindowSize*SADWindowSize;
+        sgbm.minDisparity =         minDisparity; //-15
+        sgbm.numberOfDisparities =  numberOfDisparities;
+        sgbm.uniquenessRatio =      uniquenessRatio; //22
+        sgbm.speckleWindowSize =    speckleWindowSize; //100
+        sgbm.speckleRange =         speckleRange; //32
+        sgbm.disp12MaxDiff =        disp12MaxDiff;
+        sgbm.fullDP =               best; // alg == STEREO_HH
+
+        sgbm(img1r, img2r, disp);
+    #endif
+
+        disp.convertTo(map, CV_32FC1, 1.0,0.0);
+        map.convertTo(map,CV_32FC1,255/(numberOfDisparities*16.));
+        //normalize(map,map, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+
+        success = true;
+    }
+
+    if (success)
+    {
+        if (cameraChanged)
+        {
+            lock_guard<mutex> lg(mtx);
+            Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
+            Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
+
+            for (int y=0; y<map.rows; y++)
+            {
+                for (int x=0; x<map.cols; x++)
+                {
+                    inverseMapL.ptr<float>(y*map.cols+x)[0]=(float)x;
+                    inverseMapL.ptr<float>(y*map.cols+x)[1]=(float)y;
+                    inverseMapR.ptr<float>(y*map.cols+x)[0]=(float)x;
+                    inverseMapR.ptr<float>(y*map.cols+x)[1]=(float)y;
+                }
+            }
+
+            undistortPoints(inverseMapL,inverseMapL,this->Kleft,this->DistL,this->RLrect,this->PLrect);
+            undistortPoints(inverseMapR,inverseMapR,this->Kright,this->DistR,this->RRrect,this->PRrect);
+
+            Mat mapperL=inverseMapL.reshape(2,map.rows);
+            Mat mapperR=inverseMapR.reshape(2,map.rows);
+            this->MapperL=mapperL;
+            this->MapperR=mapperR;
+
+            cameraChanged = false;
+        }
+
+        Mat x;
+        remap(map,dispTemp,this->MapperL,x,cv::INTER_LINEAR);
+        dispTemp.convertTo(disp8,CV_8U);
+
+        if (use_elas)
+            disp.convertTo(disp, CV_16SC1, 16.0);
+    }
+
+    lock_guard<mutex> lg(mtx);
+    this->Disparity = disp8;
+    this->Disparity16 = disp;
 }
 
 
@@ -634,10 +847,10 @@ double StereoCamera::reprojectionErrorAvg() {
     vector<Point2f> reprojection;
 
     projectPoints(Mat(WorldPoints), Mat::eye(3,3,CV_64FC1), Mat::zeros(3,1,CV_64FC1), this->Kleft, Mat(), reprojection);
-    double errorLeft = norm(Mat(InliersL), Mat(reprojection), CV_L2)/InliersL.size();
+    double errorLeft = norm(Mat(InliersL), Mat(reprojection), cv::NORM_L2)/InliersL.size();
 
     projectPoints(Mat(WorldPoints), this->R, this->T, this->Kright, Mat(), reprojection);
-    double errorRight = norm(Mat(InliersR), Mat(reprojection), CV_L2)/InliersR.size();
+    double errorRight = norm(Mat(InliersR), Mat(reprojection), cv::NORM_L2)/InliersR.size();
 
 
     errAvg=(errorLeft+errorRight)/2;
@@ -807,7 +1020,7 @@ void StereoCamera::estimateEssential()
     std::cout << "[StereoCamera] " << filteredL.size() << " Matches Left After Kinematics Filtering." << std::endl;
 
     vector<uchar> status;
-    this->F=findFundamentalMat(Mat(filteredL), Mat(filteredR),status, CV_FM_8POINT, 1, 0.999);
+    this->F=findFundamentalMat(Mat(filteredL), Mat(filteredR), status, CV_FM_8POINT, 1, 0.999);
 
     for (size_t i=0; i<(int) filteredL.size(); i++)
     {
@@ -1770,10 +1983,9 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    IplImage disp16=this->getDisparity16();
+    const cv::Mat& disp16=this->getDisparity16();
 
-
-    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
+    if(u<0 || u>=disp16.size().width || v<0 || v>=disp16.size().height) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -1851,9 +2063,9 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    IplImage disp16=this->getDisparity16();
+    const cv::Mat& disp16=this->getDisparity16();
 
-    if(u<0 || u>=disp16.width || v<0 || v>=disp16.height) {
+    if(u<0 || u>=disp16.size().width || v<0 || v>=disp16.size().height) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
@@ -2018,7 +2230,6 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
 
 Mat StereoCamera::computeWorldImage(Mat &H)
 {
-
     Mat worldImg(Disparity16.rows,Disparity16.cols,CV_32FC3);
 
     if(H.empty())
@@ -2029,7 +2240,6 @@ Mat StereoCamera::computeWorldImage(Mat &H)
         cout <<" Run computeDisparity() method first" << endl;
         return worldImg;
     }
-
 
     Mat dispTemp;
     Mat x;
