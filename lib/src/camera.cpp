@@ -17,10 +17,13 @@
  */
 
 #include <cstdio>
+#include <opencv2/core/base.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
 #include "iCub/stereoVision/camera.h"
 
 Camera::Camera(string intrinsicFilePath) {
-        FileStorage fs(intrinsicFilePath.c_str(), CV_STORAGE_READ);
+        FileStorage fs(intrinsicFilePath.c_str(), FileStorage::READ);
         if(!fs.isOpened())
         {
             printf("Failed to open file %s\n", intrinsicFilePath.c_str());
@@ -65,10 +68,10 @@ void Camera::calibrate(vector<string> imageList, int boardWidth, int boardHeight
          view = cv::imread(imageList[i], 1);
          imageSize = view.size();
          vector<Point2f> pointbuf;
-         cvtColor(view, viewGray, CV_BGR2GRAY); 
+         cvtColor(view, viewGray, cv::COLOR_BGR2GRAY); 
 
          bool found = findChessboardCorners( view, boardSize, pointbuf,
-                                            CV_CALIB_CB_ADAPTIVE_THRESH & CV_CALIB_CB_FAST_CHECK & CV_CALIB_CB_NORMALIZE_IMAGE);
+                                            cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_FAST_CHECK + cv::CALIB_CB_NORMALIZE_IMAGE);
 
          if(found) 
          {
@@ -108,10 +111,10 @@ void Camera::calibrate(string imagesFilePath, int boardWidth, int boardHeight) {
         view = cv::imread(imageList[i], 1);
          imageSize = view.size();
          vector<Point2f> pointbuf;
-         cvtColor(view, viewGray, CV_BGR2GRAY); 
+         cvtColor(view, viewGray, cv::COLOR_BGR2GRAY); 
 
          bool found = findChessboardCorners( view, boardSize, pointbuf,
-                                            CV_CALIB_CB_ADAPTIVE_THRESH & CV_CALIB_CB_FAST_CHECK & CV_CALIB_CB_NORMALIZE_IMAGE);
+                                            cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_FAST_CHECK + cv::CALIB_CB_NORMALIZE_IMAGE);
 
 
          if(found) 
@@ -172,7 +175,7 @@ bool Camera::runCalibration( vector<vector<Point2f> > imagePoints,
                     double& totalAvgErr)
 {
     cameraMatrix = Mat::eye(3, 3, CV_64F);
-    if( flags & CV_CALIB_FIX_ASPECT_RATIO )
+    if( flags & cv::CALIB_FIX_ASPECT_RATIO )
         cameraMatrix.at<double>(0,0) = aspectRatio;
     
     distCoeffs = Mat::zeros(4, 1, CV_64F);
@@ -183,7 +186,7 @@ bool Camera::runCalibration( vector<vector<Point2f> > imagePoints,
     objectPoints.resize(imagePoints.size(),objectPoints[0]);
     
     double rms = calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix,
-                    distCoeffs, rvecs, tvecs,CV_CALIB_FIX_K3);
+                    distCoeffs, rvecs, tvecs, cv::CALIB_FIX_K3);
     printf("RMS error reported by calibrateCamera: %g\n", rms);
     
     bool ok = checkRange(cameraMatrix) && checkRange(distCoeffs);
@@ -220,7 +223,7 @@ double Camera::computeReprojectionErrors(
     {
         projectPoints(Mat(objectPoints[i]), rvecs[i], tvecs[i],
                       cameraMatrix, distCoeffs, imagePoints2);
-        err = norm(Mat(imagePoints[i]), Mat(imagePoints2), CV_L2);
+        err = norm(Mat(imagePoints[i]), Mat(imagePoints2), cv::NORM_L2);
         int n = (int)objectPoints[i].size();
         perViewErrors[i] = (float)std::sqrt(err*err/n);
         totalErr += err*err;

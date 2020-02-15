@@ -16,6 +16,7 @@
  * Public License for more details
  */
 
+#include <opencv2/core/core_c.h>
 #include "iCub/stereoVision/disparityThread.h"
 
 bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes)
@@ -476,9 +477,7 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
     u=cvRound(usign);
     v=cvRound(vsign);
 
-    IplImage disp16=disparity;
-
-    if(disparity.empty() || u<0 || u>=disp16.width || v<0 || v>=disp16.height)
+    if(disparity.empty() || u<0 || u>=disparity.size().width || v<0 || v>=disparity.size().height)
     {
         point.x=0.0;
         point.y=0.0;
@@ -488,7 +487,7 @@ void DisparityThread::triangulate(Point2f &pixel,Point3f &point)
     }
     else 
     {
-        CvScalar scal=cvGet2D(&disp16,v,u);
+        CvScalar scal=cvGet2D(&disparity,v,u);
         double dispVal=scal.val[0]/16.0;
         float w= (float) ((float) dispVal*Q.at<double>(3,2)) + ((float)Q.at<double>(3,3));
         point.x= (float)((float) (usign+1)*Q.at<double>(0,0)) + ((float) Q.at<double>(0,3));

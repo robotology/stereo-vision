@@ -37,15 +37,11 @@ endif()
 set(folder_source src/camera.cpp
                   src/stereoCamera.cpp
                   src/disparityThread.cpp
-                  src/opticalFlowThread.cpp
-                  src/sceneFlow.cpp
                   src/elasWrapper.cpp)
 
 set(folder_header include/iCub/stereoVision/camera.h
                   include/iCub/stereoVision/stereoCamera.h
                   include/iCub/stereoVision/disparityThread.h
-                  include/iCub/stereoVision/opticalFlowThread.h
-                  include/iCub/stereoVision/sceneFlow.h
                   include/iCub/stereoVision/elasWrapper.h
                   include/iCub/stereoVision/elas/elas.h
                   include/iCub/stereoVision/elas/descriptor.h
