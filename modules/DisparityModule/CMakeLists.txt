@@ -6,12 +6,12 @@ project(DisparityModule)
 
 add_subdirectory(sgbm_cuda)
 
-set(USE_DISPMODULE_GUI ON CACHE BOOL "Select ON to compile with the GUI code")
+set(USE_DISPARITYMODULE_GUI ON CACHE BOOL "Select ON to compile with the GUI code")
 
 set(source DispModule.cpp StereoMatcher.cpp)
 set(header DispModule.h StereoMatcher.h)
 
-if(USE_DISPMODULE_GUI)
+if(USE_DISPARITYMODULE_GUI)
     list(APPEND source cvgui.cpp)
     list(APPEND header cvgui.h)
 endif()
@@ -34,7 +34,7 @@ if(USE_SIFT_GPU)
     target_compile_definitions(${PROJECT_NAME} PRIVATE USING_GPU)
 endif()
 
-if(USE_DISPMODULE_GUI)
+if(USE_DISPARITYMODULE_GUI)
     target_compile_definitions(${PROJECT_NAME} PRIVATE USE_GUI)
 endif()
 

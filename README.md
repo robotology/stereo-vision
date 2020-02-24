@@ -41,10 +41,10 @@ The module expects 320x240 images by default. It can be used with 640x480 images
 
 This repository comes with a [GUI](https://github.com/Dovyski/cvui) which helps the user during the fine-tuning of the parameters of this module. 
 
-The components (and the code related to) the GUI can be disabled by means of a toggle in the CMake configuration, named `USE_DISPMODULE_GUI`. Disabling it, takes away the single header file representing the GUI base code, together with all the other bits of source related to it. Thus, compiling the module without the GUI included actually removes everything about it from the final result.
+The components (and the code related to) the GUI can be disabled by means of a toggle in the CMake configuration, named `USE_DISPARITYMODULE_GUI`. Disabling it, takes away the single header file representing the GUI base code, together with all the other bits of source related to it. Thus, compiling the module without the GUI included actually removes everything about it from the final result.
 
 <p align="center">
-  <img src="gui.png">
+  <img src="./assets/gui.png">
 </p>
 
 The GUI makes it now easier to recalibrate the stereo system, to save the calibration, to load default stereo parameters and to save the current ones. Once it is not useful anymore, it can be quitted, closing it for the rest of the execution.
@@ -63,7 +63,7 @@ It is possible to add a new stereo matching method by editing the content of jus
 
    ```
 
-   - add a new item to the [enumeration](https://github.com/damianomal/stereo-vision/blob/01ba763f6220d9bdcea31aaa50fd88538154a455/modules/DispModule/StereoMatcher.h#L27) used to represent the different matching algorithms available:
+   - add a new item to the [enumeration](./modules/DisparityModule/StereoMatcher.h#L27) used to represent the different matching algorithms available:
 
    ```cpp
    enum SM_MATCHING_ALG {
@@ -91,7 +91,7 @@ It is possible to add a new stereo matching method by editing the content of jus
 
 3. file `DisparityModule.cpp`:
 
-   - enrich the content of [line 246](https://github.com/damianomal/stereo-vision/blob/01ba763f6220d9bdcea31aaa50fd88538154a455/modules/DispModule/DispModule.cpp#L246), with the new algorithm available, adding a new **keyword** to select it at configuration time:
+   - enrich the content of [line 246](./modules/DisparityModule/DispModule.cpp#L246), with the new algorithm available, adding a new **keyword** to select it at configuration time:
 
    ```cpp
    if (rf.check("sgbm"))
@@ -103,7 +103,7 @@ It is possible to add a new stereo matching method by editing the content of jus
 
 4. file `StereoMatcher.cpp`:
 
-   - add the handling of the new matching algorithm in the [`switch`](https://github.com/damianomal/stereo-vision/blob/01ba763f6220d9bdcea31aaa50fd88538154a455/modules/DispModule/StereoMatcher.cpp#L67) within the `StereoMatcherNew::compute()` function:
+   - add the handling of the new matching algorithm in the [`switch`](./modules/DisparityModule/StereoMatcher.cpp#L67) within the `StereoMatcherNew::compute()` function:
 
    ```cpp
    case SM_MATCHING_ALG::METHODX:
@@ -115,13 +115,13 @@ The following additional step is optional, and meant to be considered only if yo
 
 5. (optional) file `cvgui.cpp`:
 
-   - add a new checkbox to the radioButtons call at [line 114](https://github.com/damianomal/stereo-vision/blob/01ba763f6220d9bdcea31aaa50fd88538154a455/modules/DispModule/cvgui.cpp#L114):
+   - add a new checkbox to the radioButtons call at [line 114](./modules/DisparityModule/cvgui.cpp#L114):
 
    ```cpp
    this->updated |= cvuimine::radioButtons(frame, "Stereo Matching Alg.:", {"SGBM", "SGBM_CUDA", "LibElas", "MethodX"}, {20, 90, 190, 260}, 0);
    ```
 
-   **NOTE**: you might want to enlarge the GUI window, since now there are more options in the radio buttons group associated with the choice of the stereo matching algorithm, this can be done by changing [line 60](https://github.com/damianomal/stereo-vision/blob/01ba763f6220d9bdcea31aaa50fd88538154a455/modules/DispModule/cvgui.cpp#L60) of the file:
+   **NOTE**: you might want to enlarge the GUI window, since now there are more options in the radio buttons group associated with the choice of the stereo matching algorithm, this can be done by changing [line 60](./modules/DisparityModule/cvgui.cpp#L60) of the file:
 
    ```cpp
    int gui_width = 450;   
