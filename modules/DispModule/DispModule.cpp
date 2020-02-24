@@ -1105,7 +1105,7 @@ Point3f DispModule::get3DPoints(int u, int v, const string &drive)
     if ((drive!="RIGHT") && (drive!="LEFT") && (drive!="ROOT"))
         return point;
 
-    LockGuard lg(mutexDisp);
+    std::lock_guard<std::mutex> lg(mutexDisp);
 
     // Mapping from Rectified Cameras to Original Cameras
     const Mat& Mapper=this->stereo->getMapperL();

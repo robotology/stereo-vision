@@ -235,6 +235,7 @@ against OpenCV versions: 2.4.
 #include <fstream>
 #include <set>
 #include <deque>
+#include <mutex>
 
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
@@ -308,9 +309,9 @@ class DispModule: public yarp::os::RFModule
     Params stereo_parameters, original_parameters;
 
     // mutex and other handles needed by the module
-    yarp::os::Mutex mutexRecalibration;
+    std::mutex mutexRecalibration;
     Event calibEndEvent;
-    yarp::os::Mutex mutexDisp;
+    std::mutex mutexDisp;
 
     ResourceFinder localCalibration;
 
