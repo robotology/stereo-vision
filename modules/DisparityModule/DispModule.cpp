@@ -1610,7 +1610,6 @@ int main(int argc, char *argv[])
         }
 
     ResourceFinder rf;
-    rf.setVerbose(true);
 
     if(use640)
         rf.setDefaultConfigFile("icubEyes_640x480.ini");

@@ -1387,7 +1387,6 @@ int main(int argc, char *argv[])
         return 1;
 
     ResourceFinder rf;
-    rf.setVerbose(true);
     rf.setDefaultConfigFile("icubEyes.ini");
     rf.setDefaultContext("cameraCalibration");
     rf.configure(argc,argv);
