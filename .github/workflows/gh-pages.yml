@@ -30,7 +30,7 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}
           git clone --depth 1 --branch master https://github.com/robotology/yarp.git
-          echo "::set-env name=YARP_SOURCE_DIR::${GITHUB_WORKSPACE}/yarp"
+          echo "YARP_SOURCE_DIR=${GITHUB_WORKSPACE}/yarp" >> ${GITHUB_ENV}
 
       - name: Clone and rebase
         run: |
