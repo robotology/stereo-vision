@@ -12,7 +12,7 @@ A C++ [YARP](https://github.com/robotology/yarp) library that provides the **iCu
 - [iCub](https://github.com/robotology/icub-main)
 - [icub-contrib-common](https://github.com/robotology/icub-contrib-common)
 - [OpenCV](http://opencv.org/downloads.html) (**>=2.4** and with **SIFT** features available)
-- [SiftGPU](http://cs.unc.edu/~ccwu/siftgpu) (optional but suggested for better performance)
+- [SiftGPU](https://github.com/pitzer/SiftGPU) (optional but suggested for better performance)
 - [CUDA](https://developer.nvidia.com/cuda-downloads) 
 
 We also make use of [libelas](http://www.cvlibs.net/software/libelas/) for computing disparity maps, but there is no need to download it, since it is embedded inside the code.
