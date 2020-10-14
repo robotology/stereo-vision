@@ -1321,7 +1321,8 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldCartImg,
             y=(vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3);
             z=Q.at<double>(2,3);
 
-            CvScalar scal=cvGet2D(&disp16m,v_,u_);
+            CvScalar scal = disp16m.at<long>(v_, u_);
+
             double disparity=scal.val[0]/16.0;
             double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
             x/=w; y/=w; z/=w;
