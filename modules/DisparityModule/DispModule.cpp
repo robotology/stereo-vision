@@ -487,9 +487,6 @@ bool DispModule::close()
     delete utils;
 #endif
 
-#ifdef USE_GUI
-    delete &gui;
-#endif
 
     return true;
 }
