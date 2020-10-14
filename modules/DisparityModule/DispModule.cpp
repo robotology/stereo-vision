@@ -386,6 +386,10 @@ void DispModule::initializeStereoParams()
     this->stereo_parameters.wls_lambda = 4500.;
     this->stereo_parameters.wls_sigma = 1.0;
 
+    this->stereo_parameters.stereo_matching = SM_MATCHING_ALG::SGBM_OPENCV;
+    this->stereo_parameters.BLFfiltering = SM_BLF_FILTER::BLF_DISABLED;
+    this->stereo_parameters.WLSfiltering = SM_WLS_FILTER::WLS_DISABLED;
+
     this->original_parameters = this->stereo_parameters;
 }
 
