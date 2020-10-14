@@ -386,6 +386,10 @@ void DispModule::initializeStereoParams()
     this->stereo_parameters.wls_lambda = 4500.;
     this->stereo_parameters.wls_sigma = 1.0;
 
+    this->stereo_parameters.stereo_matching = SM_MATCHING_ALG::SGBM_OPENCV;
+    this->stereo_parameters.BLFfiltering = SM_BLF_FILTER::BLF_DISABLED;
+    this->stereo_parameters.WLSfiltering = SM_WLS_FILTER::WLS_DISABLED;
+
     this->original_parameters = this->stereo_parameters;
 }
 
@@ -1600,24 +1604,16 @@ int main(int argc, char *argv[])
     // rough quick check of the command line parameters, 
     // has to be definitely made in a smart way
 
-    bool use640 = false;
-
-    for(int i = 0; i < argc; i++)
-        if(strcmp(argv[i], "--use640") == 0)
-        {
-            use640 = true;
-            break;
-        }
-
     ResourceFinder rf;
+    rf.setDefaultContext("cameraCalibration");
+    rf.configure(argc, argv);
 
-    if(use640)
+    if(rf.check("use640"))
         rf.setDefaultConfigFile("icubEyes_640x480.ini");
     else
         rf.setDefaultConfigFile("icubEyes.ini");
 
-    rf.setDefaultContext("cameraCalibration");
-    rf.configure(argc,argv);
+    rf.configure(argc, argv);
 
     DispModule mod;
     
