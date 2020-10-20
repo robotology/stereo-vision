@@ -29,3 +29,6 @@
 # Linux temp files
 *~
 
+# MacOS files
+*.DS_Store
+

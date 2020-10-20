@@ -15,7 +15,7 @@ A C++ [YARP](https://github.com/robotology/yarp) library that provides the **iCu
 - [SiftGPU](https://github.com/pitzer/SiftGPU) (optional but suggested for better performance)
 - [CUDA](https://developer.nvidia.com/cuda-downloads) 
 
-We also make use of [libelas](http://www.cvlibs.net/software/libelas/) for computing disparity maps, but there is no need to download it, since it is embedded inside the code.
+We also make use of [LIBELAS](http://www.cvlibs.net/software/libelas/) for computing disparity maps, but there is no need to download it, since it is incorporated inside this code. For more information about how we incorporate the library, please see this [README](./lib/include/iCub/stereoVision/elas/README.md).
 
 ## Documentation
 
@@ -164,5 +164,5 @@ A few things are not complete (however, they don't compromise the functionality 
 
 ## License
 
-Material included here is Copyright of _iCub Facility - Istituto Italiano di Tecnologia_ and is released under the terms of the GPL v2.0 or later. See the file LICENSE for details.
-
+The files contained in this repository are licensed under the [GNU General Public License v2.0 later](http://www.gnu.org/licenses/gpl.html) (see the file [LICENSE](./LICENSE) for details), except the following files:
+- files from the [LIBELAS](http://www.cvlibs.net/software/libelas/) library which have been incorporated into this code: see this [README](./lib/include/iCub/stereoVision/elas/README.md) for the specification of which files
