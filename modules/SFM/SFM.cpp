@@ -19,6 +19,7 @@
 #include <cmath>
 #include <algorithm>
 #include <yarp/cv/Cv.h>
+#include <opencv2/core/types.hpp>
 #include "SFM.h"
 
 using namespace yarp::cv;
@@ -1321,7 +1322,7 @@ void SFM::fillWorld3D(ImageOf<PixelRgbFloat> &worldCartImg,
             y=(vsign+1)*Q.at<double>(1,1)+Q.at<double>(1,3);
             z=Q.at<double>(2,3);
 
-            CvScalar scal = disp16m.at<long>(v_, u_);
+            cv::Scalar scal(disp16m.at<long>(v_, u_));
 
             double disparity=scal.val[0]/16.0;
             double w=disparity*Q.at<double>(3,2)+Q.at<double>(3,3);
