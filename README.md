@@ -19,7 +19,7 @@ We also make use of [LIBELAS](http://www.cvlibs.net/software/libelas/) for compu
 
 ## Documentation
 
-Online documentation is available here: [http://robotology.github.com/stereo-vision](http://robotology.github.com/stereo-vision).
+Online documentation is available here: https://robotology.github.io/stereo-vision.
 
 ## Implementation Details
 
