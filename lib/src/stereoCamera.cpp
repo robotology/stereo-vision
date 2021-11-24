@@ -167,7 +167,7 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
 
     string elas_string = rf.check("elas_setting",Value("ROBOTICS")).asString();
 
-    double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asDouble();
+    double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asFloat64();
 
     elaswrap = new elasWrapper(disp_scaling_factor, elas_string);
 
@@ -181,20 +181,20 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
 
     elaswrap->set_ipol_gap_width(40);
     if (rf.check("elas_ipol_gap_width"))
-        elaswrap->set_ipol_gap_width(rf.find("elas_ipol_gap_width").asInt());
+        elaswrap->set_ipol_gap_width(rf.find("elas_ipol_gap_width").asInt32());
 
 
     if (rf.check("elas_support_threshold"))
-        elaswrap->set_support_threshold(rf.find("elas_support_threshold").asDouble());
+        elaswrap->set_support_threshold(rf.find("elas_support_threshold").asFloat64());
 
     if(rf.check("elas_gamma"))
-        elaswrap->set_gamma(rf.find("elas_gamma").asDouble());
+        elaswrap->set_gamma(rf.find("elas_gamma").asFloat64());
 
     if (rf.check("elas_sradius"))
-        elaswrap->set_sradius(rf.find("elas_sradius").asDouble());
+        elaswrap->set_sradius(rf.find("elas_sradius").asFloat64());
 
     if (rf.check("elas_match_texture"))
-        elaswrap->set_match_texture(rf.find("elas_match_texture").asInt());
+        elaswrap->set_match_texture(rf.find("elas_match_texture").asInt32());
 
     if (rf.check("elas_filter_median"))
         elaswrap->set_filter_median(rf.find("elas_filter_median").asBool());
@@ -2331,17 +2331,17 @@ bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, M
     if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
         return false;
 
-    double fx=left.find("fx").asDouble();
-    double fy=left.find("fy").asDouble();
+    double fx=left.find("fx").asFloat64();
+    double fy=left.find("fy").asFloat64();
 
-    double cx=left.find("cx").asDouble();
-    double cy=left.find("cy").asDouble();
+    double cx=left.find("cx").asFloat64();
+    double cy=left.find("cy").asFloat64();
 
-    double k1=left.check("k1",Value(0)).asDouble();
-    double k2=left.check("k2",Value(0)).asDouble();
+    double k1=left.check("k1",Value(0)).asFloat64();
+    double k2=left.check("k2",Value(0)).asFloat64();
 
-    double p1=left.check("p1",Value(0)).asDouble();
-    double p2=left.check("p2",Value(0)).asDouble();
+    double p1=left.check("p1",Value(0)).asFloat64();
+    double p2=left.check("p2",Value(0)).asFloat64();
 
     DistL=Mat::zeros(1,8,CV_64FC1);
     DistL.at<double>(0,0)=k1;
@@ -2360,17 +2360,17 @@ bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, M
     if(!right.check("fx") || !right.check("fy") || !right.check("cx") || !right.check("cy"))
         return false;
 
-    fx=right.find("fx").asDouble();
-    fy=right.find("fy").asDouble();
+    fx=right.find("fx").asFloat64();
+    fy=right.find("fy").asFloat64();
 
-    cx=right.find("cx").asDouble();
-    cy=right.find("cy").asDouble();
+    cx=right.find("cx").asFloat64();
+    cy=right.find("cy").asFloat64();
 
-    k1=right.check("k1",Value(0)).asDouble();
-    k2=right.check("k2",Value(0)).asDouble();
+    k1=right.check("k1",Value(0)).asFloat64();
+    k2=right.check("k2",Value(0)).asFloat64();
 
-    p1=right.check("p1",Value(0)).asDouble();
-    p2=right.check("p2",Value(0)).asDouble();
+    p1=right.check("p1",Value(0)).asFloat64();
+    p2=right.check("p2",Value(0)).asFloat64();
 
     DistR=Mat::zeros(1,8,CV_64FC1);
     DistR.at<double>(0,0)=k1;
@@ -2391,10 +2391,10 @@ bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, M
     Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
     if (Bottle *pXo=extrinsics.find("HN").asList()) {
         for (int i=0; i<(pXo->size()-4); i+=4) {
-            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
-            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
-            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
-            T.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+            Ro.at<double>(i/4,0)=pXo->get(i).asFloat64();
+            Ro.at<double>(i/4,1)=pXo->get(i+1).asFloat64();
+            Ro.at<double>(i/4,2)=pXo->get(i+2).asFloat64();
+            T.at<double>(i/4,0)=pXo->get(i+3).asFloat64();
         }
     }
     else

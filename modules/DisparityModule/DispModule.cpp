@@ -831,7 +831,7 @@ bool DispModule::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, 
     {
         size_t sz=std::min(eyes.length(),(size_t)bEyes->size());
         for (size_t i=0; i<sz; i++)
-            eyes[i]=bEyes->get(i).asDouble();
+            eyes[i]=bEyes->get(i).asFloat64();
     }
 
     std::cout << "[DisparityModule] Read Eyes Configuration = ("<<eyes.toString(3,3)<<")" << std::endl;
@@ -842,10 +842,10 @@ bool DispModule::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, 
         To=Mat::zeros(3,1,CV_64FC1);
         for (int i=0; i<(pXo->size()-4); i+=4)
         {
-            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
-            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
-            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
-            To.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+            Ro.at<double>(i/4,0)=pXo->get(i).asFloat64();
+            Ro.at<double>(i/4,1)=pXo->get(i+1).asFloat64();
+            Ro.at<double>(i/4,2)=pXo->get(i+2).asFloat64();
+            To.at<double>(i/4,0)=pXo->get(i+3).asFloat64();
         }
     }
     else
@@ -867,7 +867,7 @@ bool DispModule::loadConfigurationFile(yarp::os::ResourceFinder& rf, Mat& Ro, Ma
     {
         size_t sz = std::min(eyes.length(),(size_t)bEyes->size());
         for (size_t i=0; i<sz; i++)
-            eyes[i] = bEyes->get(i).asDouble();
+            eyes[i] = bEyes->get(i).asFloat64();
     }
 
     std::cout << "[DisparityModule] Read Eyes Configuration = ("
@@ -882,10 +882,10 @@ bool DispModule::loadConfigurationFile(yarp::os::ResourceFinder& rf, Mat& Ro, Ma
         To=Mat::zeros(3,1,CV_64FC1);
         for (int i=0; i<(pXo->size()-4); i+=4)
         {
-            Ro.at<double>(i/4,0) = pXo->get(i).asDouble();
-            Ro.at<double>(i/4,1) = pXo->get(i+1).asDouble();
-            Ro.at<double>(i/4,2) = pXo->get(i+2).asDouble();
-            To.at<double>(i/4,0) = pXo->get(i+3).asDouble();
+            Ro.at<double>(i/4,0) = pXo->get(i).asFloat64();
+            Ro.at<double>(i/4,1) = pXo->get(i+1).asFloat64();
+            Ro.at<double>(i/4,2) = pXo->get(i+2).asFloat64();
+            To.at<double>(i/4,0) = pXo->get(i+3).asFloat64();
         }
     }
     else
@@ -896,25 +896,25 @@ bool DispModule::loadConfigurationFile(yarp::os::ResourceFinder& rf, Mat& Ro, Ma
     if (Bottle *pXo=extrinsics.find("params").asList())
     {
 
-        this->stereo_parameters.minDisparity =        pXo->get(0).asInt();
+        this->stereo_parameters.minDisparity =        pXo->get(0).asInt32();
         this->useBestDisp =                           pXo->get(1).asBool();
-        this->stereo_parameters.numberOfDisparities = pXo->get(2).asInt();
-        this->stereo_parameters.SADWindowSize =       pXo->get(3).asInt();
-        this->stereo_parameters.disp12MaxDiff =       pXo->get(4).asInt();
-        this->stereo_parameters.preFilterCap =        pXo->get(5).asInt();
-        this->stereo_parameters.uniquenessRatio =     pXo->get(6).asInt();
-        this->stereo_parameters.speckleWindowSize =   pXo->get(7).asInt();
-        this->stereo_parameters.speckleRange =        pXo->get(8).asInt();
+        this->stereo_parameters.numberOfDisparities = pXo->get(2).asInt32();
+        this->stereo_parameters.SADWindowSize =       pXo->get(3).asInt32();
+        this->stereo_parameters.disp12MaxDiff =       pXo->get(4).asInt32();
+        this->stereo_parameters.preFilterCap =        pXo->get(5).asInt32();
+        this->stereo_parameters.uniquenessRatio =     pXo->get(6).asInt32();
+        this->stereo_parameters.speckleWindowSize =   pXo->get(7).asInt32();
+        this->stereo_parameters.speckleRange =        pXo->get(8).asInt32();
 
-        this->stereo_parameters.sigmaColorBLF =       pXo->get(9).asDouble();
-        this->stereo_parameters.sigmaSpaceBLF =       pXo->get(10).asDouble();
+        this->stereo_parameters.sigmaColorBLF =       pXo->get(9).asFloat64();
+        this->stereo_parameters.sigmaSpaceBLF =       pXo->get(10).asFloat64();
 
-        this->stereo_parameters.wls_lambda =          pXo->get(11).asDouble();
-        this->stereo_parameters.wls_sigma =           pXo->get(12).asDouble();
+        this->stereo_parameters.wls_lambda =          pXo->get(11).asFloat64();
+        this->stereo_parameters.wls_sigma =           pXo->get(12).asFloat64();
 
-        this->stereo_parameters.stereo_matching =     static_cast<SM_MATCHING_ALG>(pXo->get(13).asInt());
-        this->stereo_parameters.BLFfiltering =        static_cast<SM_BLF_FILTER>(pXo->get(14).asInt());
-        this->stereo_parameters.WLSfiltering =        static_cast<SM_WLS_FILTER>(pXo->get(15).asInt());
+        this->stereo_parameters.stereo_matching =     static_cast<SM_MATCHING_ALG>(pXo->get(13).asInt32());
+        this->stereo_parameters.BLFfiltering =        static_cast<SM_BLF_FILTER>(pXo->get(14).asInt32());
+        this->stereo_parameters.WLSfiltering =        static_cast<SM_WLS_FILTER>(pXo->get(15).asInt32());
 
     }
     else
@@ -931,17 +931,17 @@ bool DispModule::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, 
     if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
         return false;
 
-    double fx=left.find("fx").asDouble();
-    double fy=left.find("fy").asDouble();
+    double fx=left.find("fx").asFloat64();
+    double fy=left.find("fy").asFloat64();
 
-    double cx=left.find("cx").asDouble();
-    double cy=left.find("cy").asDouble();
+    double cx=left.find("cx").asFloat64();
+    double cy=left.find("cy").asFloat64();
 
-    double k1=left.check("k1",Value(0)).asDouble();
-    double k2=left.check("k2",Value(0)).asDouble();
+    double k1=left.check("k1",Value(0)).asFloat64();
+    double k2=left.check("k2",Value(0)).asFloat64();
 
-    double p1=left.check("p1",Value(0)).asDouble();
-    double p2=left.check("p2",Value(0)).asDouble();
+    double p1=left.check("p1",Value(0)).asFloat64();
+    double p2=left.check("p2",Value(0)).asFloat64();
 
     DistL=Mat::zeros(1,8,CV_64FC1);
     DistL.at<double>(0,0)=k1;
@@ -959,17 +959,17 @@ bool DispModule::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, 
     if(!right.check("fx") || !right.check("fy") || !right.check("cx") || !right.check("cy"))
         return false;
 
-    fx=right.find("fx").asDouble();
-    fy=right.find("fy").asDouble();
+    fx=right.find("fx").asFloat64();
+    fy=right.find("fy").asFloat64();
 
-    cx=right.find("cx").asDouble();
-    cy=right.find("cy").asDouble();
+    cx=right.find("cx").asFloat64();
+    cy=right.find("cy").asFloat64();
 
-    k1=right.check("k1",Value(0)).asDouble();
-    k2=right.check("k2",Value(0)).asDouble();
+    k1=right.check("k1",Value(0)).asFloat64();
+    k2=right.check("k2",Value(0)).asFloat64();
 
-    p1=right.check("p1",Value(0)).asDouble();
-    p2=right.check("p2",Value(0)).asDouble();
+    p1=right.check("p1",Value(0)).asFloat64();
+    p2=right.check("p2",Value(0)).asFloat64();
 
     DistR=Mat::zeros(1,8,CV_64FC1);
     DistR.at<double>(0,0)=k1;
@@ -1289,7 +1289,7 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
     }
 
     if (command.get(0).asString()=="help") {
-        reply.addVocab(Vocab::encode("many"));
+        reply.addVocab32("many");
         reply.addString("Available commands are:");
         reply.addString("- [calibrate]: It recomputes the camera positions once.");
         reply.addString("- [save]: It saves the current camera positions and uses it when the module starts.");
@@ -1354,7 +1354,7 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="setNumDisp")
     {
-        int dispNum=command.get(1).asInt();
+        int dispNum=command.get(1).asInt32();
         if(dispNum%32==0)
         {
             this->stereo_parameters.numberOfDisparities=dispNum;
@@ -1379,7 +1379,7 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="setMinDisp")
     {
-        int dispNum=command.get(1).asInt();
+        int dispNum=command.get(1).asInt32();
         this->stereo_parameters.minDisparity=dispNum;
         this->setDispParameters(useBestDisp,
                                 this->stereo_parameters.uniquenessRatio,
@@ -1396,15 +1396,15 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="set" && command.size()==10)
     {
-        bool useBestDisp=command.get(1).asInt() ? true : false;
-        int uniquenessRatio=command.get(2).asInt();
-        int speckleWindowSize=command.get(3).asInt();
-        int speckleRange=command.get(4).asInt();
-        int numberOfDisparities=command.get(5).asInt();
-        int SADWindowSize=command.get(6).asInt();
-        int minDisparity=command.get(7).asInt();
-        int preFilterCap=command.get(8).asInt();
-        int disp12MaxDiff=command.get(9).asInt();
+        bool useBestDisp=command.get(1).asInt32() ? true : false;
+        int uniquenessRatio=command.get(2).asInt32();
+        int speckleWindowSize=command.get(3).asInt32();
+        int speckleRange=command.get(4).asInt32();
+        int numberOfDisparities=command.get(5).asInt32();
+        int SADWindowSize=command.get(6).asInt32();
+        int minDisparity=command.get(7).asInt32();
+        int preFilterCap=command.get(8).asInt32();
+        int disp12MaxDiff=command.get(9).asInt32();
 
         this->setDispParameters(useBestDisp,
                                 uniquenessRatio,
@@ -1420,50 +1420,50 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
     }
     else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" )
     {
-        int u = command.get(1).asInt();
-        int v = command.get(2).asInt();
+        int u = command.get(1).asInt32();
+        int v = command.get(2).asInt32();
         Point3f point = this->get3DPoints(u,v);
-        reply.addDouble(point.x);
-        reply.addDouble(point.y);
-        reply.addDouble(point.z);
+        reply.addFloat64(point.x);
+        reply.addFloat64(point.y);
+        reply.addFloat64(point.z);
     }
     else if (command.get(0).asString()=="Right")
     {
-        int u = command.get(1).asInt();
-        int v = command.get(2).asInt();
+        int u = command.get(1).asInt32();
+        int v = command.get(2).asInt32();
         Point3f point = this->get3DPoints(u,v,"RIGHT");
-        reply.addDouble(point.x);
-        reply.addDouble(point.y);
-        reply.addDouble(point.z);
+        reply.addFloat64(point.x);
+        reply.addFloat64(point.y);
+        reply.addFloat64(point.z);
     }
     else if (command.get(0).asString()=="Root")
     {
-        int u = command.get(1).asInt();
-        int v = command.get(2).asInt();
+        int u = command.get(1).asInt32();
+        int v = command.get(2).asInt32();
         Point3f point = this->get3DPoints(u,v,"ROOT");
-        reply.addDouble(point.x);
-        reply.addDouble(point.y);
-        reply.addDouble(point.z);
+        reply.addFloat64(point.x);
+        reply.addFloat64(point.y);
+        reply.addFloat64(point.z);
     }
     else if (command.get(0).asString()=="Rect")
     {
-        int tl_u = command.get(1).asInt();
-        int tl_v = command.get(2).asInt();
-        int br_u = tl_u+command.get(3).asInt();
-        int br_v = tl_v+command.get(4).asInt();
+        int tl_u = command.get(1).asInt32();
+        int tl_v = command.get(2).asInt32();
+        int br_u = tl_u+command.get(3).asInt32();
+        int br_v = tl_v+command.get(4).asInt32();
 
         int step = 1;
         if (command.size()>=6)
-            step=command.get(5).asInt();
+            step=command.get(5).asInt32();
 
         for (int u=tl_u; u<br_u; u+=step)
         {
             for (int v=tl_v; v<br_v; v+=step)
             {
                 Point3f point=this->get3DPoints(u,v,"ROOT");
-                reply.addDouble(point.x);
-                reply.addDouble(point.y);
-                reply.addDouble(point.z);
+                reply.addFloat64(point.x);
+                reply.addFloat64(point.y);
+                reply.addFloat64(point.z);
             }
         }
     }
@@ -1471,27 +1471,27 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
     {
         for (int cnt=1; cnt<command.size()-1; cnt+=2)
         {
-            int u=command.get(cnt).asInt();
-            int v=command.get(cnt+1).asInt();
+            int u=command.get(cnt).asInt32();
+            int v=command.get(cnt+1).asInt32();
             Point3f point=this->get3DPoints(u,v,"ROOT");
-            reply.addDouble(point.x);
-            reply.addDouble(point.y);
-            reply.addDouble(point.z);
+            reply.addFloat64(point.x);
+            reply.addFloat64(point.y);
+            reply.addFloat64(point.z);
         }
     }
     else if (command.get(0).asString()=="cart2stereo")
     {
-        double x = command.get(1).asDouble();
-        double y = command.get(2).asDouble();
-        double z = command.get(3).asDouble();
+        double x = command.get(1).asFloat64();
+        double y = command.get(2).asFloat64();
+        double z = command.get(3).asFloat64();
 
         Point2f pointL = this->projectPoint("left",x,y,z);
         Point2f pointR = this->projectPoint("right",x,y,z);
 
-        reply.addDouble(pointL.x);
-        reply.addDouble(pointL.y);
-        reply.addDouble(pointR.x);
-        reply.addDouble(pointR.y);
+        reply.addFloat64(pointL.x);
+        reply.addFloat64(pointL.y);
+        reply.addFloat64(pointR.x);
+        reply.addFloat64(pointR.y);
     }
     else if (command.get(0).asString()=="bilatfilt" && command.size()==3)
     {
@@ -1499,12 +1499,12 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
             this->doBLF = true;
             reply.addString("Bilateral filter activated.");
         }
-        this->stereo_parameters.sigmaColorBLF = command.get(1).asDouble();
-        this->stereo_parameters.sigmaSpaceBLF = command.get(2).asDouble();
+        this->stereo_parameters.sigmaColorBLF = command.get(1).asFloat64();
+        this->stereo_parameters.sigmaSpaceBLF = command.get(2).asFloat64();
         reply.addString("BLF sigmaColor ");
-        reply.addDouble(this->stereo_parameters.sigmaColorBLF);
+        reply.addFloat64(this->stereo_parameters.sigmaColorBLF);
         reply.addString("BLF sigmaSpace ");
-        reply.addDouble(this->stereo_parameters.sigmaSpaceBLF);
+        reply.addFloat64(this->stereo_parameters.sigmaSpaceBLF);
     }
     else if (command.get(0).asString()=="doBLF")
     {
@@ -1525,8 +1525,8 @@ bool DispModule::respond(const Bottle& command, Bottle& reply)
                 reply.addString("Bilateral Filter ON");
             }
         }
-        reply.addDouble(this->stereo_parameters.sigmaColorBLF);
-        reply.addDouble(this->stereo_parameters.sigmaSpaceBLF);
+        reply.addFloat64(this->stereo_parameters.sigmaColorBLF);
+        reply.addFloat64(this->stereo_parameters.sigmaSpaceBLF);
     }
     else
         reply.addString("NACK");

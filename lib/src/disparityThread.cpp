@@ -28,7 +28,7 @@ bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat&
     {
         size_t sz=std::min(eyes.length(),(size_t)bEyes->size());
         for (size_t i=0; i<sz; i++)
-            eyes[i]=bEyes->get(i).asDouble();
+            eyes[i]=bEyes->get(i).asFloat64();
     }
 
     cout<<"read eyes configuration = ("<<eyes.toString(3,3)<<")"<<endl;
@@ -39,10 +39,10 @@ bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat&
         To=Mat::zeros(3,1,CV_64FC1);
         for (int i=0; i<(pXo->size()-4); i+=4)
         {
-            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
-            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
-            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
-            To.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+            Ro.at<double>(i/4,0)=pXo->get(i).asFloat64();
+            Ro.at<double>(i/4,1)=pXo->get(i+1).asFloat64();
+            Ro.at<double>(i/4,2)=pXo->get(i+2).asFloat64();
+            To.at<double>(i/4,0)=pXo->get(i+3).asFloat64();
         }
     }
     else
@@ -63,17 +63,17 @@ DisparityThread::DisparityThread(const string &name, yarp::os::ResourceFinder &r
     {
         QL.resize(pXo->size());
         for (int i=0; i<(pXo->size()); i++) 
-            QL[i]=pXo->get(i).asDouble();
+            QL[i]=pXo->get(i).asFloat64();
     }
     
     if (Bottle *pXo=pars.find("QR").asList()) 
     {
         QR.resize(pXo->size());
         for (int i=0; i<(pXo->size()); i++) 
-            QR[i]=pXo->get(i).asDouble();
+            QR[i]=pXo->get(i).asFloat64();
     }
 
-    int calib=rf.check("useCalibrated",Value(1)).asInt();
+    int calib=rf.check("useCalibrated",Value(1)).asInt32();
     this->useCalibrated=(calib!=0);
     this->useHorn=useHorn;
     Mat KL, KR, DistL, DistR, R, T;
@@ -378,7 +378,7 @@ bool DisparityThread::threadInit()
 
     Bottle p;
     igaze->getInfo(p);
-    int vHead=(int)p.check(("head_version"),Value(1.0)).asDouble();
+    int vHead=(int)p.check(("head_version"),Value(1.0)).asFloat64();
     stringstream headType;
     headType << "v";
     headType << vHead;
@@ -559,17 +559,17 @@ bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
     if (!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
         return false;
 
-    double fx=left.find("fx").asDouble();
-    double fy=left.find("fy").asDouble();
+    double fx=left.find("fx").asFloat64();
+    double fy=left.find("fy").asFloat64();
 
-    double cx=left.find("cx").asDouble();
-    double cy=left.find("cy").asDouble();
+    double cx=left.find("cx").asFloat64();
+    double cy=left.find("cy").asFloat64();
 
-    double k1=left.check("k1",Value(0)).asDouble();
-    double k2=left.check("k2",Value(0)).asDouble();
+    double k1=left.check("k1",Value(0)).asFloat64();
+    double k2=left.check("k2",Value(0)).asFloat64();
 
-    double p1=left.check("p1",Value(0)).asDouble();
-    double p2=left.check("p2",Value(0)).asDouble();
+    double p1=left.check("p1",Value(0)).asFloat64();
+    double p2=left.check("p2",Value(0)).asFloat64();
 
     DistL=Mat::zeros(1,8,CV_64FC1);
     DistL.at<double>(0,0)=k1;
@@ -588,17 +588,17 @@ bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
     if(!right.check("fx") || !right.check("fy") || !right.check("cx") || !right.check("cy"))
         return false;
 
-    fx=right.find("fx").asDouble();
-    fy=right.find("fy").asDouble();
+    fx=right.find("fx").asFloat64();
+    fy=right.find("fy").asFloat64();
 
-    cx=right.find("cx").asDouble();
-    cy=right.find("cy").asDouble();
+    cx=right.find("cx").asFloat64();
+    cy=right.find("cy").asFloat64();
 
-    k1=right.check("k1",Value(0)).asDouble();
-    k2=right.check("k2",Value(0)).asDouble();
+    k1=right.check("k1",Value(0)).asFloat64();
+    k2=right.check("k2",Value(0)).asFloat64();
 
-    p1=right.check("p1",Value(0)).asDouble();
-    p2=right.check("p2",Value(0)).asDouble();
+    p1=right.check("p1",Value(0)).asFloat64();
+    p2=right.check("p2",Value(0)).asFloat64();
 
     DistR=Mat::zeros(1,8,CV_64FC1);
     DistR.at<double>(0,0)=k1;
@@ -618,10 +618,10 @@ bool DisparityThread::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL
     /*Bottle extrinsics=rf.findGroup("STEREO_DISPARITY");
     if (Bottle *pXo=extrinsics.find("HN").asList()) {
         for (int i=0; i<(pXo->size()-4); i+=4) {
-            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
-            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
-            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
-            T.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+            Ro.at<double>(i/4,0)=pXo->get(i).asFloat64();
+            Ro.at<double>(i/4,1)=pXo->get(i+1).asFloat64();
+            Ro.at<double>(i/4,2)=pXo->get(i+2).asFloat64();
+            T.at<double>(i/4,0)=pXo->get(i+3).asFloat64();
         }
     }
     else

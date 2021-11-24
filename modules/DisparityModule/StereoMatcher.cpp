@@ -308,7 +308,7 @@ void StereoMatcherNew::initELAS(yarp::os::ResourceFinder &rf)
 
     string elas_string = rf.check("elas_setting",Value("ROBOTICS")).asString();
 
-    double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asDouble();
+    double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asFloat64();
 
     this->elaswrap = new elasWrapper(disp_scaling_factor, elas_string);
 
@@ -320,19 +320,19 @@ void StereoMatcherNew::initELAS(yarp::os::ResourceFinder &rf)
 
     elaswrap->set_ipol_gap_width(40);
     if (rf.check("elas_ipol_gap_width"))
-        elaswrap->set_ipol_gap_width(rf.find("elas_ipol_gap_width").asInt());
+        elaswrap->set_ipol_gap_width(rf.find("elas_ipol_gap_width").asInt32());
 
     if (rf.check("elas_support_threshold"))
-        elaswrap->set_support_threshold(rf.find("elas_support_threshold").asDouble());
+        elaswrap->set_support_threshold(rf.find("elas_support_threshold").asFloat64());
 
     if(rf.check("elas_gamma"))
-        elaswrap->set_gamma(rf.find("elas_gamma").asDouble());
+        elaswrap->set_gamma(rf.find("elas_gamma").asFloat64());
 
     if (rf.check("elas_sradius"))
-        elaswrap->set_sradius(rf.find("elas_sradius").asDouble());
+        elaswrap->set_sradius(rf.find("elas_sradius").asFloat64());
 
     if (rf.check("elas_match_texture"))
-        elaswrap->set_match_texture(rf.find("elas_match_texture").asInt());
+        elaswrap->set_match_texture(rf.find("elas_match_texture").asInt32());
 
     if (rf.check("elas_filter_median"))
         elaswrap->set_filter_median(rf.find("elas_filter_median").asBool());

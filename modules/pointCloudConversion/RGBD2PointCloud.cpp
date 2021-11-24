@@ -66,18 +66,18 @@ Bottle RGBD2PointCloud::get_3D_points(const vector<Vector> &pixels, bool color)
         PC_Point *iter = (PC_Point*) &pointer[index*sizeof(PC_Point)];
 
         Bottle &pp=points.addList();
-        pp.addDouble(iter->x);
-        pp.addDouble(iter->y);
-        pp.addDouble(iter->z);
+        pp.addFloat64(iter->x);
+        pp.addFloat64(iter->y);
+        pp.addFloat64(iter->z);
 
         if (color)
         {
             uint8_t a = iter->rgba[2];
-            pp.addInt(a);
+            pp.addInt32(a);
             a = iter->rgba[1];
-            pp.addInt(a);
+            pp.addInt32(a);
             a = iter->rgba[0];
-            pp.addInt(a);
+            pp.addInt32(a);
         }
     }
 
@@ -221,13 +221,13 @@ bool RGBD2PointCloud::configure(ResourceFinder& rf)
 //         translation.resize(3);
 //         rotation.resize(3);
 //         rotation_frame_id   = tf.get(1).asString();
-//         translation[0]      = tf.get(2).asDouble();
-//         translation[1]      = tf.get(3).asDouble();
-//         translation[2]      = tf.get(4).asDouble();
+//         translation[0]      = tf.get(2).asFloat64();
+//         translation[1]      = tf.get(3).asFloat64();
+//         translation[2]      = tf.get(4).asFloat64();
 //
-//         rotation[0]         = tf.get(5).asDouble();
-//         rotation[1]         = tf.get(6).asDouble();
-//         rotation[2]         = tf.get(7).asDouble();
+//         rotation[0]         = tf.get(5).asFloat64();
+//         rotation[1]         = tf.get(6).asFloat64();
+//         rotation[2]         = tf.get(7).asFloat64();
 //     }
 
     frame_id = rosParam.check("frame_id", Value(frame_id)).asString();
@@ -237,7 +237,7 @@ bool RGBD2PointCloud::configure(ResourceFinder& rf)
 
     yInfo() << "Mirrors: x=" << mirrorX << " y=" << mirrorY << " z= " << mirrorZ;
     yInfo() << "Frame id: " << frame_id;
-    scaleFactor = rf.check("scale",   Value(1)).asDouble();
+    scaleFactor = rf.check("scale",   Value(1)).asFloat64();
 
 
     // Initialize the ROS pointCloud data with const values (width & height still unknown here)

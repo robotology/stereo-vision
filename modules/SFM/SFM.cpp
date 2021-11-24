@@ -62,7 +62,7 @@ bool SFM::configure(ResourceFinder &rf)
     string rpc_name=sname+"/rpc";
     string world_name=sname+rf.check("outWorldPort",Value("/world")).asString();
 
-    int calib=rf.check("useCalibrated",Value(1)).asInt();
+    int calib=rf.check("useCalibrated",Value(1)).asInt32();
     bool useCalibrated=(calib!=0);
 
     leftImgPort.open(left);
@@ -465,7 +465,7 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::s
     {
         size_t sz=std::min(eyes.length(),(size_t)bEyes->size());
         for (size_t i=0; i<sz; i++)
-            eyes[i]=bEyes->get(i).asDouble();
+            eyes[i]=bEyes->get(i).asFloat64();
     }
 
     cout<<"read eyes configuration = ("<<eyes.toString(3,3)<<")"<<endl;
@@ -476,10 +476,10 @@ bool SFM::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::s
         To=Mat::zeros(3,1,CV_64FC1);
         for (int i=0; i<(pXo->size()-4); i+=4)
         {
-            Ro.at<double>(i/4,0)=pXo->get(i).asDouble();
-            Ro.at<double>(i/4,1)=pXo->get(i+1).asDouble();
-            Ro.at<double>(i/4,2)=pXo->get(i+2).asDouble();
-            To.at<double>(i/4,0)=pXo->get(i+3).asDouble();
+            Ro.at<double>(i/4,0)=pXo->get(i).asFloat64();
+            Ro.at<double>(i/4,1)=pXo->get(i+1).asFloat64();
+            Ro.at<double>(i/4,2)=pXo->get(i+2).asFloat64();
+            To.at<double>(i/4,0)=pXo->get(i+3).asFloat64();
         }
     }
     else
@@ -497,17 +497,17 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
     if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
         return false;
 
-    double fx=left.find("fx").asDouble();
-    double fy=left.find("fy").asDouble();
+    double fx=left.find("fx").asFloat64();
+    double fy=left.find("fy").asFloat64();
 
-    double cx=left.find("cx").asDouble();
-    double cy=left.find("cy").asDouble();
+    double cx=left.find("cx").asFloat64();
+    double cy=left.find("cy").asFloat64();
 
-    double k1=left.check("k1",Value(0)).asDouble();
-    double k2=left.check("k2",Value(0)).asDouble();
+    double k1=left.check("k1",Value(0)).asFloat64();
+    double k2=left.check("k2",Value(0)).asFloat64();
 
-    double p1=left.check("p1",Value(0)).asDouble();
-    double p2=left.check("p2",Value(0)).asDouble();
+    double p1=left.check("p1",Value(0)).asFloat64();
+    double p2=left.check("p2",Value(0)).asFloat64();
 
     DistL=Mat::zeros(1,8,CV_64FC1);
     DistL.at<double>(0,0)=k1;
@@ -525,17 +525,17 @@ bool SFM::loadIntrinsics(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &Di
     if(!right.check("fx") || !right.check("fy") || !right.check("cx") || !right.check("cy"))
         return false;
 
-    fx=right.find("fx").asDouble();
-    fy=right.find("fy").asDouble();
+    fx=right.find("fx").asFloat64();
+    fy=right.find("fy").asFloat64();
 
-    cx=right.find("cx").asDouble();
-    cy=right.find("cy").asDouble();
+    cx=right.find("cx").asFloat64();
+    cy=right.find("cy").asFloat64();
 
-    k1=right.check("k1",Value(0)).asDouble();
-    k2=right.check("k2",Value(0)).asDouble();
+    k1=right.check("k1",Value(0)).asFloat64();
+    k2=right.check("k2",Value(0)).asFloat64();
 
-    p1=right.check("p1",Value(0)).asDouble();
-    p2=right.check("p2",Value(0)).asDouble();
+    p1=right.check("p1",Value(0)).asFloat64();
+    p2=right.check("p2",Value(0)).asFloat64();
 
     DistR=Mat::zeros(1,8,CV_64FC1);
     DistR.at<double>(0,0)=k1;
@@ -977,7 +977,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     }
 
     if (command.get(0).asString()=="help") {
-        reply.addVocab(Vocab::encode("many"));
+        reply.addVocab32("many");
         reply.addString("Available commands are:");
         reply.addString("- [calibrate]: It recomputes the camera positions once.");
         reply.addString("- [save]: It saves the current camera positions and uses it when the module starts.");
@@ -1041,7 +1041,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="setNumDisp")
     {
-        int dispNum=command.get(1).asInt();
+        int dispNum=command.get(1).asInt32();
         if(dispNum%32==0)
         {
             this->numberOfDisparities=dispNum;
@@ -1058,7 +1058,7 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="setMinDisp")
     {
-        int dispNum=command.get(1).asInt();
+        int dispNum=command.get(1).asInt32();
         this->minDisparity=dispNum;
         this->setDispParameters(useBestDisp,uniquenessRatio,speckleWindowSize,
                 speckleRange,numberOfDisparities,SADWindowSize,
@@ -1069,15 +1069,15 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
 
     if (command.get(0).asString()=="set" && command.size()==10)
     {
-        bool bestDisp=command.get(1).asInt() ? true : false;
-        int uniquenessRatio=command.get(2).asInt();
-        int speckleWindowSize=command.get(3).asInt();
-        int speckleRange=command.get(4).asInt();
-        int numberOfDisparities=command.get(5).asInt();
-        int SADWindowSize=command.get(6).asInt();
-        int minDisparity=command.get(7).asInt();
-        int preFilterCap=command.get(8).asInt();
-        int disp12MaxDiff=command.get(9).asInt();
+        bool bestDisp=command.get(1).asInt32() ? true : false;
+        int uniquenessRatio=command.get(2).asInt32();
+        int speckleWindowSize=command.get(3).asInt32();
+        int speckleRange=command.get(4).asInt32();
+        int numberOfDisparities=command.get(5).asInt32();
+        int SADWindowSize=command.get(6).asInt32();
+        int minDisparity=command.get(7).asInt32();
+        int preFilterCap=command.get(8).asInt32();
+        int disp12MaxDiff=command.get(9).asInt32();
 
         this->setDispParameters(bestDisp,uniquenessRatio,speckleWindowSize,
                                 speckleRange,numberOfDisparities,SADWindowSize,
@@ -1086,62 +1086,62 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     }
     else if (command.get(0).asString()=="Point" || command.get(0).asString()=="Left" )
     {
-        int u = command.get(1).asInt();
-        int v = command.get(2).asInt();
+        int u = command.get(1).asInt32();
+        int v = command.get(2).asInt32();
         Point3f point = this->get3DPoints(u,v);
-        reply.addDouble(point.x);
-        reply.addDouble(point.y);
-        reply.addDouble(point.z);
+        reply.addFloat64(point.x);
+        reply.addFloat64(point.y);
+        reply.addFloat64(point.z);
     }
     else if (!command.get(0).isString() && command.size()==2)
     {
-        int u = command.get(0).asInt();
-        int v = command.get(1).asInt();
+        int u = command.get(0).asInt32();
+        int v = command.get(1).asInt32();
         int uR,vR;
         Point3f point = this->get3DPointsAndDisp(u,v,uR,vR,"ROOT");
-        reply.addDouble(point.x);
-        reply.addDouble(point.y);
-        reply.addDouble(point.z);
-        reply.addInt(uR);
-        reply.addInt(vR);
+        reply.addFloat64(point.x);
+        reply.addFloat64(point.y);
+        reply.addFloat64(point.z);
+        reply.addInt32(uR);
+        reply.addInt32(vR);
     }
     else if (command.get(0).asString()=="Right")
     {
-        int u = command.get(1).asInt();
-        int v = command.get(2).asInt();
+        int u = command.get(1).asInt32();
+        int v = command.get(2).asInt32();
         Point3f point = this->get3DPoints(u,v,"RIGHT");
-        reply.addDouble(point.x);
-        reply.addDouble(point.y);
-        reply.addDouble(point.z);
+        reply.addFloat64(point.x);
+        reply.addFloat64(point.y);
+        reply.addFloat64(point.z);
     }
     else if (command.get(0).asString()=="Root")
     {
-        int u = command.get(1).asInt();
-        int v = command.get(2).asInt();
+        int u = command.get(1).asInt32();
+        int v = command.get(2).asInt32();
         Point3f point = this->get3DPoints(u,v,"ROOT");
-        reply.addDouble(point.x);
-        reply.addDouble(point.y);
-        reply.addDouble(point.z);
+        reply.addFloat64(point.x);
+        reply.addFloat64(point.y);
+        reply.addFloat64(point.z);
     }
     else if (command.get(0).asString()=="Rect")
     {
-        int tl_u = command.get(1).asInt();
-        int tl_v = command.get(2).asInt();
-        int br_u = tl_u+command.get(3).asInt();
-        int br_v = tl_v+command.get(4).asInt();
+        int tl_u = command.get(1).asInt32();
+        int tl_v = command.get(2).asInt32();
+        int br_u = tl_u+command.get(3).asInt32();
+        int br_v = tl_v+command.get(4).asInt32();
 
         int step = 1;
         if (command.size()>=6)
-            step=command.get(5).asInt();
+            step=command.get(5).asInt32();
 
         for (int u=tl_u; u<br_u; u+=step)
         {
             for (int v=tl_v; v<br_v; v+=step)
             {
                 Point3f point=this->get3DPoints(u,v,"ROOT");
-                reply.addDouble(point.x);
-                reply.addDouble(point.y);
-                reply.addDouble(point.z);
+                reply.addFloat64(point.x);
+                reply.addFloat64(point.y);
+                reply.addFloat64(point.z);
             }
         }
     }
@@ -1149,31 +1149,31 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     {
         for (int cnt=1; cnt<command.size()-1; cnt+=2)
         {
-            int u=command.get(cnt).asInt();
-            int v=command.get(cnt+1).asInt();
+            int u=command.get(cnt).asInt32();
+            int v=command.get(cnt+1).asInt32();
             Point3f point=this->get3DPoints(u,v,"ROOT");
-            reply.addDouble(point.x);
-            reply.addDouble(point.y);
-            reply.addDouble(point.z);
+            reply.addFloat64(point.x);
+            reply.addFloat64(point.y);
+            reply.addFloat64(point.z);
         }
     }
     else if (command.get(0).asString()=="Flood3D")
     {
-        cv::Point seed(command.get(1).asInt(),
-                       command.get(2).asInt());
+        cv::Point seed(command.get(1).asInt32(),
+                       command.get(2).asInt32());
 
         double dist=0.004;
         if (command.size()>=4)
-            dist=command.get(3).asDouble();
+            dist=command.get(3).asFloat64();
         
         Point3f p=get3DPoints(seed.x,seed.y,"ROOT");
         if (cv::norm(p)>0.0)
         {
-            reply.addInt(seed.x);
-            reply.addInt(seed.y);
-            reply.addDouble(p.x);
-            reply.addDouble(p.y);
-            reply.addDouble(p.z);
+            reply.addInt32(seed.x);
+            reply.addInt32(seed.y);
+            reply.addFloat64(p.x);
+            reply.addFloat64(p.y);
+            reply.addFloat64(p.z);
 
             set<int> visited;
             visited.insert(seed.x*outputDm.cols+seed.y);
@@ -1185,17 +1185,17 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
     }
     else if (command.get(0).asString()=="cart2stereo")
     {
-        double x = command.get(1).asDouble();
-        double y = command.get(2).asDouble();
-        double z = command.get(3).asDouble();
+        double x = command.get(1).asFloat64();
+        double y = command.get(2).asFloat64();
+        double z = command.get(3).asFloat64();
 
         Point2f pointL = this->projectPoint("left",x,y,z);
         Point2f pointR = this->projectPoint("right",x,y,z);
 
-        reply.addDouble(pointL.x);
-        reply.addDouble(pointL.y);
-        reply.addDouble(pointR.x);
-        reply.addDouble(pointR.y);
+        reply.addFloat64(pointL.x);
+        reply.addFloat64(pointL.y);
+        reply.addFloat64(pointR.x);
+        reply.addFloat64(pointR.y);
     }
     else if (command.get(0).asString()=="bilatfilt" && command.size()==3)
     {
@@ -1203,12 +1203,12 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
             doBLF = true;
             reply.addString("Bilateral filter activated.");
         }
-        sigmaColorBLF = command.get(1).asDouble();
-        sigmaSpaceBLF = command.get(2).asDouble();
+        sigmaColorBLF = command.get(1).asFloat64();
+        sigmaSpaceBLF = command.get(2).asFloat64();
         reply.addString("BLF sigmaColor ");
-        reply.addDouble(sigmaColorBLF);
+        reply.addFloat64(sigmaColorBLF);
         reply.addString("BLF sigmaSpace ");
-        reply.addDouble(sigmaSpaceBLF);
+        reply.addFloat64(sigmaSpaceBLF);
     }
     else if (command.get(0).asString()=="doBLF")
     {
@@ -1229,22 +1229,22 @@ bool SFM::respond(const Bottle& command, Bottle& reply)
                 reply.addString("Bilateral Filter ON");
             }
         }
-        reply.addDouble(sigmaColorBLF);
-        reply.addDouble(sigmaSpaceBLF);
+        reply.addFloat64(sigmaColorBLF);
+        reply.addFloat64(sigmaSpaceBLF);
     }
     else if(command.size()>0 && command.size()%4==0)
     {
         for (int i=0; i<command.size(); i+=4)
         {
-            double ul = command.get(i).asDouble();
-            double vl = command.get(i+1).asDouble();
-            double ur = command.get(i+2).asDouble();
-            double vr = command.get(i+3).asDouble();
+            double ul = command.get(i).asFloat64();
+            double vl = command.get(i+1).asFloat64();
+            double ur = command.get(i+2).asFloat64();
+            double vr = command.get(i+3).asFloat64();
 
             Point3f point= this->get3DPointMatch(ul,vl,ur,vr,"ROOT");
-            reply.addDouble(point.x);
-            reply.addDouble(point.y);
-            reply.addDouble(point.z);
+            reply.addFloat64(point.x);
+            reply.addFloat64(point.y);
+            reply.addFloat64(point.z);
         }
     }
     else
@@ -1366,11 +1366,11 @@ void SFM::floodFill(const Point &seed, const Point3f &p0, const double dist,
                 Point3f p=get3DPoints(x,y,"ROOT");
                 if ((cv::norm(p)>0.0) && (cv::norm(p-p0)<=dist))
                 {
-                    res.addInt(x);
-                    res.addInt(y);
-                    res.addDouble(p.x);
-                    res.addDouble(p.y);
-                    res.addDouble(p.z);
+                    res.addInt32(x);
+                    res.addInt32(y);
+                    res.addFloat64(p.x);
+                    res.addFloat64(p.y);
+                    res.addFloat64(p.z);
 
                     floodFill(Point(x,y),p,dist,visited,res);
                 }
