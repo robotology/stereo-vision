@@ -12,6 +12,12 @@ A C++ [YARP](https://github.com/robotology/yarp) library that provides the **iCu
 - [iCub](https://github.com/robotology/icub-main)
 - [icub-contrib-common](https://github.com/robotology/icub-contrib-common)
 - [OpenCV](http://opencv.org/downloads.html) (**>=2.4** and with **SIFT** features available)
+    1. Download `OpenCV`: `git clone https://github.com/opencv/opencv.git`.
+    2. Checkout the correct branch/tag.
+    3. Download the external modules: `git clone https://github.com/opencv/opencv_contrib.git`.
+    4. Checkout the **same** branch/tag as above.
+    5. Configure `OpenCV` by filling in **`OPENCV_EXTRA_MODULES_PATH`** with the path to `opencv_contrib/modules` and then toggling on all possible modules.
+    6. Compile `OpenCV`.
 - [SiftGPU](https://github.com/pitzer/SiftGPU) (optional but suggested for better performance)
 - [CUDA](https://developer.nvidia.com/cuda-downloads) 
 
