@@ -378,13 +378,9 @@ bool DisparityThread::threadInit()
 
     Bottle p;
     igaze->getInfo(p);
-    int vHead=(int)p.check(("head_version"),Value(1.0)).asFloat64();
-    stringstream headType;
-    headType << "v";
-    headType << vHead;
-
-    LeyeKin=new iCubEye("left_"+headType.str());
-    ReyeKin=new iCubEye("right_"+headType.str());
+    auto vHead=p.check(("head_version"),Value("1.0")).asString();
+    LeyeKin=new iCubEye("left_v"+vHead);
+    ReyeKin=new iCubEye("right_v"+vHead);
     LeyeKin->releaseLink(0);
     LeyeKin->releaseLink(1);
     LeyeKin->releaseLink(2);
