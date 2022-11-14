@@ -12,7 +12,7 @@ project(stereo-vision)
 
 find_package(ICUBcontrib REQUIRED)
 find_package(YARP 3.5.1 COMPONENTS os sig dev math cv rosmsg idl_tools REQUIRED)
-find_package(ICUB REQUIRED)
+find_package(ICUB 2.0.0 REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH}
                               ${ICUBCONTRIB_MODULE_PATH}
