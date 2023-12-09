@@ -19,7 +19,7 @@ if(USE_SIFT_GPU)
     target_compile_definitions(${PROJECT_NAME} PRIVATE USING_GPU)
 endif()
 
-target_link_libraries(${PROJECT_NAME} stereoVision iKin ${OpenCV_LIBRARIES} ${YARP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} stereoVision iKin ${OpenCV_LIBS} ${YARP_LIBRARIES})
 
 if(USE_SIFT_GPU)
 	target_link_libraries(${PROJECT_NAME} ${SIFTGPU_LIBRARIES})
