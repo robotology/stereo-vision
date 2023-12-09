@@ -14,7 +14,7 @@ find_package(CUDA REQUIRED)
 message(STATUS "CUDA:" ${CUDA_INCLUDE_DIRS})
 message(STATUS "OpenCVInclude:" ${OpenCV_INCLUDE_DIRS})
 message(STATUS "OpenCVInclude:" ${OPENCV_INCLUDE_DIRS})
-message(STATUS "OpenCVLibraries:" ${OpenCV_LIBRARIES})
+message(STATUS "OpenCVLibraries:" ${OpenCV_LIBS})
 message(STATUS "OpenCVLibs:" ${OpenCV_LIBS})
 #message(STATUS "OpenCVLibDIR:" ${OpenCV_LIBRARY_DIRS})
 
