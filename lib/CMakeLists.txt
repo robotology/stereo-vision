@@ -77,7 +77,7 @@ if(USE_SIFT_GPU)
     target_compile_definitions(${PROJECT_NAME} PRIVATE USING_GPU)
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} iKin ${YARP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} iKin ${YARP_LIBRARIES})
 
 if(USE_SIFT_GPU)
     target_link_libraries(${PROJECT_NAME} ${SIFTGPU_LIBRARIES})
@@ -89,13 +89,13 @@ endif()
 
 if(USE_SIFT_GPU)
    icubcontrib_export_library(${PROJECT_NAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas
-                                              EXTERNAL_INCLUDE_DIRS ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES} ${SIFTGPU_INCLUDE_DIRS}
+                                              EXTERNAL_INCLUDE_DIRS ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBS} ${SIFTGPU_INCLUDE_DIRS}
                                               DESTINATION include/iCub/${PROJECT_NAME}
                                               FILES_WITH_PATH ${folder_header}
                                               PATH_TO_EXCLUDE include/iCub/stereoVision)
 else()
    icubcontrib_export_library(${PROJECT_NAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/iCub/stereoVision/elas
-                                              EXTERNAL_INCLUDE_DIRS ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBRARIES}
+                                              EXTERNAL_INCLUDE_DIRS ${ICUB_INCLUDE_DIRS} ${OpenCV_LIBS}
                                               DESTINATION include/iCub/${PROJECT_NAME}
                                               FILES_WITH_PATH ${folder_header}
                                               PATH_TO_EXCLUDE include/iCub/stereoVision)
